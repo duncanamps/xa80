@@ -1,0 +1,16 @@
+asm.bat
+temp.txt
+*.dbg
+xa80_todo.xlsx
+backup/
+docs/research/
+lac/xa80.txt
+lib/
+opcodes/lac/opcode_compiler.txt
+opcodes/source/archived/
+*.d80
+*.hex
+*.lst
+*.map
+test_prog/
+*.o80

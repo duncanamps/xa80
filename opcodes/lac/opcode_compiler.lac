@@ -1,0 +1,139 @@
+//======================================================================
+//
+//  opcode_compiler.lac - Language file for the opcode source files
+//  Will be used to compile to *.opcode file into a binary file
+//  which contains the opcodes and operand options
+//
+//  Grammer to deal with a single line from the *.opcode file
+//
+//  Duncan MBunro
+//  28/06/2021
+//
+//  Last updated 28/06/2022
+//
+//======================================================================
+
+%title		= "Duncan's XA80 opcode file processing grammar";
+%version	= "0.1";
+%author		= "Duncan Munro";  
+%start		= <opcode_definition>;
+             
+    
+//
+// Initial Character set definitions
+//
+
+{Digit} 		= [0-9];
+{DigitBin}		= [01];
+{DigitHex}		= {Digit} + [ABCDEFabcdef];
+{DigitNonZero}	= [1-9];
+{Letter} 		= [A-Za-z];
+{OperandNo}		= [12];
+{Printable}		= [\x20-\x7e];
+{Space}			= [\x20];
+{Tab}			= [\t];
+
+// Composite sets
+
+{CommentChar}	= {Printable} + {Tab};
+{Whitespace} 	= {Space} + {Tab};
+
+
+//
+// Terminal Definitions
+//
+
+T_BINBYTE			= "%" {DigitBin}+
+                    | "%" {DigitBin}* "[" {OperandNo} ":" MIXED("B3") "]" {DigitBin}* 
+                    | "%" {DigitBin}* "[" {OperandNo} ":" MIXED("RST") "]" {DigitBin}* 
+					;
+T_DECBYTE			= {DigitNonZero} {Digit}* ;
+T_HEXBYTE			= "$" {DigitHex} {DigitHex} ;
+T_IM				= "[" {OperandNo} ":" MIXED("IM") "]" keyword ;
+T_OPCODE			= {Letter} {Letter}
+					| {Letter} {Letter} {Letter}
+					| {Letter} {Letter} {Letter} {Letter}
+					| {Letter} {Letter} {Letter} {Letter} {Letter}
+					;
+T_OPERAND			= MIXED("A")
+					| MIXED("AF")
+					| MIXED("AF_")
+					| MIXED("B")
+					| MIXED("BC")
+					| MIXED("BC_IND")
+					| MIXED("C")
+					| MIXED("C_IND")
+					| MIXED("D")
+					| MIXED("DE")
+					| MIXED("DE_IND")
+					| MIXED("E")
+					| MIXED("F")
+					| MIXED("H")
+					| MIXED("HL")
+					| MIXED("HL_IND")
+					| MIXED("I")
+					| MIXED("IX")
+					| MIXED("IX_IND")
+					| MIXED("IXPD_IND")
+					| MIXED("IY")
+					| MIXED("IY_IND")
+					| MIXED("IYPD_IND")
+					| MIXED("L")
+					| MIXED("M")
+					| MIXED("NC")
+					| MIXED("NZ")
+					| MIXED("P")
+					| MIXED("PE")
+					| MIXED("PO")
+					| MIXED("PSW")
+					| MIXED("R")
+					| MIXED("SP")
+					| MIXED("SP_IND")
+					| MIXED("U8")
+					| MIXED("U8_IND")
+					| MIXED("U16")
+					| MIXED("U16_IND")
+					| MIXED("Z")
+					keyword ;
+T_R8				= "[" {OperandNo} ":" MIXED("R8") "]" keyword ;	
+T_S8				= "[" {OperandNo} ":" MIXED("S8") "]" keyword ;	
+T_U8				= "[" {OperandNo} ":" MIXED("U8") "]" keyword ;					
+T_U16				= "[" {OperandNo} ":" MIXED("U16") "]" keyword ;					
+T_VERTICALBRACE		= "|";
+T_WHITESPACE		= {Whitespace}+ ignore;                 
+ 
+
+//
+// Lexical groups
+//
+
+T_LINECOMMENT1		= ";" {CommentChar}* ignore;           
+T_LINECOMMENT2		= "//" {CommentChar}* ignore; 
+
+
+//
+// Productions
+//
+
+<opcode_definition> : <instruction>	T_VERTICALBRACE <code>			# ActIgnore
+					|												# ActIgnore
+					;
+					
+<instruction>		: T_OPCODE T_OPERAND T_OPERAND					# ActOpcode2
+					| T_OPCODE T_OPERAND							# ActOpcode1
+					| T_OPCODE										# ActOpcode0
+					;
+					
+<code>				: <code> <code_element>							# ActIgnore
+					| <code_element>								# ActIgnore
+					;
+					
+<code_element>		: T_BINBYTE										# ActCodeBin
+					| T_DECBYTE										# ActCodeDec
+					| T_HEXBYTE										# ActCodeHex
+					| T_IM											# ActCodeIM
+					| T_R8											# ActCodeR8
+					| T_S8											# ActCodeS8
+					| T_U8											# ActCodeU8
+					| T_U16											# ActCodeU16
+					;

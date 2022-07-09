@@ -1,0 +1,473 @@
+//======================================================================
+//
+//  XA80.LAC - Duncan's Cross Assembler for x80 processors
+//  Includes: Z80, Z180
+//
+//  Grammer to deal with a single line from an assembly file
+//
+//  Duncan Munro
+//  30/06/2022
+//
+//  Last updated 30/06/2022
+//
+//======================================================================
+
+%title		= "Duncan's XA80 Cross Assembler Grammar";
+%version	= "0.1";
+%author		= "Duncan Munro";  
+%start		= <assembler_line>;
+             
+    
+//
+// Initial Character set definitions
+//
+
+{Backslash}     = [\x5c];
+{Digit} 		= [0-9];
+{DigitBin}		= [01];
+{DigitNonZero}	= [1-9];
+{DigitOct}		= [0-7];
+{DigitZero}		= [0];
+{DQuote}		= [\x22];
+{Escaped}       = [\x5c\x22\x27tnr];
+{Letter}		= [A-Za-z];
+{Printable}		= [\x20-\x7e];
+{Space}			= [\x20];
+{SQuote}		= [\x27];
+
+
+// Composite sets
+
+{DigitHex}		= {Digit} + [ABCDEFabcdef];
+{CommentChar}	= {Printable} ;
+{NonCurlyChar}	= {Printable} - [}];
+{StringCharDQ}	= {Printable} - {DQuote} - {Backslash};
+{StringCharSQ}	= {Printable} - {SQuote} - {Backslash};
+{Whitespace} 	= {Space} ;  // Tab has already been dealt with by pre-parser
+
+{SymbolStart}	= {Letter} + [_.?];
+{SymbolMid}		= {SymbolStart} + {Digit};                                    
+
+
+//
+// Terminal Definitions
+//
+
+// Operands
+
+T_OPERAND_IX	= MIXED("IX")   keyword;
+T_OPERAND_IY	= MIXED("IY")   keyword;
+
+T_OPERAND_SIMPLE	= MIXED("A")
+					| MIXED("AF") 	
+					| MIXED("AF'") 	
+					| MIXED("B")	
+					| MIXED("BC")	
+					| MIXED("[BC]") 
+					| MIXED("C")
+					| MIXED("[C]")
+					| MIXED("D")	
+					| MIXED("DE")	
+					| MIXED("[DE]") 
+					| MIXED("E")	
+					| MIXED("F")	
+					| MIXED("H")	
+					| MIXED("HL")	
+					| MIXED("[HL]") 
+					| MIXED("I")	
+					| MIXED("L")	
+					| MIXED("M")	
+					| MIXED("NC")	
+					| MIXED("NZ")	
+					| MIXED("P")	
+					| MIXED("PE")	
+					| MIXED("PO")	
+					| MIXED("R")	
+					| MIXED("SP")
+					| MIXED("[SP]") 
+					| MIXED("Z") keyword;
+  
+// Unary and Binary operators
+
+T_BINAND           = "&" 	symbol ;
+T_BINNOT           = "~" 	symbol ;                 
+T_BINOR            = "|"	symbol ;
+T_BINXOR           = "^"    symbol ;                                  
+T_LEFTSHIFT        = "<<"   symbol ;
+T_MODULO           = "%"  	symbol ;
+T_RIGHTSHIFT       = ">>" 	symbol ;
+                                                   
+// Comparison operators
+
+T_EQUAL            = "=="	 symbol ;
+T_GREATERTHAN      = ">" 	 symbol ;
+T_GREATEREQUAL     = ">="	 symbol ;
+T_LESSEQUAL        = "<=" 	 symbol ;                                 
+T_LESSTHAN         = "<"     symbol ;                                  
+T_LOGICALAND       = "&&"    symbol ;                 
+T_LOGICALNOT       = "!"     symbol ;                 
+T_LOGICALOR        = "||"    symbol ;                 
+T_NOTEQUAL         = "!="    symbol ; 
+
+// Other operators
+
+T_ASSIGN		   = "="	 symbol ;
+
+// Literals
+
+T_BINLITERAL       = "0" MIXED("B") {DigitBin}+ | "%"{DigitBin}+ | {DigitBin}+MIXED("B");
+T_DECLITERAL       = {DigitZero} | {DigitNonZero}{Digit}* | {DigitNonZero}{Digit}*d | {DigitNonZero}{Digit}*D;
+T_HEXLITERAL       = ( "0" MIXED("X") {DigitHex}+ | "$"{DigitHex}+ | "#"{DigitHex}+ | {Digit}{DigitHex}*MIXED("H") )  ;
+T_OCTLITERAL       = {DigitOct}+(MIXED("O")|MIXED("Q"));
+
+// Functions
+
+F_ASC				= MIXED("ASC(")			keyword;
+F_BUILD				= MIXED("BUILD()")		keyword;
+F_CHR				= MIXED("CHR(")			keyword;
+F_DATE				= MIXED("DATE()")		keyword;
+F_HEX				= MIXED("HEX(")			keyword;
+F_HIGH				= MIXED("HIGH(")		keyword;
+F_IIF				= MIXED("IIF(")			keyword;
+F_IIFS				= MIXED("IIFS(")		keyword;
+F_LEFT				= MIXED("LEFT(")		keyword;
+F_LOW				= MIXED("LOW(")			keyword;
+F_LOWER				= MIXED("LOWER(")		keyword;
+F_MID				= MIXED("MID(")			keyword;
+F_ORG				= MIXED("ORG(")			keyword;
+F_POS				= MIXED("POS(")			keyword;
+F_RIGHT				= MIXED("RIGHT(")		keyword;
+F_STRING			= MIXED("STRING(")		keyword;
+F_TIME				= MIXED("TIME()")		keyword;
+F_UPPER				= MIXED("UPPER(")		keyword;
+F_VALUE				= MIXED("VALUE(")		keyword;
+
+// Keywords 
+
+K_DB        = MIXED("DB") | MIXED("DEFB")	keyword;
+K_DC		= MIXED("DC") | MIXED("DEFC")	keyword;
+K_DEFINE	= MIXED("DEFINE")	 			keyword;
+K_DM		= MIXED("DM") | MIXED("DEFM")   keyword;
+K_DS 		= MIXED("DS") | MIXED("DEFS")	keyword;
+K_DW 		= MIXED("DW") | MIXED("DEFW")	keyword;
+K_ELSE 		= MIXED("ELSE") 	 			keyword;
+K_END 		= MIXED("END") 		 			keyword;
+K_ENDIF 	= MIXED("ENDIF") 	 			keyword;
+K_ENDM 		= MIXED("ENDM") 	 			keyword;
+K_EQU 		= MIXED("EQU") 		 			keyword;
+K_ERROR 	= MIXED("ERROR") 	 			keyword;
+K_IF 		= MIXED("IF") 		 			keyword;
+K_IFDEF 	= MIXED("IFDEF") 	 			keyword;
+K_IFNDEF 	= MIXED("IFNDEF")  	 			keyword;
+K_INCLUDE   = MIXED("INCLUDE") 	 			keyword;
+K_INCLUDEFL = MIXED("INCLUDEFL") 			keyword;
+K_LIST 		= MIXED("LIST") 	 			keyword;
+K_MACRO 	= MIXED("MACRO") 	 			keyword;
+K_MESSAGE 	= MIXED("MESSAGE") 	 			keyword;
+K_NOLIST 	= MIXED("NOLIST") 	 			keyword;
+K_ORG 		= MIXED("ORG") 		 			keyword;
+K_UNDEFINE  = MIXED("UNDEFINE")  			keyword;
+K_WARNING 	= MIXED("WARNING") 	 			keyword;
+
+// Opcodes for Z80 and Z180
+
+T_OPCODE 	= MIXED("ADC")
+			| MIXED("ADD")
+			| MIXED("AND")
+			| MIXED("BIT")
+			| MIXED("CALL")
+			| MIXED("CCF")
+			| MIXED("CP")
+			| MIXED("CPD")
+			| MIXED("CPDR")
+			| MIXED("CPI")
+			| MIXED("CPIR")
+			| MIXED("CPL")
+			| MIXED("DAA")
+			| MIXED("DEC")
+			| MIXED("DI")
+			| MIXED("DJNZ")
+			| MIXED("EI")
+			| MIXED("EX")
+			| MIXED("EXX")
+			| MIXED("HALT")
+			| MIXED("IM")
+			| MIXED("IN")
+			| MIXED("IN0")
+			| MIXED("INC")
+			| MIXED("IND")
+			| MIXED("INDR")
+			| MIXED("INI")
+			| MIXED("INIR")
+			| MIXED("JP")
+			| MIXED("JR")
+			| MIXED("LD")
+			| MIXED("LDD")
+			| MIXED("LDDR")
+			| MIXED("LDI")
+			| MIXED("LDIR")
+			| MIXED("MULT")
+			| MIXED("NEG")
+			| MIXED("NOP")
+			| MIXED("OR")
+			| MIXED("OTD")
+			| MIXED("OTDM")
+			| MIXED("OTDMR")
+			| MIXED("OTDR")
+			| MIXED("OTI")
+			| MIXED("OTIM")
+			| MIXED("OTIMR")
+			| MIXED("OTIR")
+			| MIXED("OUT")
+			| MIXED("OUT0")
+			| MIXED("OUTD")
+			| MIXED("OUTI")
+			| MIXED("POP")
+			| MIXED("PUSH")
+			| MIXED("RES")
+			| MIXED("RET")
+			| MIXED("RETI")
+			| MIXED("RETN")
+			| MIXED("RL")
+			| MIXED("RLA")
+			| MIXED("RLC")
+			| MIXED("RLCA")
+			| MIXED("RLD")
+			| MIXED("RR")
+			| MIXED("RRA")
+			| MIXED("RRC")
+			| MIXED("RRCA")
+			| MIXED("RRD")
+			| MIXED("RST")
+			| MIXED("SBC")
+			| MIXED("SCF")
+			| MIXED("SET")
+			| MIXED("SLA")
+			| MIXED("SLP")
+			| MIXED("SRA")
+			| MIXED("SRL")
+			| MIXED("SUB")
+			| MIXED("TST")
+			| MIXED("XOR")
+			keyword;
+
+// Labels etc.
+
+T_STRINGCONSTANT	= {DQuote} ({StringCharDQ} | {Backslash} {Escaped})* {DQuote}
+                    | {SQuote} ({StringCharSQ} | {Backslash} {Escaped})* {SQuote}
+					;                
+T_PLACEHOLDER		= "@" {Digit} keyword ;	 // Will create "Unused terminal warning"
+											 // but blocks symbols starting with
+											 // @0, @1, @2... from being created
+											 // An attempt to utilise a placeholder
+											 // outside of a macro should create an
+											 // error
+T_SYMBOLDEF 		= {SymbolStart} {SymbolMid}* ;					
+T_SYMBOLDEFC 		= {SymbolStart} {SymbolMid}* ":";					
+T_WHITESPACE		= {Whitespace}+ ignore;
+
+//
+// Lexical groups
+//
+
+LineComment1		= ";" {CommentChar}* ignore;           
+LineComment2		= "//" {CommentChar}* ignore; 
+InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
+
+
+//==============================================================================
+//
+//  PRODUCTIONS
+//
+//==============================================================================
+
+<assembler_line>	: T_SYMBOLDEFC <optinstruction>						# ActIgnore
+					| <optinstruction>									# ActIgnore
+					| T_SYMBOLDEF K_EQU <expression_U16>				# ActDirDefineExpr
+					| T_SYMBOLDEF T_ASSIGN <expression_U16>				# ActDirSetExpr
+					;
+
+<optinstruction>	: T_OPCODE <operand> "," <operand>				    # ActOpcode2
+					| T_OPCODE <operand>							    # ActOpcode1
+					| T_OPCODE 										    # ActOpcode0
+					| K_DB        <expression_list_A8>					# ActDirDB
+					| K_DC		  <expression_list_str>					# ActDirDC
+					| K_DEFINE	  T_SYMBOLDEF							# ActDirDefine
+					| K_DM		  <expression_list_str>					# ActDirDM
+					| K_DS        <expression_A8>						# ActDirDS
+					| K_DS        <expression_A8> "," <expression_A8> 	# ActDirDS2
+					| K_DW        <expression_list_A16>					# ActDirDW
+					| K_ELSE											# ActDirElse
+					| K_END												# ActDirEnd
+					| K_ENDIF											# ActDirEndif
+					| K_ENDM											# ActDirEndm
+					| K_ERROR     <string_expr>							# ActDirError
+					| K_IF		  <expression>							# ActDirIf
+					| K_IFDEF     T_SYMBOLDEF							# ActDirIfdef
+					| K_IFNDEF    T_SYMBOLDEF							# ActDirIfndef
+					| K_INCLUDE   <string_expr>							# ActDirInclude
+					| K_INCLUDEFL <string_expr>							# ActDirIncludeList
+					| K_LIST											# ActDirList
+					| K_MACRO     T_SYMBOLDEF <param_list>				# ActDirMacroDef
+					| K_MACRO     T_SYMBOLDEF							# ActDirMacroDefNoexpr
+					| K_MESSAGE   <string_expr>							# ActDirMessage
+					| K_NOLIST 											# ActDirNolist
+					| K_ORG       <expression_U16>						# ActDirOrg
+					| K_UNDEFINE  T_SYMBOLDEF							# ActDirUndefine
+					| K_WARNING   <string_expr>							# ActDirWarning
+					| T_ASSIGN    <expression_U16>						# ActDirSet
+					| T_SYMBOLDEF <param_list>							# ActMacroExec
+					| T_SYMBOLDEF 										# ActMacroExecNoparam
+					|													# ActIgnore
+					;
+
+
+<operand> : T_OPERAND_IX											# ActSetOpSimple
+		  | T_OPERAND_IY											# ActSetOpSimple
+		  | T_OPERAND_SIMPLE										# ActSetOpSimple
+		  | "[" T_OPERAND_IX "+" <expression_S8> "]"				# ActSetOpIndOff
+		  | "[" T_OPERAND_IY "+" <expression_S8> "]"				# ActSetOpIndOff
+		  | "[" T_OPERAND_IX "]"									# ActSetOpInd
+		  | "[" T_OPERAND_IY "]"									# ActSetOpInd
+		  | "[" <expression_A16> "]"								# ActSetOpBracketed
+		  | <expression_A16>										# ActSetOpLiteral
+		  ;
+	
+<param_list>	: <param_list> "," T_SYMBOLDEF
+				| T_SYMBOLDEF
+				;
+					
+//===========================================================================					
+//
+// Expression evaluation
+//
+//===========================================================================					
+					
+<expression_list_A8>	: <expression_list_A8> "," <expression_A8>	# ActExprListA8
+						| <expression_A8>								# ActCopy1
+						;
+					
+<expression_list_A16>	: <expression_list_A16> "," <expression_A16>	# ActExprListA16
+						| <expression_A16>							# ActCopy1
+						;
+					
+<expression_A8>			: <expression>								# ActExprA8
+						| T_STRINGCONSTANT							# ActExprCL
+						;
+					
+<expression_S8>			: <expression>								# ActExprS8
+						| T_STRINGCONSTANT							# ActExprCL
+						;
+
+<expression_A16>		: <expression>								# ActExprA16
+						;
+
+<expression_U16>		: <expression>								# ActExprU16
+						;
+						
+
+// ---------------------------------------
+// Logical and integer 32 bit expressions
+// ---------------------------------------
+						
+<expression>		: <expression> T_LOGICALOR <and_expr>			# ActLogOr
+					| <and_expr>									# ActCopy1
+					;
+               
+<and_expr>			: <and_expr> T_LOGICALAND <binor_expr>			# ActLogAnd
+					| <binor_expr>									# ActCopy1
+					;
+             
+<binor_expr>		: <binor_expr> T_BINOR <binxor_expr>			# ActExprOr
+					| <binxor_expr>									# ActCopy1
+					;
+               
+<binxor_expr>		: <binxor_expr> T_BINXOR <binand_expr>			# ActExprXor
+					| <binand_expr>									# ActCopy1
+					;
+                
+<binand_expr>		: <binand_expr> T_BINAND <equate_expr>			# ActExprAnd
+					| <equate_expr>									# ActCopy1
+					;
+                
+<equate_expr>		: <equate_expr> T_EQUAL <compare_expr>			# ActCompEQ
+					| <equate_expr> T_NOTEQUAL <compare_expr>		# ActCompNE
+					| <compare_expr>								# ActCopy1
+					;
+                
+<compare_expr>		: <compare_expr> T_LESSTHAN <shift_expr>		# ActCompLT
+					| <compare_expr> T_GREATERTHAN <shift_expr>		# ActCompGT
+					| <compare_expr> T_LESSEQUAL <shift_expr>		# ActCompLE
+					| <compare_expr> T_GREATEREQUAL <shift_expr>	# ActCompGE
+					| <shift_expr>									# ActCopy1
+					;
+                 
+<shift_expr>		: <shift_expr> T_LEFTSHIFT <add_expr>			# ActExprShl
+					| <shift_expr> T_RIGHTSHIFT <add_expr>			# ActExprShr
+					| <add_expr>									# ActCopy1
+					;
+                 
+<add_expr>			: <add_expr> "+" <mult_expr>					# ActExprAdd
+					| <add_expr> "-" <mult_expr>					# ActExprSub
+					| <mult_expr>									# ActCopy1
+					;
+                 
+<mult_expr>			: <mult_expr> "*" <unary_expr>					# ActExprMul
+					| <mult_expr> "/" <unary_expr>					# ActExprDiv
+					| <mult_expr> T_MODULO <unary_expr>				# ActExprMod
+					| <unary_expr>									# ActCopy1
+					;
+                 
+<unary_expr>		: "-" <value>									# ActExprUnaryMinus
+					| "+" <value>									# ActExprUnaryPlus
+					| T_LOGICALNOT <value>							# ActLogNot
+					| T_BINNOT <value>								# ActExprNot
+					| <value>										# ActCopy1
+					;
+                 
+<value>				: "$" 											# ActValueOrg 
+					| F_ORG ")"										# ActValueOrg
+					| T_HEXLITERAL									# ActHexLiteral
+					| T_DECLITERAL									# ActDecLiteral
+					| T_OCTLITERAL									# ActOctLiteral
+					| T_BINLITERAL									# ActBinLiteral
+					| F_ASC <string_expr> ")"						# ActFuncAsc
+					| F_HIGH <expression> ")"						# ActFuncHigh
+					| F_IIF <expression> "," <expression> "," <expression> ")" # ActFuncIif
+					| F_LOW <expression> ")"						# ActFuncLow
+					| F_POS <string_expr> "," <string_expr> ")"		# ActFuncPos
+					| F_VALUE <string_expr> ")"						# ActFuncValue
+					| T_SYMBOLDEF									# ActValueSymbol
+					| "(" <expression> ")"							# ActExprBracket
+					;
+				
+		
+
+// ----------------------------------
+// String expressions
+// ----------------------------------
+
+<expression_list_str>	: <expression_list_str> "," <string_expr>	# ActExprListStr
+						| <string_expr>								# ActCopy1
+						;
+
+<string_expr>		: <string_expr> "+" <string_result>				# ActStrCat
+					| <string_result>								# ActCopy1
+					;
+                
+<string_result>		: T_STRINGCONSTANT								# ActStringConstant
+					| F_BUILD										# ActStrBuild
+					| F_CHR <expression> ")"						# ActStrChr
+					| F_DATE										# ActStrDate
+					| F_HEX <expression> ")"						# ActStrHex1
+					| F_HEX <expression> "," <expression> ")"		# ActStrHex2
+					| F_IIFS <expression> "," <string_expr> "," <string_expr> ")" # ActFuncIifs
+					| F_LEFT <string_expr> "," <expression> ")"		# ActStrLeft
+					| F_LOWER <string_expr> ")"						# ActStrLower
+					| F_MID <string_expr> "," <expression> "," <expression> ")"	# ActStrMid
+					| F_RIGHT <string_expr> "," <expression> ")"	# ActStrRight
+					| F_STRING <expression> ")"						# ActStrString
+					| F_TIME										# ActStrTime
+					| F_UPPER <string_expr> ")"						# ActStrUpper
+					| T_SYMBOLDEF									# ActStringSymbol
+					;  
