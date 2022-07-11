@@ -147,7 +147,6 @@ F_VALUE				= MIXED("VALUE(")		keyword;
 K_DB        = MIXED("DB") | MIXED("DEFB")	keyword;
 K_DC		= MIXED("DC") | MIXED("DEFC")	keyword;
 K_DEFINE	= MIXED("DEFINE")	 			keyword;
-K_DM		= MIXED("DM") | MIXED("DEFM")   keyword;
 K_DS 		= MIXED("DS") | MIXED("DEFS")	keyword;
 K_DW 		= MIXED("DW") | MIXED("DEFW")	keyword;
 K_ELSE 		= MIXED("ELSE") 	 			keyword;
@@ -256,12 +255,6 @@ T_OPCODE 	= MIXED("ADC")
 T_STRINGCONSTANT	= {DQuote} ({StringCharDQ} | {Backslash} {Escaped})* {DQuote}
                     | {SQuote} ({StringCharSQ} | {Backslash} {Escaped})* {SQuote}
 					;                
-T_PLACEHOLDER		= "@" {Digit} keyword ;	 // Will create "Unused terminal warning"
-											 // but blocks symbols starting with
-											 // @0, @1, @2... from being created
-											 // An attempt to utilise a placeholder
-											 // outside of a macro should create an
-											 // error
 T_SYMBOLDEF 		= {SymbolStart} {SymbolMid}* ;					
 T_SYMBOLDEFC 		= {SymbolStart} {SymbolMid}* ":";					
 T_WHITESPACE		= {Whitespace}+ ignore;
@@ -290,12 +283,11 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 <optinstruction>	: T_OPCODE <operand> "," <operand>				    # ActOpcode2
 					| T_OPCODE <operand>							    # ActOpcode1
 					| T_OPCODE 										    # ActOpcode0
-					| K_DB        <expression_list_A8>					# ActDirDB
+					| K_DB        <expression_list_A8orStr>				# ActDirDB
 					| K_DC		  <expression_list_str>					# ActDirDC
 					| K_DEFINE	  T_SYMBOLDEF							# ActDirDefine
-					| K_DM		  <expression_list_str>					# ActDirDM
 					| K_DS        <expression_A8>						# ActDirDS
-					| K_DS        <expression_A8> "," <expression_A8> 	# ActDirDS2
+					| K_DS        <expression_A8> "," <expression_A8orStr> 	# ActDirDS2
 					| K_DW        <expression_list_A16>					# ActDirDW
 					| K_ELSE											# ActDirElse
 					| K_END												# ActDirEnd
@@ -343,18 +335,21 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 //
 //===========================================================================					
 					
-<expression_list_A8>	: <expression_list_A8> "," <expression_A8>	# ActExprListA8
-						| <expression_A8>								# ActCopy1
-						;
+<expression_list_A8orStr>	: <expression_list_A8orStr> "," <lexpression_A8orStr>	# ActIgnore //# ActExprListA8orStr
+							| <lexpression_A8orStr>									# ActIgnore
+							;
 					
-<expression_list_A16>	: <expression_list_A16> "," <expression_A16>	# ActExprListA16
-						| <expression_A16>							# ActCopy1
+<expression_list_A16>	: <expression_list_A16> "," <lexpression_A16>	# ActIgnore
+						| <lexpression_A16>							    # ActIgnore
 						;
 					
 <expression_A8>			: <expression>								# ActExprA8
+						;
+
+<expression_A8orStr>	: <expression>								# ActExprA8
 						| T_STRINGCONSTANT							# ActExprCL
 						;
-					
+
 <expression_S8>			: <expression>								# ActExprS8
 						| T_STRINGCONSTANT							# ActExprCL
 						;
@@ -364,6 +359,14 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 
 <expression_U16>		: <expression>								# ActExprU16
 						;
+					
+<lexpression_A8orStr>	: <expression>								# ActLExprI
+						| T_STRINGCONSTANT							# ActLExprS
+						;
+
+<lexpression_A16>		: <expression>								# ActLExprI
+						;
+
 						
 
 // ---------------------------------------
@@ -447,8 +450,8 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 // String expressions
 // ----------------------------------
 
-<expression_list_str>	: <expression_list_str> "," <string_expr>	# ActExprListStr
-						| <string_expr>								# ActCopy1
+<expression_list_str>	: <expression_list_str> "," <string_expr>	# ActLExprS
+						| <string_expr>								# ActLExprS
 						;
 
 <string_expr>		: <string_expr> "+" <string_result>				# ActStrCat

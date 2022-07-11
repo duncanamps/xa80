@@ -38,6 +38,7 @@ const
   DEFAULT_LISTING_MARGIN_TOP        = 2;
   DEFAULT_LISTING_PAGE_LENGTH       = 40;
   DEFAULT_LISTING_PAGE_WIDTH        = 120;
+  DEFAULT_ORG                       = 0;
   DEFAULT_PROCESSOR_VALUE           = 'Z80';
   DEFAULT_TAB_SIZE                  = 4;
   INCLUDE_FILE_DELIMITER            = ',';

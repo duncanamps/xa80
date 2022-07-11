@@ -14,3 +14,4 @@ opcodes/source/archived/
 *.map
 test_prog/
 *.o80
+test_files/imported/

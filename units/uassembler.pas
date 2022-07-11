@@ -29,7 +29,7 @@ interface
 uses
   Classes, SysUtils, deployment_parser_module_12, deployment_parser_types_12,
   ufilestack, usymbol, uasmglobals, uoutput, uifstack, umacro, udebuglist,
-  uinstruction;
+  uinstruction, Generics.Collections;
 
 
 type
@@ -40,6 +40,18 @@ type
   end;
 
   TOperandArray = array[0..MAX_OPERANDS-1] of TOperand;
+
+  TExprListItemType = (litString,litInteger);
+
+  TExprListItem = record
+    ItemType:     TExprListItemType;
+    StringValue:  string;
+    IntegerValue: integer;
+  end;
+
+  TExprList = class(specialize TList<TExprListItem>)
+
+  end;
 
   TAssembler = class(TLCGParser)
     private
@@ -53,6 +65,7 @@ type
       FCmdIncludes:    TStringList;
       FDebugList:      TDebugList;
       FDefiningMacro:  boolean;
+      FExprList:       TExprList;
       FForceList:      boolean;
       FFilenameSrc:    string;
       FFileStack:      TFileStack;
@@ -96,12 +109,13 @@ type
       function  ActDecLiteral(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirByte(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDB(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirDD(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActDirDC(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDefine(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDefineExpr(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDefineString(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDefmacro(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDS(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActDirDS2(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDSH(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDSZ(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDW(_parser: TLCGParser): TLCGParserStackEntry;
@@ -131,7 +145,8 @@ type
       function  ActExprCL(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprDiv(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprList(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActExprListA8(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActExprListA8orStr(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActExprListStr(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprUnaryMinus(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprMod(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprMul(_parser: TLCGParser): TLCGParserStackEntry;
@@ -155,6 +170,8 @@ type
       function  ActLabelC(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLabelLocal(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLabelLocalC(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActLExprI(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActLExprS(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLogAnd(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLogNot(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLogOr(_parser: TLCGParser): TLCGParserStackEntry;
@@ -233,7 +250,7 @@ type
 implementation
 
 uses
-  uexpression, strutils, fileinfo;
+  uexpression, strutils, fileinfo, uutility;
 
 {
 const CodeTable: array[TOpCode,TAddrMode] of integer = (
@@ -330,6 +347,7 @@ begin
   FCmdDefines := TStringList.Create;
   FCmdIncludes := TStringList.Create;
   FInstructionList := TInstructionList.Create(_processor);
+  FExprList        := TExprList.Create;
   FProcessor := _processor;
   FPass := 0;
   FTabSize := 4;
@@ -340,6 +358,7 @@ end;
 
 destructor TAssembler.Destroy;
 begin
+  FreeAndNil(FExprList);
   FreeAndNil(FInstructionList);
   FCmdIncludes.Free;
   FCmdDefines.Free;
@@ -458,59 +477,73 @@ begin
 end;
 
 function TAssembler.ActDirDB(_parser: TLCGParser): TLCGParserStackEntry;
-var sl: TStringList;
-    i:   integer;
+var i:   integer;
+    op:  integer;
     bval: integer;
+    ch:   char;
 begin
   if not ProcessingAllowed then
     Exit;
-  sl := TStringList.Create;
-  try
-    sl.Delimiter := ',';
-    sl.DelimitedText := _parser.ParserStack[_parser.ParserSP-1].Buf;
-    FBytesFromLine := sl.Count;
-    SetLength(FOutputArr,FBytesFromLine);
-    for i := 0 to sl.Count-1 do
-      begin
-        bval := StrToInt(sl[i]);
-        if (bval > 255) or (bval < -128) then
-          Monitor(ltError,'Byte value %d not in range',[bval]);
-        FOutputArr[i] := bval and $00FF;
-      end;
-    FOutput.Write(FOutputArr,FOrg,FBytesFromLine);
-  finally
-    sl.Free;
-  end;
+  // Get number of bytes in total
+  FBytesFromLine := 0;
+  for i := 0 to FExprList.Count-1 do
+    case FExprList[i].ItemType of
+      litString:  FBytesFromLine := FBytesFromLine + Length(FExprList[i].StringValue);
+      litInteger: FBytesFromLine := FBytesFromLine + 1;
+      otherwise
+        Monitor(ltInternal,'Expression list type not catered for');
+    end; // Case
+  // Now output the bytes
+  SetLength(FOutputArr,FBytesFromLine);
+  op := 0;
+  for i := 0 to FExprList.Count-1 do
+    case FExprList[i].ItemType of
+      litString:  for ch in FExprList[i].StringValue do
+                    begin
+                      FOutputArr[op] := Ord(ch);
+                      Inc(op);
+                    end;
+      litInteger:   begin
+                      bval := FExprList[i].IntegerValue;
+                      if (bval > 255) or (bval < -128) then
+                        Monitor(ltError,'Byte value %d not in range',[bval]);
+                      FOutputArr[op] := bval and $00FF;
+                      Inc(op);
+                    end;
+    end; // Case
+  FOutput.Write(FOutputArr,FOrg,FBytesFromLine);
   Result.Buf := '';
 end;
 
-function TAssembler.ActDirDD(_parser: TLCGParser): TLCGParserStackEntry;
-var sl: TStringList;
-    i:   integer;
-    bval: int64;
+function TAssembler.ActDirDC(_parser: TLCGParser): TLCGParserStackEntry;
+var i:   integer;
+    op:  integer;
+    bval: integer;
+    ch:   char;
 begin
   if not ProcessingAllowed then
     Exit;
-  sl := TStringList.Create;
-  try
-    sl.Delimiter := ',';
-    sl.DelimitedText := _parser.ParserStack[_parser.ParserSP-1].Buf;
-    FBytesFromLine := sl.Count * 4;
-    SetLength(FOutputArr,FBytesFromLine);
-    for i := 0 to sl.Count-1 do
-      begin
-        bval := StrToInt(sl[i]);
-        if (bval > HIGH(uint32)) or (bval < LOW(int32)) then
-          Monitor(ltError,'Byte value %d not in range',[bval]);
-        FOutputArr[i*4+0] := bval and $000000FF;
-        FOutputArr[i*4+1] := (bval shr 8) and $000000FF;
-        FOutputArr[i*4+2] := (bval shr 16) and $000000FF;
-        FOutputArr[i*4+3] := (bval shr 24) and $000000FF;
-      end;
-    FOutput.Write(FOutputArr,FOrg,FBytesFromLine);
-  finally
-    sl.Free;
-  end;
+  // Get number of bytes in total
+  FBytesFromLine := 0;
+  for i := 0 to FExprList.Count-1 do
+    case FExprList[i].ItemType of
+      litString:  FBytesFromLine := FBytesFromLine + Length(FExprList[i].StringValue);
+      otherwise
+        Monitor(ltInternal,'Expression list type not catered for');
+    end; // Case
+  // Now output the bytes
+  SetLength(FOutputArr,FBytesFromLine);
+  op := 0;
+  for i := 0 to FExprList.Count-1 do
+    begin
+      for ch in FExprList[i].StringValue do
+        begin
+          FOutputArr[op] := Ord(ch);
+          Inc(op);
+        end;
+      FOutputArr[op-1] := FOutputArr[op-1] or $80;
+    end; // Case
+  FOutput.Write(FOutputArr,FOrg,FBytesFromLine);
   Result.Buf := '';
 end;
 
@@ -573,17 +606,49 @@ end;
 
 function TAssembler.ActDirDS(_parser: TLCGParser): TLCGParserStackEntry;
 var i:   integer;
-    s:   string;
+    bytes: integer;
 begin
   Result.Buf := '';
   if not ProcessingAllowed then
     Exit;
-  s := _parser.ParserStack[_parser.ParserSP-1].Buf;
-  FBytesFromLine := Length(s);
-  SetLength(FOutputArr,FBytesFromLine);
-  for i := 1 to Length(s) do
-    FOutputArr[i-1] := Ord(s[i]);
-  FOutput.Write(FOutputArr,FOrg,FBytesFromLine);
+  bytes := StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf);
+  if (bytes < 1) or (bytes > 255) then
+    begin
+      Monitor(ltError,'Number of bytes for storage directive not in the range 1-255');
+      Exit;
+    end;
+  FBytesFromLine := bytes;
+  SetLength(FOutputArr,bytes);
+  for i := 1 to bytes do
+    FOutputArr[i-1] := 0;
+  FOutput.Write(FOutputArr,FOrg,bytes);
+end;
+
+function TAssembler.ActDirDS2(_parser: TLCGParser): TLCGParserStackEntry;
+var i:   integer;
+    bytes: integer;
+    code:  integer;
+begin
+  Result.Buf := '';
+  if not ProcessingAllowed then
+    Exit;
+  bytes := StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf);
+  code  := StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf);
+  if (bytes < 1) or (bytes > 255) then
+    begin
+      Monitor(ltError,'Number of bytes for storage directive not in the range 1-255');
+      Exit;
+    end;
+  if (code < 0) or (code > 255) then
+    begin
+      Monitor(ltError,'Fill byte for storage directive not in the range 0-255');
+      Exit;
+    end;
+  FBytesFromLine := bytes;
+  SetLength(FOutputArr,bytes);
+  for i := 1 to bytes do
+    FOutputArr[i-1] := code;
+  FOutput.Write(FOutputArr,FOrg,bytes);
 end;
 
 function TAssembler.ActDirDSH(_parser: TLCGParser): TLCGParserStackEntry;
@@ -629,7 +694,8 @@ begin
     Exit;
   sl := TStringList.Create;
   try
-    sl.Delimiter := ',';
+//    sl.Delimiter := SECRET_DELIMITER;
+    sl.StrictDelimiter := True;
     sl.DelimitedText := _parser.ParserStack[_parser.ParserSP-1].Buf;
     FBytesFromLine := sl.Count*2;
     SetLength(FOutputArr,FBytesFromLine);
@@ -879,18 +945,21 @@ begin
                          StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-{
-function TAssembler.ActExprBracket(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result.Buf := _parser.ParserStack[_parser.ParserSP-2].Buf;
-end;
-}
-
 function TAssembler.ActExprCL(_parser: TLCGParser): TLCGParserStackEntry;
+var s: string;
 begin
   // @@@@@ ADD CODE TO CHECK THE INPUT AND REMOVE EXTERNAL QUOTES
   // @@@@@ ALSO NEED TO DEAL WITH ESCAPE CHARACTERS
-  Result.Buf := _parser.ParserStack[_parser.ParserSP-1].Buf;
+  s := UnEscape(_parser.ParserStack[_parser.ParserSP-1].Buf);
+  Result.Buf := '0';
+  if Length(s) = 0 then
+    Monitor(ltError,'Empty string cannot be used with this directive')
+  else
+    begin
+      if Length(s) > 1 then
+        Monitor(ltWarning,'Only first character of string "%s" used',[s]);
+      Result.Buf := IntToStr(Ord(s[1]));
+    end;
 end;
 
 function TAssembler.ActExprDiv(_parser: TLCGParser): TLCGParserStackEntry;
@@ -906,7 +975,14 @@ begin
                 _parser.ParserStack[_parser.ParserSP-1].Buf;
 end;
 
-function TAssembler.ActExprListA8(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler.ActExprListA8orStr(_parser: TLCGParser): TLCGParserStackEntry;
+begin
+  Result.Buf := _parser.ParserStack[_parser.ParserSP-3].Buf +
+                ',' +
+                _parser.ParserStack[_parser.ParserSP-1].Buf;
+end;
+
+function TAssembler.ActExprListStr(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := _parser.ParserStack[_parser.ParserSP-3].Buf +
                 ',' +
@@ -1095,6 +1171,24 @@ begin
   msg := FSymbols.Define(FPass,False,symbolname,expression);
   if msg <> '' then
     Monitor(ltError,msg);
+end;
+
+function TAssembler.ActLExprI(_parser: TLCGParser): TLCGParserStackEntry;
+var r:    TExprListItem;
+begin
+  r.ItemType := litInteger;
+  r.IntegerValue := StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf);
+  FExprList.Add(r);
+  result.Buf := '';
+end;
+
+function TAssembler.ActLExprS(_parser: TLCGParser): TLCGParserStackEntry;
+var r:    TExprListItem;
+begin
+  r.ItemType := litString;
+  r.StringValue := UnEscape(_parser.ParserStack[_parser.ParserSP-1].Buf);
+  FExprList.Add(r);
+  result.Buf := '';
 end;
 
 function TAssembler.ActLogAnd(_parser: TLCGParser): TLCGParserStackEntry;
@@ -1464,6 +1558,7 @@ begin
   FOperands[0].value    := 0;
   FOperands[1].oper_opt := OPER_NULL;
   FOperands[1].value    := 0;
+  FExprList.Clear;
 end;
 
 procedure TAssembler.InitPass;
@@ -1486,7 +1581,7 @@ begin
   FMacroList.Clear;
   FMacroList.Init;
   FMacroNestLevel := 0;
-  FOrg := $0200;
+  FOrg := DEFAULT_ORG;
   FOutput.Clear;
   // Now add the predefined symbols if present on the command line
   for i := 0 to CmdDefines.Count-1 do
@@ -1737,6 +1832,7 @@ begin
     savedprefix := FLocalPrefix;
     FLocalPrefix := FMacroList.LocalPrefix;
     parms.Delimiter := ',';
+    parms.StrictDelimiter := True;
     parms.DelimitedText := FProcessParms;
     sl := FMacroList.Items[index].FList;
     FFileStack.PushMacro(FProcessMacro,sl,parms);
@@ -1906,12 +2002,14 @@ begin
   RegisterProc('ActDecLiteral',     @ActDecLiteral, _procs);
 //RegisterProc('ActDirByte',        @ActDirByte, _procs);
   RegisterProc('ActDirDB',          @ActDirDB, _procs);
+  RegisterProc('ActDirDC',          @ActDirDC, _procs);
 //RegisterProc('ActDirDD',          @ActDirDD, _procs);
   RegisterProc('ActDirDefine',      @ActDirDefine, _procs);
   RegisterProc('ActDirDefineExpr',  @ActDirDefineExpr, _procs);
 //RegisterProc('ActDirDefineString',@ActDirDefineString, _procs);
 //RegisterProc('ActDirDefmacro',    @ActDirDefmacro, _procs);
   RegisterProc('ActDirDS',          @ActDirDS, _procs);
+  RegisterProc('ActDirDS2',         @ActDirDS2, _procs);
 //RegisterProc('ActDirDSH',         @ActDirDSH, _procs);
 //RegisterProc('ActDirDSZ',         @ActDirDSZ, _procs);
   RegisterProc('ActDirDW',          @ActDirDW, _procs);
@@ -1942,7 +2040,8 @@ begin
   RegisterProc('ActExprCL',         @ActExprCL, _procs);
   RegisterProc('ActExprDiv',        @ActExprDiv, _procs);
 //RegisterProc('ActExprList',       @ActExprList, _procs);
-  RegisterProc('ActExprListA8',     @ActExprListA8, _procs);
+//RegisterProc('ActExprListA8orStr',@ActExprListA8orStr, _procs);
+//RegisterProc('ActExprListStr',    @ActExprListStr, _procs);
   RegisterProc('ActExprUnaryMinus', @ActExprUnaryMinus, _procs);
   RegisterProc('ActExprMod',        @ActExprMod, _procs);
   RegisterProc('ActExprMul',        @ActExprMul, _procs);
@@ -1966,6 +2065,8 @@ begin
 //RegisterProc('ActLabelC',         @ActLabelC, _procs);
 //RegisterProc('ActLabelLocal',     @ActLabelLocal, _procs);
 //RegisterProc('ActLabelLocalC',    @ActLabelLocalC, _procs);
+  RegisterProc('ActLExprI',         @ActLExprI, _procs);
+  RegisterProc('ActLExprS',         @ActLExprS, _procs);
   RegisterProc('ActLogAnd',         @ActLogAnd, _procs);
   RegisterProc('ActLogNot',         @ActLogNot, _procs);
   RegisterProc('ActLogOr',          @ActLogOr, _procs);

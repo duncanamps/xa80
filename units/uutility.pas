@@ -31,8 +31,10 @@ uses
 procedure AugmentIncludes(s: string; list: TStringList);
 procedure CmdOptionToList(app: TCustomApplication; shortopt: char; longopt: string; list: TStringList; delim: boolean = False);
 function ExpandTabs(const _s: string; tabsize: integer): string;
+function InQuotes(const _s: string): boolean;
 function IsPrime(_value: integer): boolean;
 function NextPrime(_value: integer): integer;
+function UnEscape(_s: string): string;
 
 implementation
 
@@ -73,6 +75,11 @@ begin
     end;
 end;
 
+function InQuotes(const _s: string): boolean;
+begin
+  Result := (Length(_s) >= 2) and ((_s[1] = '''') or (_s[1] = '"'));
+end;
+
 function IsPrime(_value: integer): boolean;
 var divisor: integer;
 begin
@@ -94,6 +101,43 @@ begin
   while not IsPrime(_value) do
     _value := _value + 2;
   Result := _value;
+end;
+
+{ Remove enclosing ' or " if present. Turn escape characters into real ones }
+
+function UnEscape(_s: string): string;
+const ESCAPE_PREFIX = '\';
+var ch: char;
+    i:  integer;
+begin
+  Result := '';
+  if InQuotes(_s) then
+    _s := Copy(_s,2,Length(_s)-2); // Remove enclosing quotes
+  i := 1;
+  while i <= Length(_s) do
+    begin
+      ch := _s[i];
+      if ch = ESCAPE_PREFIX then
+        begin
+          if i = Length(_s) then
+            raise Exception.Create('No character present after escape prefix');
+          Inc(i);
+          ch := _s[i];
+          case ch of
+            '\': Result := Result + '\';
+            #34: Result := Result + #34;
+            #39: Result := Result + #39;
+            't': Result := Result + #9;
+            'n': Result := Result + #10;
+            'r': Result := Result + #13;
+            otherwise
+              raise Exception.Create(Format('Illegal escape sequence %s',[ESCAPE_PREFIX + ch]));
+          end; // case
+        end
+      else
+        Result := Result + ch;
+      Inc(i);
+    end;
 end;
 
 end.
