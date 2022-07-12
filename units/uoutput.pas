@@ -75,33 +75,48 @@ begin
   Result := i;
 end;
 
+{ Save as Intel Hex format }
+
 procedure TOutput.SaveHex(const _filename: string);
 var sl: TStringList;
     i:  integer;
+    addr: integer;
+    remaining: integer;
     column: integer;
+    checksum: integer;
     s:      string;
 begin
   if _filename = '' then
     Exit;
   sl := TStringList.Create;
-  s := '';
   try
     column := 0;
-    for i := Lowest to Highest do
+    addr := Lowest;
+    while addr < Highest do
       begin
-        if column = 16 then
+        // Do a line
+        s := ':';
+        remaining := Highest + 1 - addr;
+        if remaining > 16 then
+          remaining := 16;
+        s := s + Format('%2.2X%4.4X00',[remaining,addr]);
+        checksum := remaining + (addr and $ff) + ((addr shr 8) and $ff);
+        for i := 0 to remaining-1 do
           begin
-            sl.Add(s);
-            s := '';
-            column := 0;
+            s := s + Format('%2.2X',[FBytes[addr+i]]);
+            checksum := checksum + FBytes[addr+i];
           end;
-        if column = 0 then
-          s := s + Format('%4.4X:',[i]);
-        s := s + Format(' %2.2X',[FBytes[i]]);
-        Inc(column);
+        s := s + Format('%2.2X',[(-checksum) and $ff]);
+        sl.Add(s);
+        addr := addr + remaining;
       end;
-    if s <> '' then
-      sl.Add(s);
+    // Final line
+    s := ':';
+    remaining := 0;
+    s := s + Format('%2.2X%4.4X01',[remaining,addr]);
+    checksum := remaining + (addr and $ff) + ((addr shr 8) and $ff) + 1;
+    s := s + Format('%2.2X',[(-checksum) and $ff]);
+    sl.Add(s);
     sl.SaveToFile(_filename);
   finally
     sl.Free;

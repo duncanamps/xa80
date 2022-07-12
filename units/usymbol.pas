@@ -210,6 +210,7 @@ begin
               entry.SymName     := UpperCase(_name);
               entry.SymPass     := _pass;
               entry.SymUsed     := False;
+              entry.SymType     := stInteger16;
               if _value >= 0 then
                 begin
                   entry.SymHasValue := True;
@@ -237,6 +238,7 @@ begin
               entry.SymName     := UpperCase(_name);
               entry.SymPass     := _pass;
               entry.SymUsed     := False;
+              entry.SymType     := stInteger16;
               if _value >= 0 then
                 begin
                   entry.SymHasValue := True;

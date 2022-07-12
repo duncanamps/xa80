@@ -96,7 +96,7 @@ begin
   end;
 
   // Help if needed...
-  if HasOption('h', 'help') or (ParamCount < 1) then
+  if HasOption('h', 'help') then
     begin
       WriteHelp;
       Terminate;
@@ -357,9 +357,14 @@ begin
     WriteLn('');
     WriteLn('XA80 Cross Assembler V' + FileVerInfo.VersionStrings.Values['ProductVersion']);
     WriteLn('Copyright (C)2020-' + FormatDateTime('YYYY',Now) + ' Duncan Munro');
-    WriteLn('This program comes with ABSOLUTELY NO WARRANTY; for details type xa80 -w');
-    WriteLn('This is free software, and you are welcome to redistribute it');
-    WriteLn('under certain conditions; type xa80 -r for details.');
+    if ParamCount = 0 then
+      begin
+        WriteLn('This program comes with ABSOLUTELY NO WARRANTY; for details type xa80 -w');
+        WriteLn('This is free software, and you are welcome to redistribute it');
+        WriteLn('under certain conditions; type xa80 -r for details.');
+        WriteLn;
+        WriteLn('Type ''xa80 -h'' for a full list of command line parameters');
+      end;
     WriteLn('');
   finally
     FileVerInfo.Free;

@@ -145,7 +145,7 @@ LD HL_IND D     | $72
 LD HL_IND E     | $73                        
 LD HL_IND H     | $74                        
 LD HL_IND L     | $75                        
-LD HL_IND U8    | $36                        
+LD HL_IND U8    | $36 [2:U8]                        
 LD BC_IND A     | $02                        
 LD DE_IND A     | $12                        
 LD IXPD_IND A   | $DD $77 [1:S8]             
@@ -178,12 +178,12 @@ POP DE          | $D1
 POP HL          | $E1                        
 POP IX          | $DD $E1                    
 POP IY          | $FD $E1                    
-PUSH AF         | $F6                        
-PUSH BC         | $C6                        
-PUSH DE         | $D6                        
-PUSH HL         | $E6                        
-PUSH IX         | $DD $E6                    
-PUSH IY         | $FD $E6  
+PUSH AF         | $F5                        
+PUSH BC         | $C5                        
+PUSH DE         | $D5                        
+PUSH HL         | $E5                        
+PUSH IX         | $DD $E5                    
+PUSH IY         | $FD $E5  
 LD SP HL		| $F9
 LD SP IX		| $DD $F9
 LD SP IY        | $FD $F9                  
@@ -246,7 +246,7 @@ ADC D           | $8A
 ADC E           | $8B
 ADC H           | $8C
 ADC L			| $8D
-ADC U8          | $CE
+ADC U8          | $CE [1:U8]
 ADD HL_IND      | $86
 ADD IXPD_IND    | $DD $86 [2:S8]
 ADD IYPD_IND    | $FD $86 [2:S8]
@@ -257,7 +257,7 @@ ADD D           | $82
 ADD E           | $83
 ADD H           | $84
 ADD L           | $85
-ADD U8          | $C6
+ADD U8          | $C6 [1:U8]
 AND HL_IND      | $A6
 AND IXPD_IND    | $DD $A6 [1:S8]
 AND IYPD_IND    | $FD $A6 [1:S8]
@@ -268,7 +268,7 @@ AND D           | $A2
 AND E           | $A3
 AND H           | $A4
 AND L           | $A5
-AND U8          | $E6
+AND U8          | $E6 [1:U8]
 CP HL_IND       | $BE
 CP IXPD_IND     | $DD $BE [1:S8]
 CP IYPD_IND     | $FD $BE [1:S8]
@@ -279,7 +279,7 @@ CP D            | $BA
 CP E            | $BB
 CP H            | $BC
 CP L            | $BD
-CP U8           | $FE
+CP U8           | $FE [1:U8]
 OR HL_IND       | $B6
 OR IXPD_IND     | $DD $B6 [1:S8]
 OR IYPD_IND     | $FD $B6 [1:S8]
@@ -290,7 +290,7 @@ OR D            | $B2
 OR E            | $B3
 OR H            | $B4
 OR L            | $B5
-OR U8           | $F6
+OR U8           | $F6 [1:U8]
 SBC HL_IND      | $9E
 SBC IXPD_IND    | $DD $9E [1:S8]
 SBC IYPD_IND    | $FD $9E [1:S8]
@@ -301,7 +301,7 @@ SBC D           | $9A
 SBC E           | $9B
 SBC H           | $9C
 SBC L           | $9D
-SBC U8          | $DE
+SBC U8          | $DE [1:U8]
 SUB HL_IND      | $96
 SUB IXPD_IND    | $DD $96 [1:S8]
 SUB IYPD_IND    | $FD $96 [1:S8]
@@ -312,7 +312,7 @@ SUB D           | $92
 SUB E           | $93
 SUB H           | $94
 SUB L           | $95
-SUB U8          | $D6
+SUB U8          | $D6 [1:U8]
 XOR HL_IND      | $AE
 XOR IXPD_IND    | $DD $AE [1:S8]
 XOR IYPD_IND    | $FD $AE [1:S8]
@@ -323,7 +323,7 @@ XOR D           | $AA
 XOR E           | $AB
 XOR H           | $AC
 XOR L           | $AD
-XOR U8          | $EE
+XOR U8          | $EE [1:U8]
 ADC A HL_IND    | $8E                        
 ADC A IXPD_IND  | $DD $8E [2:S8]             
 ADC A IYPD_IND  | $FD $8E [2:S8]             
@@ -334,7 +334,7 @@ ADC A D         | $8A
 ADC A E         | $8B                        
 ADC A H         | $8C                        
 ADC A L         | $8D
-ADC A U8        | $CE                        
+ADC A U8        | $CE [2:U8]                        
 ADD A HL_IND    | $86                        
 ADD A IXPD_IND  | $DD $86 [2:S8]             
 ADD A IYPD_IND  | $FD $86 [2:S8]             
@@ -345,7 +345,7 @@ ADD A D         | $82
 ADD A E         | $83                        
 ADD A H         | $84                        
 ADD A L         | $85                        
-ADD A U8        | $C6                        
+ADD A U8        | $C6 [2:U8]                        
 AND A HL_IND    | $A6                        
 AND A IXPD_IND  | $DD $A6 [2:S8]             
 AND A IYPD_IND  | $FD $A6 [2:S8]             
@@ -356,7 +356,7 @@ AND A D         | $A2
 AND A E         | $A3                        
 AND A H         | $A4                        
 AND A L         | $A5                        
-AND A U8        | $E6                        
+AND A U8        | $E6 [2:U8]                        
 CP A HL_IND     | $BE                        
 CP A IXPD_IND   | $DD $BE [2:S8]             
 CP A IYPD_IND   | $FD $BE [2:S8]             
@@ -367,7 +367,7 @@ CP A D          | $BA
 CP A E          | $BB                        
 CP A H          | $BC                        
 CP A L          | $BD                        
-CP A U8         | $FE                        
+CP A U8         | $FE [2:U8]                        
 DEC HL_IND      | $35                        
 DEC IXPD_IND    | $DD $35 [1:S8]             
 DEC IYPD_IND    | $FD $35 [1:S8]             
@@ -398,7 +398,7 @@ OR A D          | $B2
 OR A E          | $B3                        
 OR A H          | $B4                        
 OR A L          | $B5                        
-OR A U8         | $F6                        
+OR A U8         | $F6 [2:U8]                        
 SBC A HL_IND    | $9E                        
 SBC A IXPD_IND  | $DD $9E [2:S8]             
 SBC A IYPD_IND  | $FD $9E [2:S8]             
@@ -409,7 +409,7 @@ SBC A D         | $9A
 SBC A E         | $9B                        
 SBC A H         | $9C                        
 SBC A L         | $9D                        
-SBC A U8        | $DE                        
+SBC A U8        | $DE [2:U8]                        
 SUB A HL_IND    | $96                        
 SUB A IXPD_IND  | $DD $96 [2:S8]             
 SUB A IYPD_IND  | $FD $96 [2:S8]             
@@ -420,7 +420,7 @@ SUB A D         | $92
 SUB A E         | $93                        
 SUB A H         | $94                        
 SUB A L         | $95                        
-SUB A U8        | $D6                        
+SUB A U8        | $D6 [2:U8]                        
 XOR A HL_IND    | $AE                        
 XOR A IXPD_IND  | $DD $AE [2:S8]             
 XOR A IYPD_IND  | $FD $AE [2:S8]             
@@ -431,7 +431,7 @@ XOR A D         | $AA
 XOR A E         | $AB                        
 XOR A H         | $AC                        
 XOR A L         | $AD                        
-XOR A U8        | $EE                        
+XOR A U8        | $EE [2:U8]                        
 
 ;
 ; Z80 - General purpose arithmetic and CPU control groups

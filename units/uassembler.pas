@@ -183,6 +183,7 @@ type
       function  ActSetOpInd(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpIndOff(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpSimple(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActSetOpSimpleW(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpBracketed(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpLiteral(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrBuild(_parser: TLCGParser): TLCGParserStackEntry;
@@ -200,6 +201,7 @@ type
       function  ActStrString(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrTime(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrUpper(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActSymbolDef(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueLocal(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
@@ -612,9 +614,9 @@ begin
   if not ProcessingAllowed then
     Exit;
   bytes := StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf);
-  if (bytes < 1) or (bytes > 255) then
+  if (bytes < 1) or (bytes > 16384) then
     begin
-      Monitor(ltError,'Number of bytes for storage directive not in the range 1-255');
+      Monitor(ltError,'Number of bytes for storage directive not in the range 1-16384');
       Exit;
     end;
   FBytesFromLine := bytes;
@@ -689,28 +691,32 @@ function TAssembler.ActDirDW(_parser: TLCGParser): TLCGParserStackEntry;
 var sl: TStringList;
     i:   integer;
     bval: integer;
+    op: integer;
 begin
   if not ProcessingAllowed then
     Exit;
-  sl := TStringList.Create;
-  try
-//    sl.Delimiter := SECRET_DELIMITER;
-    sl.StrictDelimiter := True;
-    sl.DelimitedText := _parser.ParserStack[_parser.ParserSP-1].Buf;
-    FBytesFromLine := sl.Count*2;
-    SetLength(FOutputArr,FBytesFromLine);
-    for i := 0 to sl.Count-1 do
-      begin
-        bval := StrToInt(sl[i]);
-        if (bval > 65535) or (bval < -32768) then
-          Monitor(ltError,'Word value %d not in range',[bval]);
-        FOutputArr[i*2+0] := bval and $00FF;
-        FOutputArr[i*2+1] := (bval shr 8) and $00FF;
-      end;
-    FOutput.Write(FOutputArr,FOrg,FBytesFromLine);
-  finally
-    sl.Free;
-  end;
+  // Get number of bytes in total
+  FBytesFromLine := 0;
+  for i := 0 to FExprList.Count-1 do
+    case FExprList[i].ItemType of
+      litInteger: FBytesFromLine := FBytesFromLine + 2;
+      otherwise
+        Monitor(ltInternal,'Expression list type not catered for');
+    end; // Case
+  // Now output the words
+  SetLength(FOutputArr,FBytesFromLine);
+  op := 0;
+  for i := 0 to FExprList.Count-1 do
+    begin
+      bval := FExprList[i].IntegerValue;
+      if (bval > 65535) or (bval < -32768) then
+        Monitor(ltError,'Word value %d not in range',[bval]);
+      FOutputArr[op] := bval and $00FF;
+      Inc(op);
+      FOutputArr[op] := (bval shr 8) and $00FF;
+      Inc(op);
+    end;
+  FOutput.Write(FOutputArr,FOrg,FBytesFromLine);
   Result.Buf := '';
 end;
 
@@ -1287,9 +1293,24 @@ function TAssembler.ActSetOpSimple(_parser: TLCGParser): TLCGParserStackEntry;
 var op_reg: string;
     operand_opt: TOperandOption;
 begin
-  // Simple operand like A, IX, [HL], P, etc.
+  // Simple operand like A, IX, P, etc.
   op_reg  := _parser.ParserStack[_parser.ParserSP-1].Buf;
   op_reg := UpperCase(op_reg);
+  operand_opt := FInstructionList.SimpleOpToOperandOption(op_reg);
+  if operand_opt = OPER_NULL then
+    Monitor(ltInternal,'Operand type %s not valid',[op_reg])
+  else
+    PushOperand(operand_opt,0);
+  Result.Buf := '';
+end;
+
+function TAssembler.ActSetOpSimpleW(_parser: TLCGParser): TLCGParserStackEntry;
+var op_reg: string;
+    operand_opt: TOperandOption;
+begin
+  // Simple operand wrapped in brackets (C), (HL), etc.
+  op_reg  := _parser.ParserStack[_parser.ParserSP-2].Buf;
+  op_reg := '(' + UpperCase(op_reg) + ')';
   operand_opt := FInstructionList.SimpleOpToOperandOption(op_reg);
   if operand_opt = OPER_NULL then
     Monitor(ltInternal,'Operand type %s not valid',[op_reg])
@@ -1427,6 +1448,21 @@ begin
   Result.Buf := UpperCase(_parser.ParserStack[_parser.ParserSP-2].Buf);
 end;
 
+function TAssembler.ActSymbolDef(_parser: TLCGParser): TLCGParserStackEntry;
+var symbolname: string;
+    message:    string;
+begin
+  Result.Buf := '';
+  if not ProcessingAllowed then
+    Exit;
+  symbolname := _parser.ParserStack[_parser.ParserSP-2].Buf;
+  if (Length(symbolname) > 1) and (RightStr(symbolname,1) = ':') then
+    symbolname := LeftStr(symbolname,Length(symbolname)-1); // Remove trailing colon
+  message := FSymbols.Define(FPass,symbolname,FOrg);
+  if message <> '' then
+    Monitor(ltError,message);
+end;
+
 function TAssembler.ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(FOrg);
@@ -1456,8 +1492,10 @@ begin
     AssemblePass(1);
     AssemblePass(2);
     WriteMapFile;
+    {
     if FilenameDbg <> '' then
       FDebugList.SaveToFile(FilenameDbg);
+    }
     if FilenameLst <> '' then
       FListing.SaveToFile(FilenameLst);
     if FBytesTotal > 0 then
@@ -2080,6 +2118,7 @@ begin
   RegisterProc('ActSetOpIndOff',    @ActSetOpIndOff, _procs);
   RegisterProc('ActSetOpLiteral',   @ActSetOpLiteral, _procs);
   RegisterProc('ActSetOpSimple',    @ActSetOpSimple, _procs);
+  RegisterProc('ActSetOpSimpleW',   @ActSetOpSimpleW, _procs);
   RegisterProc('ActStrBuild',       @ActStrBuild, _procs);
   RegisterProc('ActStrCat',         @ActStrCat, _procs);
   RegisterProc('ActStrChr',         @ActStrChr, _procs);
@@ -2095,6 +2134,7 @@ begin
   RegisterProc('ActStrString',      @ActStrString, _procs);
   RegisterProc('ActStrTime',        @ActStrTime, _procs);
   RegisterProc('ActStrUpper',       @ActStrUpper, _procs);
+  RegisterProc('ActSymbolDef',      @ActSymbolDef, _procs);
 //RegisterProc('ActValueLocal',     @ActValueLocal, _procs);
   RegisterProc('ActValueOrg',       @ActValueOrg, _procs);
   RegisterProc('ActValueSymbol',    @ActValueSymbol, _procs);

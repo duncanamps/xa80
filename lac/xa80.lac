@@ -45,8 +45,8 @@
 {StringCharSQ}	= {Printable} - {SQuote} - {Backslash};
 {Whitespace} 	= {Space} ;  // Tab has already been dealt with by pre-parser
 
-{SymbolStart}	= {Letter} + [_.?];
-{SymbolMid}		= {SymbolStart} + {Digit};                                    
+{SymbolStart}	= {Letter} + [_?];
+{SymbolMid}		= {SymbolStart} + [.] + {Digit};                                    
 
 
 //
@@ -63,17 +63,17 @@ T_OPERAND_SIMPLE	= MIXED("A")
 					| MIXED("AF'") 	
 					| MIXED("B")	
 					| MIXED("BC")	
-					| MIXED("[BC]") 
+//					| MIXED("(BC)") 
 					| MIXED("C")
-					| MIXED("[C]")
+//					| MIXED("(C)")
 					| MIXED("D")	
 					| MIXED("DE")	
-					| MIXED("[DE]") 
+//					| MIXED("(DE)") 
 					| MIXED("E")	
 					| MIXED("F")	
 					| MIXED("H")	
 					| MIXED("HL")	
-					| MIXED("[HL]") 
+//					| MIXED("(HL)") 
 					| MIXED("I")	
 					| MIXED("L")	
 					| MIXED("M")	
@@ -84,7 +84,7 @@ T_OPERAND_SIMPLE	= MIXED("A")
 					| MIXED("PO")	
 					| MIXED("R")	
 					| MIXED("SP")
-					| MIXED("[SP]") 
+//					| MIXED("(SP)") 
 					| MIXED("Z") keyword;
   
 // Unary and Binary operators
@@ -256,7 +256,8 @@ T_STRINGCONSTANT	= {DQuote} ({StringCharDQ} | {Backslash} {Escaped})* {DQuote}
                     | {SQuote} ({StringCharSQ} | {Backslash} {Escaped})* {SQuote}
 					;                
 T_SYMBOLDEF 		= {SymbolStart} {SymbolMid}* ;					
-T_SYMBOLDEFC 		= {SymbolStart} {SymbolMid}* ":";					
+T_SYMBOLDEFC 		= {SymbolStart} {SymbolMid}* ":" |
+                      "." {SymbolMid}* ;
 T_WHITESPACE		= {Whitespace}+ ignore;
 
 //
@@ -274,7 +275,7 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 //
 //==============================================================================
 
-<assembler_line>	: T_SYMBOLDEFC <optinstruction>						# ActIgnore
+<assembler_line>	: T_SYMBOLDEFC <optinstruction>						# ActSymbolDef
 					| <optinstruction>									# ActIgnore
 					| T_SYMBOLDEF K_EQU <expression_U16>				# ActDirDefineExpr
 					| T_SYMBOLDEF T_ASSIGN <expression_U16>				# ActDirSetExpr
@@ -286,8 +287,8 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 					| K_DB        <expression_list_A8orStr>				# ActDirDB
 					| K_DC		  <expression_list_str>					# ActDirDC
 					| K_DEFINE	  T_SYMBOLDEF							# ActDirDefine
-					| K_DS        <expression_A8>						# ActDirDS
-					| K_DS        <expression_A8> "," <expression_A8orStr> 	# ActDirDS2
+					| K_DS        <expression_A16>						# ActDirDS
+					| K_DS        <expression_A16> "," <expression_A8orStr> 	# ActDirDS2
 					| K_DW        <expression_list_A16>					# ActDirDW
 					| K_ELSE											# ActDirElse
 					| K_END												# ActDirEnd
@@ -317,11 +318,12 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 <operand> : T_OPERAND_IX											# ActSetOpSimple
 		  | T_OPERAND_IY											# ActSetOpSimple
 		  | T_OPERAND_SIMPLE										# ActSetOpSimple
-		  | "[" T_OPERAND_IX "+" <expression_S8> "]"				# ActSetOpIndOff
-		  | "[" T_OPERAND_IY "+" <expression_S8> "]"				# ActSetOpIndOff
-		  | "[" T_OPERAND_IX "]"									# ActSetOpInd
-		  | "[" T_OPERAND_IY "]"									# ActSetOpInd
-		  | "[" <expression_A16> "]"								# ActSetOpBracketed
+		  | "(" T_OPERAND_IX "+" <expression_S8> ")"				# ActSetOpIndOff
+		  | "(" T_OPERAND_IY "+" <expression_S8> ")"				# ActSetOpIndOff
+		  | "(" T_OPERAND_IX ")"									# ActSetOpInd
+		  | "(" T_OPERAND_IY ")"									# ActSetOpInd
+		  | "(" TOPERAND_SIMPLE ")"								# ActSetOpSimpleW
+		  | "(" <expression_A16> ")"								# ActSetOpBracketed
 		  | <expression_A16>										# ActSetOpLiteral
 		  ;
 	
@@ -343,8 +345,8 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 						| <lexpression_A16>							    # ActIgnore
 						;
 					
-<expression_A8>			: <expression>								# ActExprA8
-						;
+//<expression_A8>			: <expression>								# ActExprA8
+//						;
 
 <expression_A8orStr>	: <expression>								# ActExprA8
 						| T_STRINGCONSTANT							# ActExprCL
@@ -441,7 +443,7 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 					| F_POS <string_expr> "," <string_expr> ")"		# ActFuncPos
 					| F_VALUE <string_expr> ")"						# ActFuncValue
 					| T_SYMBOLDEF									# ActValueSymbol
-					| "(" <expression> ")"							# ActExprBracket
+//					| "(" <expression> ")"							# ActExprBracket
 					;
 				
 		
