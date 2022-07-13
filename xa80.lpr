@@ -32,17 +32,18 @@ uses
   uinstruction, uasmglobals;
 
 const
-  SHORT_OPTIONS = 'b::d:e::hI:l::m::o:p:rt:v:Vwx::';
-  LONG_OPTIONS: array [1..15] of string =
+  SHORT_OPTIONS = 'b::c::d:e::hI:l::m::o::p:rt:v:Vwx::';
+  LONG_OPTIONS: array [1..16] of string =
     (
       'debug::',
+      'com::',
       'define:',
       'errorlog::',
       'help',
       'include:',
       'listing::',
       'map::',
-      'object:',
+      'object::',
       'processor:',
       'redistribution',
       'tab:',
@@ -108,17 +109,18 @@ begin
   if HasOption('p', 'processor') then
     begin
       procoption := UpperCase(GetOptionValue('p', 'processor'));
-      if (procoption <> 'Z80') and
+      if (procoption <> '8080') and
+         (procoption <> 'Z80') and
          (procoption <> 'Z180') then
         begin
-          WriteLn('Illegal or missing option value for -p / --processor, must be Z80 or Z180');
+          WriteLn('Illegal or missing option value for -p / --processor: Must be 8080, Z80 or Z180');
           Terminate;
           Exit;
         end;
       try
         procvalue := procoption;
       except
-        WriteLn('Illegal or missing option value for -p / --processor, must be Z80 or Z180');
+        WriteLn('Illegal or missing option value for -p / --processor: Must be 8080, Z80 or Z180');
         Terminate;
         Exit;
       end;
@@ -245,6 +247,7 @@ begin
     end;
     basename := StringReplace(xa80.FilenameSrc,ExtractFileExt(xa80.FilenameSrc),'',[rfReplaceAll]);
     ProcessFilename(basename,xa80.FilenameDbg,'b','debug',   '.d80');
+    ProcessFilename(basename,xa80.FilenameCom,'c','com',     '.com');
     ProcessFilename(basename,xa80.FilenameHex,'x','hex',     '.hex');
     ProcessFilename(basename,xa80.FilenameLst,'l','listing', '.lst');
     ProcessFilename(basename,xa80.FilenameLog,'e','errorlog','.log');
@@ -308,6 +311,7 @@ begin
   WriteLn('');
   WriteLn('Options:');
   WriteLn('    -b <bn> --debug=<bn>     Set the debug name to <bn>');
+  WriteLn('    -c <cn> --com=<cn>       Set the .com file name to <cn>');
   WriteLn('    -d <id> --define=<id>    Define one or more symbols');
   WriteLn('    -e <en> --errorlog=<en>  Set error log to <en>');
   WriteLn('    -h      --help           Display this message');
@@ -323,9 +327,9 @@ begin
   WriteLn('    -w      --warranty       Display warranty information');
   WriteLn('    -x <hn> --hex=<hn>       Set the hex filename to <hn>');
   WriteLn('');
-  WriteLn('<bn>/<en>/<hn>/<ln>/<mn>/<on> default to the filename with ext changed to');
-  WriteLn('.d80/.log/.hex/.lst/.map/.o80 respectively. Not specifying <bn>, <en>,');
-  WriteLn('<hn>, <ln>, <mn> or <on> will stop that output.');
+  WriteLn('<bn>/<cn>/<en>/<hn>/<ln>/<mn>/<on> default to the filename with ext');
+  WriteLn('changed to .d80/.log/.hex/.lst/.map/.o80 respectively. Not specifying');
+  WriteLn('<bn>, <cn>, <en>, <hn>, <ln>, <mn> or <on> will stop that output.');
   WriteLn('');
   WriteLn('verbose <n> options:');
   WriteLn('    0 Normal output levels (the default)');

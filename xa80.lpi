@@ -13,9 +13,10 @@
       <SessionStorage Value="InProjectDir"/>
       <Title Value="Duncan&apos;s Macro Assembler x80"/>
       <ResourceType Value="res"/>
-      <Resources Count="2">
+      <Resources Count="3">
         <Resource_0 FileName="lac\xa80.lacobj" Type="RCDATA" ResourceName="XA80"/>
         <Resource_1 FileName="opcodes\source\z80.opcode.bin" Type="RCDATA" ResourceName="Z80.OPCODE"/>
+        <Resource_2 FileName="opcodes\source\8080.opcode.bin" Type="RCDATA" ResourceName="8080.OPCODE"/>
       </Resources>
     </General>
     <VersionInfo>

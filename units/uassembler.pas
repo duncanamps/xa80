@@ -228,6 +228,7 @@ type
       procedure WriteMapFile;
     public
       FilenameDbg:    string;
+      FilenameCom:    string;
       FilenameHex:    string;
       FilenameLst:    string;
       FilenameLog:    string;
@@ -1500,6 +1501,8 @@ begin
       FListing.SaveToFile(FilenameLst);
     if FBytesTotal > 0 then
       begin
+        if FilenameCom <> '' then
+          FOutput.SaveCom(FilenameCom);
         FOutput.SaveHex(FilenameHex);
         FOutput.SaveObject(FilenameObj);
       end;
@@ -2071,7 +2074,7 @@ begin
   RegisterProc('ActDirUndefine',    @ActDirUndefine, _procs);
   RegisterProc('ActDirWarning',     @ActDirWarning, _procs);
   RegisterProc('ActExprA8',         @ActExprA8, _procs);
-  RegisterProc('ActExprA16',        @ActExprA16, _procs);
+//RegisterProc('ActExprA16',        @ActExprA16, _procs);
   RegisterProc('ActExprAdd',        @ActExprAdd, _procs);
   RegisterProc('ActExprAnd',        @ActExprAnd, _procs);
 //RegisterProc('ActExprBracket',    @ActExprBracket, _procs);

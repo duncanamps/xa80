@@ -1,0 +1,19 @@
+;        TITLE   'HELLO.Z80 - Hello World'
+
+        ORG     0100H
+
+BDOS            EQU     0005H   ; BDOS entry address
+C_WRITESTR      EQU     9       ; BDOS command to write $ terminated string
+
+WHITE:
+        LD      DE,MSG      	; Get address of msg
+        LD      C,C_WRITESTR    ; Write string function
+        JP      BDOS            ; Go to BDOS to write the string
+
+
+MSG: 	DB      'Hello World',13,10
+		DB		'Created with XA80 cross compiler',13,10
+		DB		'$'
+
+        END
+		

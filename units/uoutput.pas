@@ -40,6 +40,7 @@ type
     public
       procedure Clear;
       procedure Write(const _array: TOutputSequence; _addr: UINT16; _len: integer);
+      procedure SaveCom(const _filename: string);
       procedure SaveHex(const _filename: string);
       procedure SaveObject(const _filename: string);
   end;
@@ -73,6 +74,21 @@ begin
     if FUsed[i] then
       break;
   Result := i;
+end;
+
+{ Save as .com format }
+
+procedure TOutput.SaveCom(const _filename: string);
+var codebytes: integer;
+    fstrm:     TFileStream;
+begin
+  codebytes := Highest - Lowest + 1;
+  fstrm := TFileStream.Create(_filename,fmCreate);
+  try
+    fstrm.Write(FBytes[Lowest],codebytes);
+  finally
+    FreeAndNil(fstrm);
+  end;
 end;
 
 { Save as Intel Hex format }
