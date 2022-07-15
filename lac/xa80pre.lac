@@ -1,0 +1,257 @@
+//======================================================================
+//
+//  XA80PRE.LAC - Duncan's Cross Assembler for x80 processors
+//  Includes: 8080, 8085, Z80, Z180
+//
+//  Grammar to make the initial split of a line into basic components
+//
+//  Splits the input into [label] [directive [operands]] [comments]
+//  Comments are not processed
+//
+//  A label can be an item that is not a keyword. Keywords are DB, INCLUDE,
+//  MACRO + opcodes like LD LXI CPIR etc.
+//  Labels cannot be any of the reseved key words. They do not have to start
+//  with a . or end with a : but if there is colon on the end, it is removed
+//
+//  Operands are further procesed so that if they are fully enclosed in () they
+//  are changed to []. This is non-trivial as an operand could be (HL) or (0x200)
+//  which are changed to [HL] or [0x200] respectively, however (2+3)*(4+5) while
+//  being enclosed in () is *not* an indirection and should be left alone. The
+//  situation is further complicated by the fact that operands can contain
+//  strings and escape sequences...
+// 
+//  Duncan Munro
+//  13/07/2022
+//
+//  Last updated 13/07/2022
+//
+//======================================================================
+
+%title		= "Duncan's XA80 Cross Assembler Grammar (Preparser)";
+%version	= "0.1";
+%author		= "Duncan Munro";  
+%start		= <assembler_line>;
+
+//======================================================================
+//
+//  CHARACTER SETS
+//
+//======================================================================
+
+// Initial definitions
+
+{Backslash}     = [\x5c];
+{Comma}			= [,];
+{DQuote}		= [\x22];
+{Escaped}       = [\x5c\x22\x27tnr];
+{Printable}		= [\x20-\x7e];
+{Space}			= [\x20];
+{SQuote}		= [\x27];
+{Tab}			= [\t];
+
+// Composites / dependencies
+
+{Whitespace}    = {Space} + {Tab};
+{StringCharDQ}	= {Printable} - {DQuote} - {Backslash};
+{StringCharSQ}	= {Printable} - {SQuote} - {Backslash};
+{SomethingChar} = {Printable} - {SQuote} - {DQuote} - {Comma} - {Whitespace};
+
+			
+             
+//======================================================================
+//
+//  TERMINALS
+//
+//======================================================================
+
+T_KEYWORD	= MIXED("ACI")
+			| MIXED("ADC")
+			| MIXED("ADD")
+			| MIXED("ADI")
+			| MIXED("ANA")
+			| MIXED("AND")
+			| MIXED("ANI")
+			| MIXED("BIT")
+			| MIXED("CALL")
+			| MIXED("CC")
+			| MIXED("CCF")
+			| MIXED("CM")
+			| MIXED("CMA")
+			| MIXED("CMC")
+			| MIXED("CMP")
+			| MIXED("CNC")
+			| MIXED("CNZ")
+			| MIXED("CP")
+			| MIXED("CPD")
+			| MIXED("CPDR")
+			| MIXED("CPE")
+			| MIXED("CPI")
+			| MIXED("CPIR")
+			| MIXED("CPL")
+			| MIXED("CPO")
+			| MIXED("CZ")
+			| MIXED("DAA")
+			| MIXED("DAD")
+			| MIXED("DB")
+			| MIXED("DC")
+			| MIXED("DCR")
+			| MIXED("DCX")
+			| MIXED("DEC")
+			| MIXED("DEFB")
+			| MIXED("DEFC")
+			| MIXED("DEFINE")
+			| MIXED("DEFM")
+			| MIXED("DEFS")
+			| MIXED("DEFW")
+			| MIXED("DI")
+			| MIXED("DJNZ")
+			| MIXED("DM")
+			| MIXED("DS")
+			| MIXED("DW")
+			| MIXED("EI")
+			| MIXED("ELSE")
+			| MIXED("END")
+			| MIXED("ENDIF")
+			| MIXED("ENDM")
+			| MIXED("EQU")
+			| MIXED("ERROR")
+			| MIXED("EX")
+			| MIXED("EXX")
+			| MIXED("HALT")
+			| MIXED("HLT")
+			| MIXED("IF")
+			| MIXED("IFDEF")
+			| MIXED("IFNDEF")
+			| MIXED("IM")
+			| MIXED("IN")
+			| MIXED("IN0")
+			| MIXED("INC")
+			| MIXED("INCLUDE")
+			| MIXED("IND")
+			| MIXED("INDR")
+			| MIXED("INI")
+			| MIXED("INIR")
+			| MIXED("INR")
+			| MIXED("INX")
+			| MIXED("JC")
+			| MIXED("JM")
+			| MIXED("JMP")
+			| MIXED("JNC")
+			| MIXED("JNZ")
+			| MIXED("JP")
+			| MIXED("JPE")
+			| MIXED("JPO")
+			| MIXED("JR")
+			| MIXED("JZ")
+			| MIXED("LD")
+			| MIXED("LDA")
+			| MIXED("LDAX")
+			| MIXED("LDD")
+			| MIXED("LDDR")
+			| MIXED("LDI")
+			| MIXED("LDIR")
+			| MIXED("LHLD")
+			| MIXED("LIST")
+			| MIXED("LXI")
+			| MIXED("MACRO")
+			| MIXED("MESSAGE")
+			| MIXED("MOV")
+			| MIXED("MULT")
+			| MIXED("MVI")
+			| MIXED("NEG")
+			| MIXED("NOLIST")
+			| MIXED("NOP")
+			| MIXED("OR")
+			| MIXED("ORA")
+			| MIXED("ORG")
+			| MIXED("ORI")
+			| MIXED("OTD")
+			| MIXED("OTDM")
+			| MIXED("OTDMR")
+			| MIXED("OTDR")
+			| MIXED("OTI")
+			| MIXED("OTIM")
+			| MIXED("OTIMR")
+			| MIXED("OTIR")
+			| MIXED("OUT")
+			| MIXED("OUT0")
+			| MIXED("OUTD")
+			| MIXED("OUTI")
+			| MIXED("PCHL")
+			| MIXED("POP")
+			| MIXED("PUSH")
+			| MIXED("RAL")
+			| MIXED("RAR")
+			| MIXED("RC")
+			| MIXED("RES")
+			| MIXED("RET")
+			| MIXED("RETI")
+			| MIXED("RETN")
+			| MIXED("RL")
+			| MIXED("RLA")
+			| MIXED("RLC")
+			| MIXED("RLCA")
+			| MIXED("RLD")
+			| MIXED("RM")
+			| MIXED("RNC")
+			| MIXED("RNZ")
+			| MIXED("RP")
+			| MIXED("RPE")
+			| MIXED("RPO")
+			| MIXED("RR")
+			| MIXED("RRA")
+			| MIXED("RRC")
+			| MIXED("RRCA")
+			| MIXED("RRD")
+			| MIXED("RST")
+			| MIXED("RZ")
+			| MIXED("SBB")
+			| MIXED("SBC")
+			| MIXED("SBI")
+			| MIXED("SCF")
+			| MIXED("SET")
+			| MIXED("SHLD")
+			| MIXED("SLA")
+			| MIXED("SLP")
+			| MIXED("SPHL")
+			| MIXED("SRA")
+			| MIXED("SRL")
+			| MIXED("STA")
+			| MIXED("STAX")
+			| MIXED("STC")
+			| MIXED("SUB")
+			| MIXED("SUI")
+			| MIXED("TST")
+			| MIXED("UNDEFINE")
+			| MIXED("WARNING")
+			| MIXED("XCHG")
+			| MIXED("XOR")
+			| MIXED("XRA")
+			| MIXED("XRI")
+			| MIXED("XTHL")
+			keyword ;
+
+T_COMMA = {Comma} symbol;
+T_STRINGCONSTANT	= {DQuote} ({StringCharDQ} | {Backslash} {Escaped})* {DQuote}
+                    | {SQuote} ({StringCharSQ} | {Backslash} {Escaped})* {SQuote}
+					;                
+T_SOMETHING = {SomethingChar}+;
+T_WHITESPACE = {Whitespace}+ ignore;
+
+             
+//======================================================================
+//
+//  PRODUCTIONS
+//
+//======================================================================
+
+<assembler_line>	: <assembler_line> <asm_item>
+					| <asm_item>
+					;
+					
+<asm_item>			: T_KEYWORD
+					| T_STRINGCONSTANT
+					| T_SOMETHING
+					| T_COMMA
+					;
+					

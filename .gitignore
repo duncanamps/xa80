@@ -15,3 +15,5 @@ opcodes/source/archived/
 test_prog/
 *.o80
 test_files/imported/
+lac/xa80pre.txt
+lac/xa80oper.txt
