@@ -63,29 +63,27 @@ T_OPERAND_SIMPLE	= MIXED("A")
 					| MIXED("AF'") 	
 					| MIXED("B")	
 					| MIXED("BC")	
-//					| MIXED("(BC)") 
+					| MIXED("[BC]") 
 					| MIXED("C")
-//					| MIXED("(C)")
+					| MIXED("[C]")
 					| MIXED("D")	
 					| MIXED("DE")	
-//					| MIXED("(DE)") 
+					| MIXED("[DE]") 
 					| MIXED("E")	
 					| MIXED("F")	
 					| MIXED("H")	
 					| MIXED("HL")	
-//					| MIXED("(HL)") 
+					| MIXED("[HL]") 
 					| MIXED("I")	
 					| MIXED("L")	
-					| MIXED("M")	
 					| MIXED("NC")	
 					| MIXED("NZ")	
 					| MIXED("P")	
 					| MIXED("PE")	
 					| MIXED("PO")
-					| MIXED("PSW")
 					| MIXED("R")	
 					| MIXED("SP")
-//					| MIXED("(SP)") 
+					| MIXED("[SP]") 
 					| MIXED("Z") keyword;
   
 // Unary and Binary operators
@@ -171,36 +169,19 @@ K_WARNING 	= MIXED("WARNING") 	 			keyword;
 
 // Opcodes for Z80 and Z180
 
-T_OPCODE 	= MIXED("ACI")
-			| MIXED("ADC")
+T_OPCODE 	= MIXED("ADC")
 			| MIXED("ADD")
-			| MIXED("ADI")
-			| MIXED("ANA")
 			| MIXED("AND")
-			| MIXED("ANI")
 			| MIXED("BIT")
 			| MIXED("CALL")
-			| MIXED("CC")
 			| MIXED("CCF")
-			| MIXED("CM")
-			| MIXED("CMA")
-			| MIXED("CMC")
-			| MIXED("CMP")
-			| MIXED("CNC")
-			| MIXED("CNZ")
 			| MIXED("CP")
 			| MIXED("CPD")
 			| MIXED("CPDR")
-			| MIXED("CPE")
 			| MIXED("CPI")
 			| MIXED("CPIR")
 			| MIXED("CPL")
-			| MIXED("CPO")
-			| MIXED("CZ")
 			| MIXED("DAA")
-			| MIXED("DAD")
-			| MIXED("DCR")
-			| MIXED("DCX")
 			| MIXED("DEC")
 			| MIXED("DI")
 			| MIXED("DJNZ")
@@ -208,62 +189,30 @@ T_OPCODE 	= MIXED("ACI")
 			| MIXED("EX")
 			| MIXED("EXX")
 			| MIXED("HALT")
-			| MIXED("HLT")
 			| MIXED("IM")
 			| MIXED("IN")
-			| MIXED("IN0")
 			| MIXED("INC")
 			| MIXED("IND")
 			| MIXED("INDR")
 			| MIXED("INI")
 			| MIXED("INIR")
-			| MIXED("INR")
-			| MIXED("INX")
-			| MIXED("JC")
-			| MIXED("JM")
-			| MIXED("JMP")
-			| MIXED("JNC")
-			| MIXED("JNZ")
 			| MIXED("JP")
-			| MIXED("JPE")
-			| MIXED("JPO")
 			| MIXED("JR")
-			| MIXED("JZ")
 			| MIXED("LD")
-			| MIXED("LDA")
-			| MIXED("LDAX")
 			| MIXED("LDD")
 			| MIXED("LDDR")
 			| MIXED("LDI")
 			| MIXED("LDIR")
-			| MIXED("LHLD")
-			| MIXED("LXI")
-			| MIXED("MOV")
-			| MIXED("MULT")
-			| MIXED("MVI")
 			| MIXED("NEG")
 			| MIXED("NOP")
 			| MIXED("OR")
-			| MIXED("ORA")
-			| MIXED("ORI")
-			| MIXED("OTD")
-			| MIXED("OTDM")
-			| MIXED("OTDMR")
 			| MIXED("OTDR")
-			| MIXED("OTI")
-			| MIXED("OTIM")
-			| MIXED("OTIMR")
 			| MIXED("OTIR")
 			| MIXED("OUT")
-			| MIXED("OUT0")
 			| MIXED("OUTD")
 			| MIXED("OUTI")
-			| MIXED("PCHL")
 			| MIXED("POP")
 			| MIXED("PUSH")
-			| MIXED("RAL")
-			| MIXED("RAR")
-			| MIXED("RC")
 			| MIXED("RES")
 			| MIXED("RET")
 			| MIXED("RETI")
@@ -273,48 +222,27 @@ T_OPCODE 	= MIXED("ACI")
 			| MIXED("RLC")
 			| MIXED("RLCA")
 			| MIXED("RLD")
-			| MIXED("RM")
-			| MIXED("RNC")
-			| MIXED("RNZ")
-			| MIXED("RP")
-			| MIXED("RPE")
-			| MIXED("RPO")
 			| MIXED("RR")
 			| MIXED("RRA")
 			| MIXED("RRC")
 			| MIXED("RRCA")
 			| MIXED("RRD")
 			| MIXED("RST")
-			| MIXED("RZ")
-			| MIXED("SBB")
 			| MIXED("SBC")
-			| MIXED("SBI")
 			| MIXED("SCF")
 			| MIXED("SET")
-			| MIXED("SHLD")
 			| MIXED("SLA")
-			| MIXED("SLP")
-			| MIXED("SPHL")
 			| MIXED("SRA")
 			| MIXED("SRL")
-			| MIXED("STA")
-			| MIXED("STAX")
-			| MIXED("STC")
 			| MIXED("SUB")
-			| MIXED("SUI")
-			| MIXED("TST")
-			| MIXED("XCHG")
 			| MIXED("XOR")
-			| MIXED("XRA")
-			| MIXED("XRI")
-			| MIXED("XTHL")
 			keyword;
 
 // Labels etc.
 
 T_STRINGCONSTANT	= {DQuote} ({StringCharDQ} | {Backslash} {Escaped})* {DQuote}
-                    | {SQuote} ({StringCharSQ} | {Backslash} {Escaped})* {SQuote}
-					;                
+					| {SQuote} ({StringCharSQ} | {Backslash} {Escaped})* {SQuote} ;
+					
 T_SYMBOLDEF 		= {SymbolStart} {SymbolMid}* ;					
 T_SYMBOLDEFC 		= {SymbolStart} {SymbolMid}* ":" |
                       "." {SymbolMid}* ;
@@ -378,12 +306,12 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 <operand> : T_OPERAND_IX											# ActSetOpSimple
 		  | T_OPERAND_IY											# ActSetOpSimple
 		  | T_OPERAND_SIMPLE										# ActSetOpSimple
-		  | "(" T_OPERAND_IX "+" <expression_S8> ")"				# ActSetOpIndOff
-		  | "(" T_OPERAND_IY "+" <expression_S8> ")"				# ActSetOpIndOff
-		  | "(" T_OPERAND_IX ")"									# ActSetOpInd
-		  | "(" T_OPERAND_IY ")"									# ActSetOpInd
-		  | "(" T_OPERAND_SIMPLE ")"								# ActSetOpSimpleW
-		  | "(" <expression> ")"									# ActSetOpBracketed
+		  | "[" T_OPERAND_IX "+" <expression_S8> "]"				# ActSetOpIndOff
+		  | "[" T_OPERAND_IY "+" <expression_S8> "]"				# ActSetOpIndOff
+		  | "[" T_OPERAND_IX "]"									# ActSetOpInd
+		  | "[" T_OPERAND_IY "]"									# ActSetOpInd
+		  | "[" T_OPERAND_SIMPLE "]"								# ActSetOpSimpleW
+		  | "[" <expression> "]"									# ActSetOpBracketed
 		  | <expression>											# ActSetOpLiteral
 		  ;
 	
@@ -405,9 +333,6 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 						| <lexpression_A16>								    # ActIgnore
 						;
 					
-//<expression_A8>			: <expression>								# ActExprA8
-//						;
-
 <expression_A8orStr>	: <expression>								# ActExprA8
 						| T_STRINGCONSTANT							# ActExprCL
 						;
@@ -500,7 +425,7 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 					| F_POS <string_expr> "," <string_expr> ")"		# ActFuncPos
 					| F_VALUE <string_expr> ")"						# ActFuncValue
 					| T_SYMBOLDEF									# ActValueSymbol
-//					| "(" <expression> ")"							# ActExprBracket
+					| "(" <expression> ")"							# ActExprBracket
 					;
 				
 		

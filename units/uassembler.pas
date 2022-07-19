@@ -54,7 +54,7 @@ type
   end;
 
   TAssembler = class(TLCGParser)
-    private
+    protected
       FAddr:           UINT16;
 //    FAddrMode:       TAddrMode;
       FAssemblyEnd:    TDateTime;
@@ -94,7 +94,6 @@ type
       FProcessParms:   string;
       FStreamLog:      TFileStream;
       FSymbols:        TSymbolTable;
-      FTabSize:        integer;
       FVerbose:        boolean;
       function  ActBinLiteral(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActCharLiteral(_parser: TLCGParser): TLCGParserStackEntry;
@@ -142,6 +141,7 @@ type
       function  ActExprA16(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprAdd(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprAnd(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActExprBracket(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprCL(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprDiv(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprList(_parser: TLCGParser): TLCGParserStackEntry;
@@ -950,6 +950,11 @@ function TAssembler.ActExprAnd(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) and
                          StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
+end;
+
+function TAssembler.ActExprBracket(_parser: TLCGParser): TLCGParserStackEntry;
+begin
+  Result.Buf := _parser.ParserStack[_parser.ParserSP-2].Buf;
 end;
 
 function TAssembler.ActExprCL(_parser: TLCGParser): TLCGParserStackEntry;
@@ -2077,7 +2082,7 @@ begin
 //RegisterProc('ActExprA16',        @ActExprA16, _procs);
   RegisterProc('ActExprAdd',        @ActExprAdd, _procs);
   RegisterProc('ActExprAnd',        @ActExprAnd, _procs);
-//RegisterProc('ActExprBracket',    @ActExprBracket, _procs);
+  RegisterProc('ActExprBracket',    @ActExprBracket, _procs);
   RegisterProc('ActExprCL',         @ActExprCL, _procs);
   RegisterProc('ActExprDiv',        @ActExprDiv, _procs);
 //RegisterProc('ActExprList',       @ActExprList, _procs);

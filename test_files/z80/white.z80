@@ -11,7 +11,7 @@ WHITE:
         JP      BDOS            ; Go to BDOS to write the string
 
 
-MSG: 	DB      27,'[0m',13,10,'$'
+MSG: 	DB      27,"[0m",13,10,'$'
 
         END
 		
