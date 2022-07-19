@@ -123,9 +123,9 @@ T_OCTLITERAL       = {DigitOct}+(MIXED("O")|MIXED("Q"));
 
 // Labels etc.
 
-T_STRINGCONSTANT	= {DQuote} ({StringCharDQ} | {Backslash} {Escaped})* {DQuote}
-                    | {SQuote} ({StringCharSQ} | {Backslash} {Escaped})* {SQuote}
-					;                
+T_STRINGCONSTANT	= {DQuote} ({StringCharDQ} | {Backslash} {Escaped})* {DQuote} ;
+T_CHARCONSTANT		= {SQuote} ({StringCharSQ} | {Backslash} {Escaped}) {SQuote} ;
+					
 T_SYMBOLDEF 		= {SymbolStart} {SymbolMid}* ;					
 T_WHITESPACE		= {Whitespace}+ ignore;
 
@@ -170,7 +170,7 @@ F_VALUE				= MIXED("VALUE(")		keyword;
 		  | "[" T_OPERAND_SIMPLE "]"								# ActSetOpSimpleW
 		  | "[" <expression> "]"									# ActSetOpBracketed
 		  | <expression>											# ActSetOpLiteral
-		  | <string_expr>											# ActSetOpString
+		  | T_STRINGCONSTANT										# ActCopy1
 		  ;
 
 					
@@ -246,39 +246,28 @@ F_VALUE				= MIXED("VALUE(")		keyword;
 					| T_DECLITERAL									# ActDecLiteral
 					| T_OCTLITERAL									# ActOctLiteral
 					| T_BINLITERAL									# ActBinLiteral
-					| F_ASC <string_expr> ")"						# ActFuncAsc
+					| F_ASC <expression> ")"						# ActFuncAsc
 					| F_HIGH <expression> ")"						# ActFuncHigh
 					| F_IIF <expression> "," <expression> "," <expression> ")" # ActFuncIif
 					| F_LOW <expression> ")"						# ActFuncLow
-					| F_POS <string_expr> "," <string_expr> ")"		# ActFuncPos
-					| F_VALUE <string_expr> ")"						# ActFuncValue
+					| F_POS <expression> "," <expression> ")"		# ActFuncPos
+					| F_VALUE <expression> ")"						# ActFuncValue
 					| T_SYMBOLDEF									# ActValueSymbol
-//					| "(" <expression> ")"							# ActExprBracket
-					;
-				
-		
-
-// ----------------------------------
-// String expressions
-// ----------------------------------
-
-<string_expr>		: <string_expr> "+" <string_result>				# ActStrCat
-					| <string_result>								# ActCopy1
-					;
-                
-<string_result>		: T_STRINGCONSTANT								# ActStringConstant
+					| T_CHARCONSTANT								# ActCopy1
 					| F_BUILD										# ActStrBuild
-					| F_CHR <expression> ")"						# ActStrChr
+					| F_CHR <expression> ")"									# ActStrChr
 					| F_DATE										# ActStrDate
 					| F_HEX <expression> ")"						# ActStrHex1
 					| F_HEX <expression> "," <expression> ")"		# ActStrHex2
-					| F_IIFS <expression> "," <string_expr> "," <string_expr> ")" # ActFuncIifs
-					| F_LEFT <string_expr> "," <expression> ")"		# ActStrLeft
-					| F_LOWER <string_expr> ")"						# ActStrLower
-					| F_MID <string_expr> "," <expression> "," <expression> ")"	# ActStrMid
-					| F_RIGHT <string_expr> "," <expression> ")"	# ActStrRight
+					| F_IIFS <expression> "," <expression> "," <expression> ")" # ActFuncIifs
+					| F_LEFT <expression> "," <expression> ")"		# ActStrLeft
+					| F_LOWER <expression> ")"						# ActStrLower
+					| F_MID <expression> "," <expression> "," <expression> ")"	# ActStrMid
+					| F_RIGHT <expression> "," <expression> ")"	# ActStrRight
 					| F_STRING <expression> ")"						# ActStrString
 					| F_TIME										# ActStrTime
-					| F_UPPER <string_expr> ")"						# ActStrUpper
-					| F_SYMSTR T_SYMBOLDEF ")"						# ActStringSymbol
-					;  
+					| F_UPPER <expression> ")"						# ActStrUpper
+//					| F_SYMSTR T_SYMBOLDEF ")"						# ActStringSymbol
+					| "(" <expression> ")"							# ActExprBracket
+					;
+				

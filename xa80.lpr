@@ -233,7 +233,7 @@ begin
 
   // Create the assembler and run it
 
-  xa80 := TAssembler.Create('XA80',procvalue);
+  xa80 := TAssembler.Create(procvalue);
   try
     // Set up the initial parameters
     xa80.FilenameSrc := filename; // Has to go first!

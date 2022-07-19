@@ -29,11 +29,27 @@ interface
 uses
   Classes, SysUtils, deployment_parser_module_12, deployment_parser_types_12,
   ufilestack, usymbol, uasmglobals, uoutput, uifstack, umacro, udebuglist,
-  uinstruction, Generics.Collections;
+  uinstruction, Generics.Collections, upreparser2;
 
 
 type
+  TOperandType = (otString,otInteger);
 
+  TOperand = record
+    ItemType: TOperandType;
+    IValue:   integer;
+    SValue:   string;
+  end;
+
+  TOperandList = class(specialize TList<TOperand>);
+
+  TInstruction = record
+    ILabel:    string;
+    IKeyword:  string;
+    IOperands: TOperandList;
+  end;
+
+  {
   TOperand = record
     oper_opt: TOperandOption;
     value:    integer;
@@ -50,8 +66,8 @@ type
   end;
 
   TExprList = class(specialize TList<TExprListItem>)
-
   end;
+  }
 
   TAssembler = class(TLCGParser)
     private
@@ -65,12 +81,13 @@ type
       FCmdIncludes:    TStringList;
       FDebugList:      TDebugList;
       FDefiningMacro:  boolean;
-      FExprList:       TExprList;
+//    FExprList:       TExprList;
       FForceList:      boolean;
       FFilenameSrc:    string;
       FFileStack:      TFileStack;
       FIfStack:        TIfStack;
       FIncludeNext:    string;
+      FInstruction:    TInstruction;
       FInstructionList: TInstructionList;
       FLineCount:      integer;
       FList:           boolean;
@@ -82,19 +99,20 @@ type
       FMacroNestLevel: integer;
       FMacroList:      TMacroList;
 //    FOpCode:         TOpCode;
-      FOperandIndex:   integer;
-      FOperands:       TOperandArray;
+//    FOperandIndex:   integer;
+//    FOperands:       TOperandArray;
       FOrg:            UINT16;
       FOutput:         TOutput;
       FOutputArr:      TOutputSequence;
       FPass:           integer;
+      FPreparser:      TPreparser;
       FProcArray:      array of TLCGParserProc;
       FProcessMacro:   string;
       FProcessor:      string;
       FProcessParms:   string;
       FStreamLog:      TFileStream;
       FSymbols:        TSymbolTable;
-      FTabSize:        integer;
+//    FTabSize:        integer;
       FVerbose:        boolean;
       function  ActBinLiteral(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActCharLiteral(_parser: TLCGParser): TLCGParserStackEntry;
@@ -142,6 +160,7 @@ type
       function  ActExprA16(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprAdd(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprAnd(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActExprBracket(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprCL(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprDiv(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprList(_parser: TLCGParser): TLCGParserStackEntry;
@@ -170,8 +189,8 @@ type
       function  ActLabelC(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLabelLocal(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLabelLocalC(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActLExprI(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActLExprS(_parser: TLCGParser): TLCGParserStackEntry;
+//    function  ActLExprI(_parser: TLCGParser): TLCGParserStackEntry;
+//    function  ActLExprS(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLogAnd(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLogNot(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLogOr(_parser: TLCGParser): TLCGParserStackEntry;
@@ -180,12 +199,14 @@ type
       function  ActOpcode0(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActOpcode1(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActOpcode2(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActSConstToValue(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActSetOpBracketed(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpInd(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpIndOff(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActSetOpLiteral(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpSimple(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpSimpleW(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActSetOpBracketed(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActSetOpLiteral(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActSetOpString(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrBuild(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrCat(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrChr(_parser: TLCGParser): TLCGParserStackEntry;
@@ -205,7 +226,7 @@ type
       function  ActValueLocal(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
-      function  DoOpcode(_parser: TLCGParser; _operands: integer): TLCGParserStackEntry;
+//    function  DoOpcode(_parser: TLCGParser; _operands: integer): TLCGParserStackEntry;
       procedure FilesClose;
       procedure FilesOpen;
       function  GetSource: string;
@@ -220,11 +241,12 @@ type
       procedure ProcessMacroExpansion;
       procedure ProcessLine(const _line: string);
       procedure PumpCode(_r: TInstructionRec);
-      procedure PushOperand(_op: TOperandOption; _v: integer);
+//    procedure PushOperand(_op: TOperandOption; _v: integer);
       procedure RegisterProc(const _procname: string; _proc: TLCGParserProc; _procs: TStringArray);
       procedure RegisterProcs;
       procedure SetFilenameSrc(const _fn: string);
       procedure SetOnMonitor(_monitor: TLCGMonitorProc);
+      function StackNum(_index: integer): integer;
       procedure WriteMapFile;
     public
       FilenameDbg:    string;
@@ -234,7 +256,7 @@ type
       FilenameLog:    string;
       FilenameMap:    string;
       FilenameObj:    string;
-      constructor Create(const _grammar: string; const _processor: string);
+      constructor Create(const _processor: string);
       destructor Destroy; override;
       procedure Assemble;
       procedure AssemblePass(_pass: integer);
@@ -255,91 +277,15 @@ implementation
 uses
   uexpression, strutils, fileinfo, uutility;
 
-{
-const CodeTable: array[TOpCode,TAddrMode] of integer = (
-          (109,125,121,-1,-1,113,105,-1,97,101,117,-1,-1),
-          (45,61,57,-1,-1,49,41,-1,33,37,53,-1,-1),
-          (14,30,-1,-1,-1,-1,-1,-1,-1,6,22,-1,10),
-          (-1,-1,-1,-1,-1,-1,-1,144,-1,-1,-1,-1,-1),
-          (-1,-1,-1,-1,-1,-1,-1,176,-1,-1,-1,-1,-1),
-          (-1,-1,-1,-1,-1,-1,-1,240,-1,-1,-1,-1,-1),
-          (44,-1,-1,-1,-1,-1,-1,-1,-1,36,-1,-1,-1),
-          (-1,-1,-1,-1,-1,-1,-1,48,-1,-1,-1,-1,-1),
-          (-1,-1,-1,-1,-1,-1,-1,208,-1,-1,-1,-1,-1),
-          (-1,-1,-1,-1,-1,-1,-1,16,-1,-1,-1,-1,-1),
-          (-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,-1,-1,-1,-1,80,-1,-1,-1,-1,-1),
-          (-1,-1,-1,-1,-1,-1,-1,112,-1,-1,-1,-1,-1),
-          (-1,-1,-1,24,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,216,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,88,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,184,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (205,221,217,-1,-1,209,201,-1,193,197,213,-1,-1),
-          (236,-1,-1,-1,-1,-1,224,-1,-1,228,-1,-1,-1),
-          (204,-1,-1,-1,-1,-1,192,-1,-1,196,-1,-1,-1),
-          (206,222,-1,-1,-1,-1,-1,-1,-1,198,214,-1,-1),
-          (-1,-1,-1,202,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,136,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (77,93,89,-1,-1,81,73,-1,65,69,85,-1,-1),
-          (238,254,-1,-1,-1,-1,-1,-1,-1,230,246,-1,-1),
-          (-1,-1,-1,232,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,200,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (76,-1,-1,-1,108,-1,-1,-1,-1,-1,-1,-1,-1),
-          (32,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (173,189,185,-1,-1,177,169,-1,161,165,181,-1,-1),
-          (174,-1,190,-1,-1,-1,162,-1,-1,166,-1,182,-1),
-          (172,188,-1,-1,-1,-1,160,-1,-1,164,180,-1,-1),
-          (78,94,-1,-1,-1,-1,-1,-1,-1,70,86,-1,74),
-          (-1,-1,-1,234,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (13,29,25,-1,-1,17,9,-1,1,5,21,-1,-1),
-          (-1,-1,-1,72,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,104,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,40,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (46,62,-1,-1,-1,-1,-1,-1,-1,38,54,-1,42),
-          (110,126,-1,-1,-1,-1,-1,-1,-1,102,118,-1,106),
-          (-1,-1,-1,64,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,96,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (237,253,249,-1,-1,241,233,-1,225,229,245,-1,-1),
-          (-1,-1,-1,56,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,248,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,120,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (141,157,153,-1,-1,145,-1,-1,129,133,149,-1,-1),
-          (142,-1,-1,-1,-1,-1,-1,-1,-1,134,-1,150,-1),
-          (140,-1,-1,-1,-1,-1,-1,-1,-1,132,148,-1,-1),
-          (-1,-1,-1,170,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,168,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,186,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,138,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,154,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,152,-1,-1,-1,-1,-1,-1,-1,-1,-1),
-          (-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1));
-
-  InstructionSizes: array[TAddrMode] of integer =
-    (
-      3,       // ADM_ABS
-      3,       // ADM_ABSX
-      3,       // ADM_ABSY
-      1,       // ADM_IMPL
-      3,       // ADM_IND
-      2,       // ADM_INDY
-      2,       // ADM_LIT
-      2,       // ADM_REL
-      2,       // ADM_XIND
-      2,       // ADM_ZPG
-      2,       // ADM_ZPGX
-      2,       // ADM_ZPGY
-      1        // ADM_ACC
-    );
-}
 
 { TAssembler }
 
-constructor TAssembler.Create(const _grammar: string; const _processor: string);
+constructor TAssembler.Create(const _processor: string);
 begin
   inherited Create;
-  LoadFromResource(_grammar);
+  LoadFromResource('XA80OPER');
   SetLength(FProcArray,Rules);
+  FPreparser := TPreparser.Create;
   FSymbols := TSymbolTable.Create;
   FFileStack := TFileStack.Create(Self);
   FIfStack   := TIfStack.Create(Self);
@@ -350,7 +296,8 @@ begin
   FCmdDefines := TStringList.Create;
   FCmdIncludes := TStringList.Create;
   FInstructionList := TInstructionList.Create(_processor);
-  FExprList        := TExprList.Create;
+//FExprList        := TExprList.Create;
+  FInstruction.IOperands := TOperandList.Create;
   FProcessor := _processor;
   FPass := 0;
   FTabSize := 4;
@@ -361,7 +308,8 @@ end;
 
 destructor TAssembler.Destroy;
 begin
-  FreeAndNil(FExprList);
+  FreeAndNil(FInstruction.IOperands);
+//FreeAndNil(FExprList);
   FreeAndNil(FInstructionList);
   FCmdIncludes.Free;
   FCmdDefines.Free;
@@ -372,6 +320,7 @@ begin
   FIfStack.Free;
   FFileStack.Free;
   FSymbols.Free;
+  FPreparser.Free;
   inherited Destroy;
 end;
 
@@ -489,30 +438,32 @@ begin
     Exit;
   // Get number of bytes in total
   FBytesFromLine := 0;
-  for i := 0 to FExprList.Count-1 do
-    case FExprList[i].ItemType of
-      litString:  FBytesFromLine := FBytesFromLine + Length(FExprList[i].StringValue);
-      litInteger: FBytesFromLine := FBytesFromLine + 1;
+  for i := 0 to FInstruction.IOperands.Count-1 do
+    case FInstruction.IOperands[i].ItemType of
+      otString:  FBytesFromLine := FBytesFromLine + Length(FInstruction.IOperands[i].SValue);
+      otInteger: FBytesFromLine := FBytesFromLine + 1;
       otherwise
         Monitor(ltInternal,'Expression list type not catered for');
     end; // Case
   // Now output the bytes
   SetLength(FOutputArr,FBytesFromLine);
   op := 0;
-  for i := 0 to FExprList.Count-1 do
-    case FExprList[i].ItemType of
-      litString:  for ch in FExprList[i].StringValue do
-                    begin
-                      FOutputArr[op] := Ord(ch);
-                      Inc(op);
-                    end;
-      litInteger:   begin
-                      bval := FExprList[i].IntegerValue;
-                      if (bval > 255) or (bval < -128) then
-                        Monitor(ltError,'Byte value %d not in range',[bval]);
-                      FOutputArr[op] := bval and $00FF;
-                      Inc(op);
-                    end;
+  for i := 0 to FInstruction.IOperands.Count-1 do
+    case FInstruction.IOperands[i].ItemType of
+      otString:
+        for ch in FInstruction.IOperands[i].SValue do
+          begin
+            FOutputArr[op] := Ord(ch);
+            Inc(op);
+          end;
+      otInteger:
+        begin
+          bval := FInstruction.IOperands[i].IValue;
+          if (bval > 255) or (bval < -128) then
+            Monitor(ltError,'Byte value %d not in range',[bval]);
+          FOutputArr[op] := bval and $00FF;
+          Inc(op);
+        end;
     end; // Case
   FOutput.Write(FOutputArr,FOrg,FBytesFromLine);
   Result.Buf := '';
@@ -528,18 +479,18 @@ begin
     Exit;
   // Get number of bytes in total
   FBytesFromLine := 0;
-  for i := 0 to FExprList.Count-1 do
-    case FExprList[i].ItemType of
-      litString:  FBytesFromLine := FBytesFromLine + Length(FExprList[i].StringValue);
+  for i := 0 to FInstruction.IOperands.Count-1 do
+    case FInstruction.IOperands[i].ItemType of
+      otString:  FBytesFromLine := FBytesFromLine + Length(FInstruction.IOperands[i].SValue);
       otherwise
         Monitor(ltInternal,'Expression list type not catered for');
     end; // Case
   // Now output the bytes
   SetLength(FOutputArr,FBytesFromLine);
   op := 0;
-  for i := 0 to FExprList.Count-1 do
+  for i := 0 to FInstruction.IOperands.Count-1 do
     begin
-      for ch in FExprList[i].StringValue do
+      for ch in FInstruction.IOperands[i].SValue do
         begin
           FOutputArr[op] := Ord(ch);
           Inc(op);
@@ -698,18 +649,18 @@ begin
     Exit;
   // Get number of bytes in total
   FBytesFromLine := 0;
-  for i := 0 to FExprList.Count-1 do
-    case FExprList[i].ItemType of
-      litInteger: FBytesFromLine := FBytesFromLine + 2;
+  for i := 0 to FInstruction.IOperands.Count-1 do
+    case FInstruction.IOperands[i].ItemType of
+      otInteger: FBytesFromLine := FBytesFromLine + 2;
       otherwise
         Monitor(ltInternal,'Expression list type not catered for');
     end; // Case
   // Now output the words
   SetLength(FOutputArr,FBytesFromLine);
   op := 0;
-  for i := 0 to FExprList.Count-1 do
+  for i := 0 to FInstruction.IOperands.Count-1 do
     begin
-      bval := FExprList[i].IntegerValue;
+      bval := FInstruction.IOperands[i].IValue;
       if (bval > 65535) or (bval < -32768) then
         Monitor(ltError,'Word value %d not in range',[bval]);
       FOutputArr[op] := bval and $00FF;
@@ -930,8 +881,7 @@ end;
 
 function TAssembler.ActExprAdd(_parser: TLCGParser): TLCGParserStackEntry;
 begin
-  Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) +
-                         StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
+  Result.Buf := IntToStr(StackNum(-3) + StackNum(-1));
 end;
 
 function TAssembler.ActExprA8(_parser: TLCGParser): TLCGParserStackEntry;
@@ -950,6 +900,11 @@ function TAssembler.ActExprAnd(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) and
                          StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
+end;
+
+function TAssembler.ActExprBracket(_parser: TLCGParser): TLCGParserStackEntry;
+begin
+  Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-2].Buf));
 end;
 
 function TAssembler.ActExprCL(_parser: TLCGParser): TLCGParserStackEntry;
@@ -1048,8 +1003,7 @@ end;
 
 function TAssembler.ActExprSub(_parser: TLCGParser): TLCGParserStackEntry;
 begin
-  Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) -
-                         StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
+  Result.Buf := IntToStr(StackNum(-3) - StackNum(-1));
 end;
 
 function TAssembler.ActExprU16(_parser: TLCGParser): TLCGParserStackEntry;
@@ -1180,6 +1134,7 @@ begin
     Monitor(ltError,msg);
 end;
 
+{
 function TAssembler.ActLExprI(_parser: TLCGParser): TLCGParserStackEntry;
 var r:    TExprListItem;
 begin
@@ -1197,7 +1152,7 @@ begin
   FExprList.Add(r);
   result.Buf := '';
 end;
-
+}
 function TAssembler.ActLogAnd(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   if (StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) <> 0) and
@@ -1239,17 +1194,48 @@ end;
 
 function TAssembler.ActOpcode0(_parser: TLCGParser): TLCGParserStackEntry;
 begin
-  Result := DoOpcode(_parser,0);
+//  Result := DoOpcode(_parser,0);
 end;
 
 function TAssembler.ActOpcode1(_parser: TLCGParser): TLCGParserStackEntry;
 begin
-  Result := DoOpcode(_parser,1);
+//  Result := DoOpcode(_parser,1);
 end;
 
 function TAssembler.ActOpcode2(_parser: TLCGParser): TLCGParserStackEntry;
 begin
-  Result := DoOpcode(_parser,2);
+//  Result := DoOpcode(_parser,2);
+end;
+
+function TAssembler.ActSConstToValue(_parser: TLCGParser): TLCGParserStackEntry;
+var s: string;
+begin
+  // Take the first character of a string and make it a value
+  // If string has 0 characters, it's an error
+  // If string has > 1 characters, it's a warning
+  s := _parser.ParserStack[_parser.ParserSP-1].Buf;
+  Result.Buf := '0';
+  s := StripQuotes(s);
+  if Length(s) = 0 then
+    Monitor(ltError,'Attempting to use a null string as numeric operand')
+  else if Length(s) > 1 then
+    Monitor(ltWarning,'Attempting to take the ordinal value of a string with more than 1 character')
+  else
+    Result.Buf := IntToStr(Ord(s[1]));
+end;
+
+function TAssembler.ActSetOpBracketed(_parser: TLCGParser): TLCGParserStackEntry;
+var expr:      string;
+    operand_opt: TOperandOption;
+begin
+  // Operand like [NN], [0x200], [5]
+  expr       := _parser.ParserStack[_parser.ParserSP-2].Buf;
+  operand_opt := OPER_U16_IND;
+  {
+  if operand_opt <> OPER_NULL then
+    PushOperand(operand_opt,StrToInt(expr));
+  }
+  Result.Buf := '';
 end;
 
 function TAssembler.ActSetOpInd(_parser: TLCGParser): TLCGParserStackEntry;
@@ -1265,8 +1251,10 @@ begin
     operand_opt := OPER_IY_IND
   else
       Monitor(ltInternal,'Could not cater for index register %s',[index_reg]);
+  {
   if operand_opt <> OPER_NULL then
     PushOperand(operand_opt,0);
+  }
   Result.Buf := '';
 end;
 
@@ -1285,8 +1273,21 @@ begin
     operand_opt := OPER_IYPD_IND
   else
       Monitor(ltInternal,'Could not cater for index register %s',[index_reg]);
+  {
   if operand_opt <> OPER_NULL then
     PushOperand(operand_opt,StrToInt(expr));
+  }
+  Result.Buf := '';
+end;
+
+function TAssembler.ActSetOpLiteral(_parser: TLCGParser): TLCGParserStackEntry;
+var expr:      string;
+    operand_opt: TOperandOption;
+begin
+  // Operand like NN, 0x200, 5
+  expr       := _parser.ParserStack[_parser.ParserSP-1].Buf;
+  operand_opt := OPER_U16;
+  //PushOperand(operand_opt,StrToInt(expr));
   Result.Buf := '';
 end;
 
@@ -1299,9 +1300,11 @@ begin
   op_reg := UpperCase(op_reg);
   operand_opt := FInstructionList.SimpleOpToOperandOption(op_reg);
   if operand_opt = OPER_NULL then
-    Monitor(ltInternal,'Operand type %s not valid',[op_reg])
+    Monitor(ltInternal,'Operand type %s not valid',[op_reg]);
+  {
   else
     PushOperand(operand_opt,0);
+  }
   Result.Buf := '';
 end;
 
@@ -1314,32 +1317,22 @@ begin
   op_reg := '(' + UpperCase(op_reg) + ')';
   operand_opt := FInstructionList.SimpleOpToOperandOption(op_reg);
   if operand_opt = OPER_NULL then
-    Monitor(ltInternal,'Operand type %s not valid',[op_reg])
+    Monitor(ltInternal,'Operand type %s not valid',[op_reg]);
+  {
   else
     PushOperand(operand_opt,0);
+  }
   Result.Buf := '';
 end;
 
-function TAssembler.ActSetOpBracketed(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler.ActSetOpString(_parser: TLCGParser): TLCGParserStackEntry;
 var expr:      string;
-    operand_opt: TOperandOption;
+    operand: TOperand;
 begin
-  // Operand like [NN], [0x200], [5]
-  expr       := _parser.ParserStack[_parser.ParserSP-2].Buf;
-  operand_opt := OPER_U16_IND;
-  if operand_opt <> OPER_NULL then
-    PushOperand(operand_opt,StrToInt(expr));
-  Result.Buf := '';
-end;
-
-function TAssembler.ActSetOpLiteral(_parser: TLCGParser): TLCGParserStackEntry;
-var expr:      string;
-    operand_opt: TOperandOption;
-begin
-  // Operand like NN, 0x200, 5
-  expr       := _parser.ParserStack[_parser.ParserSP-1].Buf;
-  operand_opt := OPER_U16;
-  PushOperand(operand_opt,StrToInt(expr));
+  operand.IValue   := 0;
+  operand.SValue   := _parser.ParserStack[_parser.ParserSP-1].Buf;
+  operand.ItemType := otString;
+  FInstruction.IOperands.Add(operand);
   Result.Buf := '';
 end;
 
@@ -1525,6 +1518,7 @@ begin
     Monitor(ltError,'Pass terminated unexpectedly in the middle of a .MACRO block');
 end;
 
+{
 function TAssembler.DoOpcode(_parser: TLCGParser; _operands: integer): TLCGParserStackEntry;
 var opcindex: integer;
     opcode:   string;
@@ -1561,6 +1555,7 @@ begin
     end;
   Result.Buf := '';
 end;
+}
 
 procedure TAssembler.FilesClose;
 begin
@@ -1594,12 +1589,9 @@ begin
 //  FAddrMode := ADM_IMPL;
 //  FOpCode := OPC_NOP;
   FBytesFromLine := 0;
-  FOperandIndex := 0;  // Starts off at 0, will accept 0/1/2 operands in total
-  FOperands[0].oper_opt := OPER_NULL;
-  FOperands[0].value    := 0;
-  FOperands[1].oper_opt := OPER_NULL;
-  FOperands[1].value    := 0;
-  FExprList.Clear;
+  FInstruction.ILabel   := '';
+  FInstruction.IKeyword := '';
+  FInstruction.IOperands.Clear;
 end;
 
 procedure TAssembler.InitPass;
@@ -1894,13 +1886,40 @@ begin
 end;
 
 procedure TAssembler.ProcessLine(const _line: string);
-var strm: TStringStream;
+var strm:  TStringStream;
+    i:     integer;
+    op:    TOperand;
+    opstrm: TStringStream;
 begin
   if (Length(_line) > 0) and (_line[1] = '*') then
     Exit; // Comment line
   strm := TStringStream.Create(_line);
   try
-    Parse(strm);
+    // First use the preparser
+    FPreparser.InitRun;
+    FPreparser.Parse(strm);
+    FPreparser.Optimise;
+    // Now we have a list of labels, keywords, operands and comments
+    // Put them into a TInstruction structure
+    for i := 0 to FPreparser.PPList.Count-1 do
+      begin
+        case FPreparser.PPList[i].RecType of
+          ppoLabel:   FInstruction.ILabel   := FPreparser.PPList[i].Payload;
+          ppoKeyword: FInstruction.IKeyword := FPreparser.PPList[i].Payload;
+          ppoOperand:
+            begin
+              opstrm := TStringStream.Create(FPreparser.PPList[i].Payload);
+              try
+                Parse(opstrm);
+              finally
+                FreeAndNil(opstrm);
+              end;
+            end;
+          ppoComment: ; // Ignore!
+          otherwise
+            Monitor(ltInternal,'Preparser record type %d not catered for',[Ord(FPreparser.PPList[i].RecType)]);
+        end;
+      end;
   finally
     strm.Free;
   end;
@@ -1946,42 +1965,42 @@ begin
         with _r.CodeElements[i] do
           begin
             case ElementType of
-              cetB3:  PumpByte(Value or (FOperands[OperandNo-1].value shl Offset));
+              cetB3:  PumpByte(Value or (FInstruction.IOperands[OperandNo-1].IValue shl Offset));
               cetHex: PumpByte(Value);
-              cetIM:  case FOperands[OperandNo-1].value of
+              cetIM:  case FInstruction.IOperands[OperandNo-1].IValue of
                         0: PumpByte($46);
                         1: PumpByte($56);
                         2: PumpByte($5E);
                         otherwise
-                          Monitor(ltError,'Operand %d is not valid for IM instruction',[FOperands[OperandNo-1].value]);
+                          Monitor(ltError,'Operand %d is not valid for IM instruction',[FInstruction.IOperands[OperandNo-1].IValue]);
                       end;
               cetR8:  begin
-                        rel := FOperands[OperandNo-1].value - (FORG + 2);
+                        rel := FInstruction.IOperands[OperandNo-1].IValue - (FORG + 2);
                         if (rel < -128) or (rel > 127) then
                           Monitor(ltError,'Relative jump value out of range')
                         else
                           PumpByte(rel);
                       end;
               cetRST: begin
-                        rst_addr := FOperands[OperandNo-1].value;
+                        rst_addr := FInstruction.IOperands[OperandNo-1].IValue;
                         if (rst_addr >= 8) and (rst_addr < 64) then
                           begin
                             if rst_addr mod 8 = 0 then
                                 rst_addr := rst_addr div 8
                             else
-                              Monitor(ltError,'Operand %d is not valid for RST instruction',[FOperands[OperandNo-1].value]);
+                              Monitor(ltError,'Operand %d is not valid for RST instruction',[FInstruction.IOperands[OperandNo-1].IValue]);
                           end;
                         PumpByte(Value or (rst_addr shl Offset)); // @@@@@ IS THIS CORRECT WHERE IS VALUE COMING FROM
                       end;
               cetS8:  begin
-                        rel := FOperands[OperandNo-1].value;
+                        rel := FInstruction.IOperands[OperandNo-1].IValue;
                         if (rel < -128) or (rel > 127) then
                           Monitor(ltError,'Signed 8 bit value out of range')
                         else
                           PumpByte(rel);
                       end;
-              cetU8:  PumpByte(FOperands[OperandNo-1].value);
-              cetU16: PumpWord(FOperands[OperandNo-1].value);
+              cetU8:  PumpByte(FInstruction.IOperands[OperandNo-1].IValue);
+              cetU16: PumpWord(FInstruction.IOperands[OperandNo-1].IValue);
               otherwise
                 raise Exception.Create('Code element not catered for');
             end;
@@ -1990,6 +2009,7 @@ begin
     end;
 end;
 
+{
 procedure TAssembler.PushOperand(_op: TOperandOption; _v: integer);
 begin
   if FOperandIndex >= MAX_OPERANDS then
@@ -2001,7 +2021,7 @@ begin
       Inc(FOperandIndex);
     end;
 end;
-
+}
 function TAssembler.Reduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
 begin
   Result.Buf := '';
@@ -2042,43 +2062,43 @@ begin
   RegisterProc('ActCompNE',         @ActCompNE, _procs);
   RegisterProc('ActDecLiteral',     @ActDecLiteral, _procs);
 //RegisterProc('ActDirByte',        @ActDirByte, _procs);
-  RegisterProc('ActDirDB',          @ActDirDB, _procs);
-  RegisterProc('ActDirDC',          @ActDirDC, _procs);
+//RegisterProc('ActDirDB',          @ActDirDB, _procs);
+//RegisterProc('ActDirDC',          @ActDirDC, _procs);
 //RegisterProc('ActDirDD',          @ActDirDD, _procs);
-  RegisterProc('ActDirDefine',      @ActDirDefine, _procs);
-  RegisterProc('ActDirDefineExpr',  @ActDirDefineExpr, _procs);
+//RegisterProc('ActDirDefine',      @ActDirDefine, _procs);
+//RegisterProc('ActDirDefineExpr',  @ActDirDefineExpr, _procs);
 //RegisterProc('ActDirDefineString',@ActDirDefineString, _procs);
 //RegisterProc('ActDirDefmacro',    @ActDirDefmacro, _procs);
-  RegisterProc('ActDirDS',          @ActDirDS, _procs);
-  RegisterProc('ActDirDS2',         @ActDirDS2, _procs);
+//RegisterProc('ActDirDS',          @ActDirDS, _procs);
+//RegisterProc('ActDirDS2',         @ActDirDS2, _procs);
 //RegisterProc('ActDirDSH',         @ActDirDSH, _procs);
 //RegisterProc('ActDirDSZ',         @ActDirDSZ, _procs);
-  RegisterProc('ActDirDW',          @ActDirDW, _procs);
-  RegisterProc('ActDirElse',        @ActDirElse, _procs);
-  RegisterProc('ActDirEnd',         @ActDirEnd, _procs);
-  RegisterProc('ActDirEndif',       @ActDirEndif, _procs);
-  RegisterProc('ActDirEndm',        @ActDirEndm, _procs);
-  RegisterProc('ActDirError',       @ActDirError, _procs);
-  RegisterProc('ActDirIf',          @ActDirIf, _procs);
-  RegisterProc('ActDirIfdef',       @ActDirIfdef, _procs);
-  RegisterProc('ActDirIfndef',      @ActDirIfndef, _procs);
-  RegisterProc('ActDirInclude',     @ActDirInclude, _procs);
-  RegisterProc('ActDirIncludeList', @ActDirIncludeList, _procs);
-  RegisterProc('ActDirList',        @ActDirList, _procs);
+//RegisterProc('ActDirDW',          @ActDirDW, _procs);
+//RegisterProc('ActDirElse',        @ActDirElse, _procs);
+//RegisterProc('ActDirEnd',         @ActDirEnd, _procs);
+//RegisterProc('ActDirEndif',       @ActDirEndif, _procs);
+//RegisterProc('ActDirEndm',        @ActDirEndm, _procs);
+//RegisterProc('ActDirError',       @ActDirError, _procs);
+//RegisterProc('ActDirIf',          @ActDirIf, _procs);
+//RegisterProc('ActDirIfdef',       @ActDirIfdef, _procs);
+//RegisterProc('ActDirIfndef',      @ActDirIfndef, _procs);
+//RegisterProc('ActDirInclude',     @ActDirInclude, _procs);
+//RegisterProc('ActDirIncludeList', @ActDirIncludeList, _procs);
+//RegisterProc('ActDirList',        @ActDirList, _procs);
 //RegisterProc('ActDirMacro',       @ActDirMacro, _procs);
 //RegisterProc('ActDirMacroNoexpr', @ActDirMacroNoexpr, _procs);
-  RegisterProc('ActDirMessage',     @ActDirMessage, _procs);
-  RegisterProc('ActDirNolist',      @ActDirNolist, _procs);
-  RegisterProc('ActDirOrg',         @ActDirOrg, _procs);
-  RegisterProc('ActDirSet',         @ActDirSet, _procs);
-  RegisterProc('ActDirUndefine',    @ActDirUndefine, _procs);
-  RegisterProc('ActDirWarning',     @ActDirWarning, _procs);
-  RegisterProc('ActExprA8',         @ActExprA8, _procs);
+//RegisterProc('ActDirMessage',     @ActDirMessage, _procs);
+//RegisterProc('ActDirNolist',      @ActDirNolist, _procs);
+//RegisterProc('ActDirOrg',         @ActDirOrg, _procs);
+//RegisterProc('ActDirSet',         @ActDirSet, _procs);
+//RegisterProc('ActDirUndefine',    @ActDirUndefine, _procs);
+//RegisterProc('ActDirWarning',     @ActDirWarning, _procs);
+//RegisterProc('ActExprA8',         @ActExprA8, _procs);
 //RegisterProc('ActExprA16',        @ActExprA16, _procs);
   RegisterProc('ActExprAdd',        @ActExprAdd, _procs);
   RegisterProc('ActExprAnd',        @ActExprAnd, _procs);
-//RegisterProc('ActExprBracket',    @ActExprBracket, _procs);
-  RegisterProc('ActExprCL',         @ActExprCL, _procs);
+  RegisterProc('ActExprBracket',    @ActExprBracket, _procs);
+//RegisterProc('ActExprCL',         @ActExprCL, _procs);
   RegisterProc('ActExprDiv',        @ActExprDiv, _procs);
 //RegisterProc('ActExprList',       @ActExprList, _procs);
 //RegisterProc('ActExprListA8orStr',@ActExprListA8orStr, _procs);
@@ -2088,11 +2108,11 @@ begin
   RegisterProc('ActExprMul',        @ActExprMul, _procs);
   RegisterProc('ActExprNot',        @ActExprNot, _procs);
   RegisterProc('ActExprOr',         @ActExprOr, _procs);
-  RegisterProc('ActExprS8',         @ActExprS8, _procs);
+//RegisterProc('ActExprS8',         @ActExprS8, _procs);
   RegisterProc('ActExprShl',        @ActExprShl, _procs);
   RegisterProc('ActExprShr',        @ActExprShr, _procs);
   RegisterProc('ActExprSub',        @ActExprSub, _procs);
-  RegisterProc('ActExprU16',        @ActExprU16, _procs);
+//RegisterProc('ActExprU16',        @ActExprU16, _procs);
   RegisterProc('ActExprXor',        @ActExprXor, _procs);
   RegisterProc('ActFuncAsc',        @ActFuncAsc, _procs);
   RegisterProc('ActFuncHigh',       @ActFuncHigh, _procs);
@@ -2101,35 +2121,37 @@ begin
   RegisterProc('ActFuncPos',        @ActFuncPos, _procs);
   RegisterProc('ActFuncValue',      @ActFuncValue, _procs);
   RegisterProc('ActHexLiteral',     @ActHexLiteral, _procs);
-  RegisterProc('ActIgnore',         @ActIgnore, _procs);
+//RegisterProc('ActIgnore',         @ActIgnore, _procs);
 //RegisterProc('ActLabel',          @ActLabel, _procs);
 //RegisterProc('ActLabelC',         @ActLabelC, _procs);
 //RegisterProc('ActLabelLocal',     @ActLabelLocal, _procs);
 //RegisterProc('ActLabelLocalC',    @ActLabelLocalC, _procs);
-  RegisterProc('ActLExprI',         @ActLExprI, _procs);
-  RegisterProc('ActLExprS',         @ActLExprS, _procs);
+//RegisterProc('ActLExprI',         @ActLExprI, _procs);
+//RegisterProc('ActLExprS',         @ActLExprS, _procs);
   RegisterProc('ActLogAnd',         @ActLogAnd, _procs);
   RegisterProc('ActLogNot',         @ActLogNot, _procs);
   RegisterProc('ActLogOr',          @ActLogOr, _procs);
 //RegisterProc('ActMacroPlaceholder', @ActMacroPlaceholder, _procs);
   RegisterProc('ActOctLiteral',     @ActOctLiteral, _procs);
-  RegisterProc('ActOpcode0',        @ActOpcode0, _procs);
-  RegisterProc('ActOpcode1',        @ActOpcode1, _procs);
-  RegisterProc('ActOpcode2',        @ActOpcode2, _procs);
+//RegisterProc('ActOpcode0',        @ActOpcode0, _procs);
+//RegisterProc('ActOpcode1',        @ActOpcode1, _procs);
+//RegisterProc('ActOpcode2',        @ActOpcode2, _procs);
+//RegisterProc('ActSConstToValue',  @ActSConstToValue, _procs);
   RegisterProc('ActSetOpBracketed', @ActSetOpBracketed, _procs);
   RegisterProc('ActSetOpInd',       @ActSetOpInd, _procs);
   RegisterProc('ActSetOpIndOff',    @ActSetOpIndOff, _procs);
   RegisterProc('ActSetOpLiteral',   @ActSetOpLiteral, _procs);
   RegisterProc('ActSetOpSimple',    @ActSetOpSimple, _procs);
   RegisterProc('ActSetOpSimpleW',   @ActSetOpSimpleW, _procs);
+//RegisterProc('ActSetOpString',    @ActSetOpString, _procs);
   RegisterProc('ActStrBuild',       @ActStrBuild, _procs);
-  RegisterProc('ActStrCat',         @ActStrCat, _procs);
+//RegisterProc('ActStrCat',         @ActStrCat, _procs);
   RegisterProc('ActStrChr',         @ActStrChr, _procs);
   RegisterProc('ActStrDate',        @ActStrDate, _procs);
   RegisterProc('ActStrHex1',        @ActStrHex1, _procs);
   RegisterProc('ActStrHex2',        @ActStrHex2, _procs);
-  RegisterProc('ActStringConstant', @ActStringConstant, _procs);
-  RegisterProc('ActStringSymbol',   @ActStringSymbol, _procs);
+//RegisterProc('ActStringConstant', @ActStringConstant, _procs);
+//RegisterProc('ActStringSymbol',   @ActStringSymbol, _procs);
   RegisterProc('ActStrLeft',        @ActStrLeft, _procs);
   RegisterProc('ActStrLower',       @ActStrLower, _procs);
   RegisterProc('ActStrMid',         @ActStrMid, _procs);
@@ -2137,7 +2159,7 @@ begin
   RegisterProc('ActStrString',      @ActStrString, _procs);
   RegisterProc('ActStrTime',        @ActStrTime, _procs);
   RegisterProc('ActStrUpper',       @ActStrUpper, _procs);
-  RegisterProc('ActSymbolDef',      @ActSymbolDef, _procs);
+//RegisterProc('ActSymbolDef',      @ActSymbolDef, _procs);
 //RegisterProc('ActValueLocal',     @ActValueLocal, _procs);
   RegisterProc('ActValueOrg',       @ActValueOrg, _procs);
   RegisterProc('ActValueSymbol',    @ActValueSymbol, _procs);
@@ -2154,6 +2176,25 @@ begin
   FOnMonitor := _monitor;
   if Assigned(FFileStack) then
     FFileStack.OnMonitor := _monitor;
+end;
+
+function TAssembler.StackNum(_index: integer): integer;
+var s: string;
+begin
+  s := FParserStack[FParserSP+_index].Buf;
+  Result := 0;
+  if InQuotes(s) then
+    begin
+      s := StripQuotes(s);
+      if Length(s) = 0 then
+        Monitor(ltError,'Attempting to use the ordinal of an empty string')
+      else if Length(s) > 1 then
+        Monitor(ltWarning,'Attempting to use the ordinal of a string with > 1 character')
+      else
+        Result := Ord(s[1]);
+    end
+  else
+    Result := StrToInt(s);
 end;
 
 procedure TAssembler.WriteMapFile;

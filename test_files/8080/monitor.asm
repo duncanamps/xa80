@@ -5,7 +5,7 @@
 TOP     EQU     24      ;MEMORY TOP, K BYTES
 ORGIN   EQU     (TOP-2)*1024  ;PROGRAM START
 ;
-        CPU     8080
+;       CPU     8080
         ORG     ORGIN
 ;
 ;

@@ -13,10 +13,11 @@
       <SessionStorage Value="InProjectDir"/>
       <Title Value="Duncan&apos;s Macro Assembler x80"/>
       <ResourceType Value="res"/>
-      <Resources Count="3">
-        <Resource_0 FileName="lac\xa80.lacobj" Type="RCDATA" ResourceName="XA80"/>
-        <Resource_1 FileName="opcodes\source\z80.opcode.bin" Type="RCDATA" ResourceName="Z80.OPCODE"/>
-        <Resource_2 FileName="opcodes\source\8080.opcode.bin" Type="RCDATA" ResourceName="8080.OPCODE"/>
+      <Resources Count="4">
+        <Resource_0 FileName="opcodes\source\z80.opcode.bin" Type="RCDATA" ResourceName="Z80.OPCODE"/>
+        <Resource_1 FileName="opcodes\source\8080.opcode.bin" Type="RCDATA" ResourceName="8080.OPCODE"/>
+        <Resource_2 FileName="lac\xa80oper.lacobj" Type="RCDATA" ResourceName="XA80OPER"/>
+        <Resource_3 FileName="lac\xa80pre.lacobj" Type="RCDATA" ResourceName="XA80PRE"/>
       </Resources>
     </General>
     <VersionInfo>
@@ -138,7 +139,7 @@
     <RunParams>
       <FormatVersion Value="2"/>
     </RunParams>
-    <Units Count="14">
+    <Units Count="15">
       <Unit0>
         <Filename Value="xa80.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -195,6 +196,10 @@
         <Filename Value="units\uinstruction.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit13>
+      <Unit14>
+        <Filename Value="units\upreparser2.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -47,14 +47,14 @@ var l: integer;
 begin
   Result := _s;
   l := Length(_s);
-  if (l > 0) and (LeftStr(_s,1) = CHR(34)) then
+  if (l > 0) and (_s[1] in [#34,#39]) then
     begin
       if l < 2 then
         raise Exception.Create('Trying to strip quotes from string which is too short ' + _s);
-      if (LeftStr(_s,1) <> Chr(34)) or
-         (RightStr(_s,1) <> Chr(34)) then
-        raise Exception.Create('Trying to strip quotes which are not present ' + _s);
-      Result := Copy(_s,2,Length(_s)-2);
+      if (_s[1] in [#34,#39]) and (RightStr(_s,1) = LeftStr(_s,1)) then
+        Result := Copy(_s,2,Length(_s)-2)
+      else
+        raise Exception.Create('Trying to strip quotes which are not present or mismatched ' + _s);
     end;
 end;
 
