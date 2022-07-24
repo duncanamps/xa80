@@ -23,7 +23,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="8"/>
+      <BuildNr Value="9"/>
       <StringTable LegalCopyright="Copyright (C)2020-2022 Duncan Munro" ProductName="Duncan&apos;s Macro Assembler x80" ProductVersion="0.1"/>
     </VersionInfo>
     <BuildModes Count="4">
@@ -156,7 +156,7 @@
         <IsPartOfProject Value="True"/>
       </Unit3>
       <Unit4>
-        <Filename Value="units\uassembler.pas"/>
+        <Filename Value="units\uassembler80.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit4>
       <Unit5>

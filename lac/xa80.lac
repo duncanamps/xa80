@@ -75,12 +75,14 @@ T_OPERAND_SIMPLE	= MIXED("A")
 					| MIXED("HL")	
 					| MIXED("[HL]") 
 					| MIXED("I")	
-					| MIXED("L")	
+					| MIXED("L")
+					| MIXED("M")
 					| MIXED("NC")	
 					| MIXED("NZ")	
 					| MIXED("P")	
 					| MIXED("PE")	
 					| MIXED("PO")
+					| MIXED("PSW")
 					| MIXED("R")	
 					| MIXED("SP")
 					| MIXED("[SP]") 
@@ -137,6 +139,7 @@ F_ORG				= MIXED("ORG(")			keyword;
 F_POS				= MIXED("POS(")			keyword;
 F_RIGHT				= MIXED("RIGHT(")		keyword;
 F_STRING			= MIXED("STRING(")		keyword;
+F_SYMSTR			= MIXED("SYMSTR(")		keyword;
 F_TIME				= MIXED("TIME()")		keyword;
 F_UPPER				= MIXED("UPPER(")		keyword;
 F_VALUE				= MIXED("VALUE(")		keyword;
@@ -145,6 +148,7 @@ F_VALUE				= MIXED("VALUE(")		keyword;
 
 K_DB        = MIXED("DB") | MIXED("DEFB")	keyword;
 K_DC		= MIXED("DC") | MIXED("DEFC")	keyword;
+K_DEFMACRO 	= MIXED("DEFMACRO")  			keyword;
 K_DEFINE	= MIXED("DEFINE")	 			keyword;
 K_DS 		= MIXED("DS") | MIXED("DEFS")	keyword;
 K_DW 		= MIXED("DW") | MIXED("DEFW")	keyword;
@@ -275,6 +279,7 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 					| K_DB        <expression_list_A8orStr>				# ActDirDB
 					| K_DC		  <expression_list_str>					# ActDirDC
 					| K_DEFINE	  T_SYMBOLDEF							# ActDirDefine
+					| K_DEFMACRO  T_SYMBOLDEF							# ActDirDefMacro
 					| K_DS        <expression>							# ActDirDS
 					| K_DS        <expression> "," <expression_A8orStr> 	# ActDirDS2
 					| K_DW        <expression_list_A16>					# ActDirDW
@@ -289,16 +294,14 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 					| K_INCLUDE   <string_expr>							# ActDirInclude
 					| K_INCLUDEFL <string_expr>							# ActDirIncludeList
 					| K_LIST											# ActDirList
-					| K_MACRO     T_SYMBOLDEF <param_list>				# ActDirMacroDef
-					| K_MACRO     T_SYMBOLDEF							# ActDirMacroDefNoexpr
+					| K_MACRO T_SYMBOLDEF <param_list>					# ActDirMacro
+					| K_MACRO T_SYMBOLDEF 								# ActDirMacroNoexpr
 					| K_MESSAGE   <string_expr>							# ActDirMessage
 					| K_NOLIST 											# ActDirNolist
 					| K_ORG       <expression_U16>						# ActDirOrg
 					| K_UNDEFINE  T_SYMBOLDEF							# ActDirUndefine
 					| K_WARNING   <string_expr>							# ActDirWarning
 					| T_ASSIGN    <expression_U16>						# ActDirSet
-					| T_SYMBOLDEF <param_list>							# ActMacroExec
-					| T_SYMBOLDEF 										# ActMacroExecNoparam
 					|													# ActIgnore
 					;
 
@@ -315,8 +318,8 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 		  | <expression>											# ActSetOpLiteral
 		  ;
 	
-<param_list>	: <param_list> "," T_SYMBOLDEF
-				| T_SYMBOLDEF
+<param_list>	: <param_list> "," T_SYMBOLDEF						# ActParamList
+				| T_SYMBOLDEF										# ActCopy1
 				;
 					
 //===========================================================================					
@@ -345,7 +348,7 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 						;
 					
 <lexpression_A8orStr>	: <expression>								# ActLExprI
-						| T_STRINGCONSTANT							# ActLExprS
+						| <string_expr>								# ActLExprS
 						;
 
 <lexpression_A16>		: <expression>								# ActLExprI
@@ -456,5 +459,5 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 					| F_STRING <expression> ")"						# ActStrString
 					| F_TIME										# ActStrTime
 					| F_UPPER <string_expr> ")"						# ActStrUpper
-					| T_SYMBOLDEF									# ActStringSymbol
+					| F_SYMSTR T_SYMBOLDEF ")"						# ActStringSymbol
 					;  

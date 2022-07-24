@@ -26,7 +26,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  Classes, SysUtils, CustApp, fileinfo, usymbol, uutility, uassembler,
+  Classes, SysUtils, CustApp, fileinfo, usymbol, uutility, uassembler80,
   ufilestack, uexpression, uoutput, uifstack, umacro,
   deployment_parser_types_12, deployment_parser_module_12, udebuglist,
   uinstruction, uasmglobals;
@@ -75,7 +75,7 @@ type
 procedure TXA80.DoRun;
 var
   ErrorMsg:   String;
-  xa80:       TAssembler;
+  xa80:       TAssembler80;
   procoption: string;
   procvalue:  string;
   taboption:  string;
@@ -233,7 +233,7 @@ begin
 
   // Create the assembler and run it
 
-  xa80 := TAssembler.Create('XA80',procvalue);
+  xa80 := TAssembler80.Create('XA80',procvalue);
   try
     // Set up the initial parameters
     xa80.FilenameSrc := filename; // Has to go first!

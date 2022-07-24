@@ -73,7 +73,7 @@ type
 implementation
 
 uses
-  uutility, uassembler, uasmglobals;
+  uutility, uassembler80, uasmglobals;
 
 { TFileStackEntry }
 
@@ -189,7 +189,7 @@ begin
   if Exists(filename) then
     Monitor(ltError,'Circular file reference in file ' + filename);
   Monitor(ltDebug,'Opening file ' + filename);
-  tabsize := TAssembler(FParser).TabSize;
+  tabsize := TAssembler80(FParser).TabSize;
   rec := TFileStackEntry.Create(filename,_listing);
   if Count > 0 then
     if Items[Count-1].Listing = False then
@@ -206,12 +206,15 @@ end;
 procedure TFileStack.PushMacro(macroname: string; sl: TStringList; parms: TStringList);
 var rec: TFileStackEntry;
     i,j: integer;
+    fn: string;
 begin
   {%H-}macroname := UpperCase(macroname);
-  rec.Filename := 'MACRO '+ macroname;
-  if Exists(rec.Filename) then
+  fn := 'MACRO '+ macroname;
+  if Exists(fn) then
     Monitor(ltError,'Circular macro reference in macro ' + macroname);
-  rec.List := TStringList.Create;
+  rec := TFileStackEntry.Create;
+  rec.Filename := fn;
+  rec.Listing := True;
   rec.List.Assign(sl);
   // Delete last record (the .ENDM)
   rec.List.Delete(rec.List.Count-1);
@@ -220,7 +223,6 @@ begin
     for j := 0 to parms.Count-1 do
       rec.List[i] := StringReplace(rec.List[i],'@'+IntToStr(j),parms[j],[rfReplaceAll]);
   rec.InputLine := 0;
-  rec.Listing := True;
   if Count > 0 then
     if Items[Count-1].Listing = False then
       rec.Listing := False;;

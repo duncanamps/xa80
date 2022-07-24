@@ -1,5 +1,5 @@
 {$WARN 5024 off : Parameter "$1" not used}
-unit uassembler;
+unit uassembler80;
 
 {
     XA80 - Cross Assembler for x80 processors
@@ -53,7 +53,7 @@ type
 
   end;
 
-  TAssembler = class(TLCGParser)
+  TAssembler80 = class(TLCGParser)
     protected
       FAddr:           UINT16;
 //    FAddrMode:       TAddrMode;
@@ -112,7 +112,7 @@ type
       function  ActDirDefine(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDefineExpr(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDefineString(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirDefmacro(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActDirDefMacro(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDS(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDS2(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDSH(_parser: TLCGParser): TLCGParserStackEntry;
@@ -333,9 +333,9 @@ const CodeTable: array[TOpCode,TAddrMode] of integer = (
     );
 }
 
-{ TAssembler }
+{ TAssembler80 }
 
-constructor TAssembler.Create(const _grammar: string; const _processor: string);
+constructor TAssembler80.Create(const _grammar: string; const _processor: string);
 begin
   inherited Create;
   LoadFromResource(_grammar);
@@ -359,13 +359,13 @@ begin
   RegisterProcs;
 end;
 
-destructor TAssembler.Destroy;
+destructor TAssembler80.Destroy;
 begin
   FreeAndNil(FExprList);
   FreeAndNil(FInstructionList);
   FCmdIncludes.Free;
   FCmdDefines.Free;
-  FMacroList.Free;
+  FreeAndNil(FMacroList);
   FListing.Free;
   FDebugList.Free;
   FOutput.Free;
@@ -375,17 +375,17 @@ begin
   inherited Destroy;
 end;
 
-function TAssembler.ActBinLiteral(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActBinLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := VariableFromBinLiteral(_parser.ParserStack[_parser.ParserSP-1].Buf);
 end;
 
-function TAssembler.ActCharLiteral(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActCharLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(Ord(_parser.ParserStack[_parser.ParserSP-1].Buf[2]));
 end;
 
-function TAssembler.ActCompEQ(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActCompEQ(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   if StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) =
      StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf) then
@@ -394,7 +394,7 @@ begin
     result.Buf := '0';
 end;
 
-function TAssembler.ActCompGE(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActCompGE(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   if StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) >=
      StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf) then
@@ -403,7 +403,7 @@ begin
     result.Buf := '0';
 end;
 
-function TAssembler.ActCompGT(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActCompGT(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   if StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) >
      StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf) then
@@ -412,7 +412,7 @@ begin
     result.Buf := '0';
 end;
 
-function TAssembler.ActCompLE(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActCompLE(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   if StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) <=
      StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf) then
@@ -421,7 +421,7 @@ begin
     result.Buf := '0';
 end;
 
-function TAssembler.ActCompLT(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActCompLT(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   if StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) <
      StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf) then
@@ -430,7 +430,7 @@ else
   result.Buf := '0';
 end;
 
-function TAssembler.ActCompNE(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActCompNE(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   if StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) <>
      StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf) then
@@ -439,17 +439,17 @@ begin
     result.Buf := '0';
 end;
 
-function TAssembler.ActCopy1(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActCopy1(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := _parser.ParserStack[_parser.ParserSP-1].Buf;
 end;
 
-function TAssembler.ActCopy2(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActCopy2(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := _parser.ParserStack[_parser.ParserSP-2].Buf;
 end;
 
-function TAssembler.ActDecLiteral(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDecLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 var s: string;
 begin
   s := _parser.ParserStack[_parser.ParserSP-1].Buf;
@@ -459,7 +459,7 @@ begin
   Result.Buf := IntToStr(StrToInt(s));
 end;
 
-function TAssembler.ActDirByte(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirByte(_parser: TLCGParser): TLCGParserStackEntry;
 var bval: integer;
     bcount: integer;
     i:      integer;
@@ -479,7 +479,7 @@ begin
     FOutputArr[i] := bval and $00FF;
 end;
 
-function TAssembler.ActDirDB(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirDB(_parser: TLCGParser): TLCGParserStackEntry;
 var i:   integer;
     op:  integer;
     bval: integer;
@@ -518,7 +518,7 @@ begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActDirDC(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirDC(_parser: TLCGParser): TLCGParserStackEntry;
 var i:   integer;
     op:  integer;
     bval: integer;
@@ -550,7 +550,7 @@ begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActDirDefine(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirDefine(_parser: TLCGParser): TLCGParserStackEntry;
 var symbolname: string;
     message:    string;
 begin
@@ -563,7 +563,7 @@ begin
     Monitor(ltError,message);
 end;
 
-function TAssembler.ActDirDefineExpr(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirDefineExpr(_parser: TLCGParser): TLCGParserStackEntry;
 var symbolname: string;
     expression: string;
     message:    string;
@@ -578,7 +578,7 @@ begin
     Monitor(ltError,message);
 end;
 
-function TAssembler.ActDirDefineString(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirDefineString(_parser: TLCGParser): TLCGParserStackEntry;
 var symbolname: string;
     expression: string;
     message:    string;
@@ -592,13 +592,14 @@ begin
   if message <> '' then
     Monitor(ltError,message);
 end;
-function TAssembler.ActDirDefmacro(_parser: TLCGParser): TLCGParserStackEntry;
+
+function TAssembler80.ActDirDefMacro(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := '';
   if not FIfStack.Allowed then
     exit;
   if FDefiningMacro then
-    Monitor(ltError,'.DEFMACRO cannot be nested');
+    Monitor(ltError,'MACRO definition cannot be nested');
   FDefiningMacro := True;
   FMacroName := UpperCase(_parser.ParserStack[_parser.ParserSP-1].Buf);
   if FMacroList.IndexOf(FMacroName) >= 0 then
@@ -607,7 +608,7 @@ begin
   Monitor(ltWarAndPeace,'Defining macro %s',[FMacroName]);
 end;
 
-function TAssembler.ActDirDS(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirDS(_parser: TLCGParser): TLCGParserStackEntry;
 var i:   integer;
     bytes: integer;
 begin
@@ -615,9 +616,9 @@ begin
   if not ProcessingAllowed then
     Exit;
   bytes := StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf);
-  if (bytes < 1) or (bytes > 16384) then
+  if (bytes < 1) or (bytes > 32767) then
     begin
-      Monitor(ltError,'Number of bytes for storage directive not in the range 1-16384');
+      Monitor(ltError,'Number of bytes for storage directive not in the range 1-32767');
       Exit;
     end;
   FBytesFromLine := bytes;
@@ -627,7 +628,7 @@ begin
   FOutput.Write(FOutputArr,FOrg,bytes);
 end;
 
-function TAssembler.ActDirDS2(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirDS2(_parser: TLCGParser): TLCGParserStackEntry;
 var i:   integer;
     bytes: integer;
     code:  integer;
@@ -637,9 +638,9 @@ begin
     Exit;
   bytes := StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf);
   code  := StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf);
-  if (bytes < 1) or (bytes > 255) then
+  if (bytes < 1) or (bytes > 32767) then
     begin
-      Monitor(ltError,'Number of bytes for storage directive not in the range 1-255');
+      Monitor(ltError,'Number of bytes for storage directive not in the range 1-32767');
       Exit;
     end;
   if (code < 0) or (code > 255) then
@@ -654,7 +655,7 @@ begin
   FOutput.Write(FOutputArr,FOrg,bytes);
 end;
 
-function TAssembler.ActDirDSH(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirDSH(_parser: TLCGParser): TLCGParserStackEntry;
 var i:   integer;
     s:   string;
 begin
@@ -672,7 +673,7 @@ begin
   FOutput.Write(FOutputArr,FOrg,FBytesFromLine);
 end;
 
-function TAssembler.ActDirDSZ(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirDSZ(_parser: TLCGParser): TLCGParserStackEntry;
 var i:   integer;
     s:   string;
 begin
@@ -688,7 +689,7 @@ begin
   FOutput.Write(FOutputArr,FOrg,FBytesFromLine);
 end;
 
-function TAssembler.ActDirDW(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirDW(_parser: TLCGParser): TLCGParserStackEntry;
 var sl: TStringList;
     i:   integer;
     bval: integer;
@@ -721,13 +722,13 @@ begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActDirElse(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirElse(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   FIfStack.ElseSwap;
   Result.Buf := '';
 end;
 
-function TAssembler.ActDirEnd(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirEnd(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   // @@@@@ ADD CODE FOR END
   // @@@@@ CHECK NOT IN MACRO ETC. MARK FILE AS ENDED SO FURTHER CODE WILL
@@ -735,13 +736,13 @@ begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActDirEndif(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirEndif(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   FIfStack.Pop;
   Result.Buf := '';
 end;
 
-function TAssembler.ActDirEndm(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirEndm(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := '';
   if not FIfStack.Allowed then
@@ -749,11 +750,11 @@ begin
   FMacroList.Add(FMacroName,FMacroCapture);
   FDefiningMacro := False;
   FMacroName := '';
-  FMacroCapture := nil;
+  FreeAndNil(FMacroCapture);
   Monitor(ltWarAndPeace,'End of defining macro %s',[FMacroName]);
 end;
 
-function TAssembler.ActDirError(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirError(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := '';
   if not ProcessingAllowed then
@@ -761,7 +762,7 @@ begin
   Monitor(ltError,_parser.ParserStack[_parser.ParserSP-1].Buf);
 end;
 
-function TAssembler.ActDirIf(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirIf(_parser: TLCGParser): TLCGParserStackEntry;
 var succeeded: boolean;
 begin
   succeeded := StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf) <> 0;
@@ -769,7 +770,7 @@ begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActDirIfdef(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirIfdef(_parser: TLCGParser): TLCGParserStackEntry;
 var succeeded: boolean;
 begin
   FSymbols.SetUsed(_parser.ParserStack[_parser.ParserSP-1].Buf);
@@ -778,7 +779,7 @@ begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActDirIfndef(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirIfndef(_parser: TLCGParser): TLCGParserStackEntry;
 var succeeded: boolean;
 begin
   FSymbols.SetUsed(_parser.ParserStack[_parser.ParserSP-1].Buf);
@@ -787,7 +788,7 @@ begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActDirInclude(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirInclude(_parser: TLCGParser): TLCGParserStackEntry;
 var parentfile: string;
     myfile:     string;
     newfile:    string;
@@ -835,13 +836,13 @@ begin
   Monitor(ltError,'Include file %s could not be found',[myfile]);
 end;
 
-function TAssembler.ActDirIncludeList(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirIncludeList(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   FForceList := True;
   Result := ActDirInclude(_parser);
 end;
 
-function TAssembler.ActDirList(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirList(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := '';
   if not ProcessingAllowed then
@@ -850,7 +851,7 @@ begin
   FListNext := True;
 end;
 
-function TAssembler.ActDirMacro(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirMacro(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := '';
   if not ProcessingAllowed then
@@ -859,7 +860,7 @@ begin
   FProcessParms := _parser.ParserStack[_parser.ParserSP-1].Buf;
 end;
 
-function TAssembler.ActDirMacroNoexpr(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirMacroNoexpr(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := '';
   if not ProcessingAllowed then
@@ -868,7 +869,7 @@ begin
   FProcessParms := '';
 end;
 
-function TAssembler.ActDirMessage(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirMessage(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := '';
   if not ProcessingAllowed then
@@ -876,7 +877,7 @@ begin
   Monitor(ltInfo,_parser.ParserStack[_parser.ParserSP-1].Buf);
 end;
 
-function TAssembler.ActDirNoList(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirNoList(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := '';
   if not ProcessingAllowed then
@@ -884,7 +885,7 @@ begin
   FListNext := False;
 end;
 
-function TAssembler.ActDirOrg(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirOrg(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := '';
   if not ProcessingAllowed then
@@ -892,7 +893,7 @@ begin
   FOrg := StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf);
 end;
 
-function TAssembler.ActDirSet(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirSet(_parser: TLCGParser): TLCGParserStackEntry;
 var symbolname: string;
     expression: string;
     message:    string;
@@ -907,7 +908,7 @@ begin
     Monitor(ltError,message);
 end;
 
-function TAssembler.ActDirUndefine(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirUndefine(_parser: TLCGParser): TLCGParserStackEntry;
 var symbolname: string;
     message:    string;
 begin
@@ -920,7 +921,7 @@ begin
     Monitor(ltError,message);
 end;
 
-function TAssembler.ActDirWarning(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActDirWarning(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := '';
   if not ProcessingAllowed then
@@ -928,36 +929,36 @@ begin
   Monitor(ltWarning,_parser.ParserStack[_parser.ParserSP-1].Buf);
 end;
 
-function TAssembler.ActExprAdd(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprAdd(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) +
                          StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActExprA8(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprA8(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   // @@@@@ PUT IN SOME CHECKS TO ENSURE THIS IS WITHIN 8 BIT LIMITS @@@@@
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActExprA16(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprA16(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   // @@@@@ PUT IN SOME CHECKS TO ENSURE THIS IS WITHIN 16 BIT LIMITS @@@@@
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActExprAnd(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprAnd(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) and
                          StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActExprBracket(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprBracket(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := _parser.ParserStack[_parser.ParserSP-2].Buf;
 end;
 
-function TAssembler.ActExprCL(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprCL(_parser: TLCGParser): TLCGParserStackEntry;
 var s: string;
 begin
   // @@@@@ ADD CODE TO CHECK THE INPUT AND REMOVE EXTERNAL QUOTES
@@ -974,69 +975,69 @@ begin
     end;
 end;
 
-function TAssembler.ActExprDiv(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprDiv(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) div
                          StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActExprList(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprList(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := _parser.ParserStack[_parser.ParserSP-3].Buf +
                 ',' +
                 _parser.ParserStack[_parser.ParserSP-1].Buf;
 end;
 
-function TAssembler.ActExprListA8orStr(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprListA8orStr(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := _parser.ParserStack[_parser.ParserSP-3].Buf +
                 ',' +
                 _parser.ParserStack[_parser.ParserSP-1].Buf;
 end;
 
-function TAssembler.ActExprListStr(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprListStr(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := _parser.ParserStack[_parser.ParserSP-3].Buf +
                 ',' +
                 _parser.ParserStack[_parser.ParserSP-1].Buf;
 end;
 
-function TAssembler.ActExprUnaryMinus(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprUnaryMinus(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(-StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActExprMod(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprMod(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) mod
                          StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActExprMul(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprMul(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) *
                          StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActExprNot(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprNot(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf) xor
                          $FFFF);
 end;
 
-function TAssembler.ActExprOr(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprOr(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) or
                          StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActExprS8(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprS8(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   // @@@@@ PUT IN SOME CHECKS TO ENSURE THIS IS WITHIN 16 BIT LIMITS @@@@@
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActExprShl(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprShl(_parser: TLCGParser): TLCGParserStackEntry;
 var val1,val2: uint32;
 begin
   val1 := StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf);
@@ -1045,31 +1046,31 @@ begin
   Result.Buf := IntToStr(val1 and $FFFF);
 end;
 
-function TAssembler.ActExprShr(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprShr(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) shr
                          StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActExprSub(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprSub(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) -
                          StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActExprU16(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprU16(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   // @@@@@ PUT IN SOME CHECKS TO ENSURE THIS IS WITHIN 16 BIT LIMITS @@@@@
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActExprXor(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActExprXor(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) xor
                          StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf));
 end;
 
-function TAssembler.ActFuncAsc(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActFuncAsc(_parser: TLCGParser): TLCGParserStackEntry;
 var s: string;
 begin
   s := _parser.ParserStack[_parser.ParserSP-2].Buf;
@@ -1078,12 +1079,12 @@ begin
   Result.Buf := IntToStr(Ord(s[1]));
 end;
 
-function TAssembler.ActFuncHigh(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActFuncHigh(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-2].Buf) shr 8);
 end;
 
-function TAssembler.ActFuncIif(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActFuncIif(_parser: TLCGParser): TLCGParserStackEntry;
 var expr:     integer;
     trueval:  integer;
     falseval: integer;
@@ -1099,33 +1100,33 @@ begin
   Result.Buf := IntToStr(resval);
 end;
 
-function TAssembler.ActFuncLow(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActFuncLow(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-2].Buf) and $00FF);
 end;
 
-function TAssembler.ActFuncPos(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActFuncPos(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(Pos(_parser.ParserStack[_parser.ParserSP-4].Buf,
                              _parser.ParserStack[_parser.ParserSP-2].Buf));
 end;
 
-function TAssembler.ActFuncValue(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActFuncValue(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-2].Buf));
 end;
 
-function TAssembler.ActHexLiteral(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActHexLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := VariableFromHexLiteral(_parser.ParserStack[_parser.ParserSP-1].Buf);
 end;
 
-function TAssembler.ActIgnore(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActIgnore(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActLabel(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActLabel(_parser: TLCGParser): TLCGParserStackEntry;
 var symbolname: string;
     expression: string;
     msg:        string;
@@ -1140,7 +1141,7 @@ begin
     Monitor(ltError,msg);
 end;
 
-function TAssembler.ActLabelC(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActLabelC(_parser: TLCGParser): TLCGParserStackEntry;
 var symbolname: string;
     expression: string;
     msg:        string;
@@ -1155,7 +1156,7 @@ begin
     Monitor(ltError,msg);
 end;
 
-function TAssembler.ActLabelLocal(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActLabelLocal(_parser: TLCGParser): TLCGParserStackEntry;
 var symbolname: string;
     expression: string;
     msg:        string;
@@ -1170,7 +1171,7 @@ begin
     Monitor(ltError,msg);
 end;
 
-function TAssembler.ActLabelLocalC(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActLabelLocalC(_parser: TLCGParser): TLCGParserStackEntry;
 var symbolname: string;
     expression: string;
     msg:        string;
@@ -1185,7 +1186,7 @@ begin
     Monitor(ltError,msg);
 end;
 
-function TAssembler.ActLExprI(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActLExprI(_parser: TLCGParser): TLCGParserStackEntry;
 var r:    TExprListItem;
 begin
   r.ItemType := litInteger;
@@ -1194,7 +1195,7 @@ begin
   result.Buf := '';
 end;
 
-function TAssembler.ActLExprS(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActLExprS(_parser: TLCGParser): TLCGParserStackEntry;
 var r:    TExprListItem;
 begin
   r.ItemType := litString;
@@ -1203,7 +1204,7 @@ begin
   result.Buf := '';
 end;
 
-function TAssembler.ActLogAnd(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActLogAnd(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   if (StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) <> 0) and
      (StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf) <> 0) then
@@ -1212,7 +1213,7 @@ begin
     result.Buf := '0';
 end;
 
-function TAssembler.ActLogNot(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActLogNot(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   if (StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf) = 0) then
     result.Buf := '1'
@@ -1220,7 +1221,7 @@ begin
     result.Buf := '0';
 end;
 
-function TAssembler.ActLogOr(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActLogOr(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   if (StrToInt(_parser.ParserStack[_parser.ParserSP-3].Buf) <> 0) or
      (StrToInt(_parser.ParserStack[_parser.ParserSP-1].Buf) <> 0) then
@@ -1229,7 +1230,7 @@ begin
     result.Buf := '0';
 end;
 
-function TAssembler.ActMacroPlaceholder(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActMacroPlaceholder(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   // We will only end up here if a macro parameter was not expanded
   if ProcessingAllowed then
@@ -1237,27 +1238,27 @@ begin
   Result.Buf := IntToStr(FOrg);
 end;
 
-function TAssembler.ActOctLiteral(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActOctLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := VariableFromOctLiteral(_parser.ParserStack[_parser.ParserSP-1].Buf);
 end;
 
-function TAssembler.ActOpcode0(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActOpcode0(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result := DoOpcode(_parser,0);
 end;
 
-function TAssembler.ActOpcode1(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActOpcode1(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result := DoOpcode(_parser,1);
 end;
 
-function TAssembler.ActOpcode2(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActOpcode2(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result := DoOpcode(_parser,2);
 end;
 
-function TAssembler.ActSetOpInd(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActSetOpInd(_parser: TLCGParser): TLCGParserStackEntry;
 var index_reg: string;
     operand_opt: TOperandOption;
 begin
@@ -1275,7 +1276,7 @@ begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActSetOpIndOff(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActSetOpIndOff(_parser: TLCGParser): TLCGParserStackEntry;
 var index_reg: string;
     expr:      string;
     operand_opt: TOperandOption;
@@ -1295,7 +1296,7 @@ begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActSetOpSimple(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActSetOpSimple(_parser: TLCGParser): TLCGParserStackEntry;
 var op_reg: string;
     operand_opt: TOperandOption;
 begin
@@ -1310,7 +1311,7 @@ begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActSetOpSimpleW(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActSetOpSimpleW(_parser: TLCGParser): TLCGParserStackEntry;
 var op_reg: string;
     operand_opt: TOperandOption;
 begin
@@ -1325,7 +1326,7 @@ begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActSetOpBracketed(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActSetOpBracketed(_parser: TLCGParser): TLCGParserStackEntry;
 var expr:      string;
     operand_opt: TOperandOption;
 begin
@@ -1337,7 +1338,7 @@ begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActSetOpLiteral(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActSetOpLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 var expr:      string;
     operand_opt: TOperandOption;
 begin
@@ -1348,7 +1349,7 @@ begin
   Result.Buf := '';
 end;
 
-function TAssembler.ActStrBuild(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStrBuild(_parser: TLCGParser): TLCGParserStackEntry;
 var
   FileVerInfo: TFileVersionInfo;
 begin
@@ -1361,28 +1362,28 @@ begin
   end;
 end;
 
-function TAssembler.ActStrCat(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStrCat(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := _parser.ParserStack[_parser.ParserSP-3].Buf +
                 _parser.ParserStack[_parser.ParserSP-1].Buf;
 end;
 
-function TAssembler.ActStrChr(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStrChr(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := Chr(StrToInt(_parser.ParserStack[_parser.ParserSP-2].Buf));
 end;
 
-function TAssembler.ActStrDate(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStrDate(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := FormatDateTime('yyyy-mm-dd',FAssemblyStart);
 end;
 
-function TAssembler.ActStrHex1(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStrHex1(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := Format('%X',[StrToInt(_parser.ParserStack[_parser.ParserSP-2].Buf)]);
 end;
 
-function TAssembler.ActStrHex2(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStrHex2(_parser: TLCGParser): TLCGParserStackEntry;
 var fmt: string;
     digits: integer;
 begin
@@ -1393,17 +1394,17 @@ begin
   Result.Buf := Format(fmt,[StrToInt(_parser.ParserStack[_parser.ParserSP-4].Buf)]);
 end;
 
-function TAssembler.ActStringConstant(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStringConstant(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := StripQuotesAndEscaped(_parser.ParserStack[_parser.ParserSP-1].Buf);
 end;
 
-function TAssembler.ActStringSymbol(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStringSymbol(_parser: TLCGParser): TLCGParserStackEntry;
 begin
-  Result.Buf := FSymbols.Variable(FPass,_parser.ParserStack[_parser.ParserSP-1].Buf,'',FIfStack);
+  Result.Buf := FSymbols.Variable(FPass,_parser.ParserStack[_parser.ParserSP-2].Buf,'',FIfStack);
 end;
 
-function TAssembler.ActStrLeft(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStrLeft(_parser: TLCGParser): TLCGParserStackEntry;
 var len: integer;
 begin
   len := StrToInt(_parser.ParserStack[_parser.ParserSP-2].Buf);
@@ -1412,12 +1413,12 @@ begin
   Result.Buf := LeftStr(_parser.ParserStack[_parser.ParserSP-4].Buf,len);
 end;
 
-function TAssembler.ActStrLower(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStrLower(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := LowerCase(_parser.ParserStack[_parser.ParserSP-2].Buf);
 end;
 
-function TAssembler.ActStrMid(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStrMid(_parser: TLCGParser): TLCGParserStackEntry;
 var len: integer;
     start: integer;
 begin
@@ -1430,7 +1431,7 @@ begin
   Result.Buf := Copy(_parser.ParserStack[_parser.ParserSP-6].Buf,start,len);
 end;
 
-function TAssembler.ActStrRight(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStrRight(_parser: TLCGParser): TLCGParserStackEntry;
 var len: integer;
 begin
   len := StrToInt(_parser.ParserStack[_parser.ParserSP-2].Buf);
@@ -1439,22 +1440,22 @@ begin
   Result.Buf := RightStr(_parser.ParserStack[_parser.ParserSP-4].Buf,len);
 end;
 
-function TAssembler.ActStrString(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStrString(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(StrToInt(_parser.ParserStack[_parser.ParserSP-2].Buf));
 end;
 
-function TAssembler.ActStrTime(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStrTime(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := FormatDateTime('hh:nn:ss',FAssemblyStart);
 end;
 
-function TAssembler.ActStrUpper(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActStrUpper(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := UpperCase(_parser.ParserStack[_parser.ParserSP-2].Buf);
 end;
 
-function TAssembler.ActSymbolDef(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActSymbolDef(_parser: TLCGParser): TLCGParserStackEntry;
 var symbolname: string;
     message:    string;
 begin
@@ -1469,12 +1470,12 @@ begin
     Monitor(ltError,message);
 end;
 
-function TAssembler.ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := IntToStr(FOrg);
 end;
 
-function TAssembler.ActValueLocal(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActValueLocal(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   if not ProcessingAllowed then
     Result.Buf := IntToStr(FOrg)
@@ -1482,12 +1483,12 @@ begin
     Result.Buf := FSymbols.Variable(FPass,FLocalPrefix+_parser.ParserStack[_parser.ParserSP-1].Buf,IntToStr(FOrg),FIfStack);
 end;
 
-function TAssembler.ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := FSymbols.Variable(FPass,_parser.ParserStack[_parser.ParserSP-1].Buf,IntToStr(FOrg),FIfStack);
 end;
 
-procedure TAssembler.Assemble;
+procedure TAssembler80.Assemble;
 var elapsed: double;
 begin
   FilesOpen;
@@ -1520,7 +1521,7 @@ begin
   end;
 end;
 
-procedure TAssembler.AssemblePass(_pass: integer);
+procedure TAssembler80.AssemblePass(_pass: integer);
 begin
   FPass := _pass;
   Monitor(ltInfo,'ASSEMBLER PASS %d',[_pass]);
@@ -1530,7 +1531,7 @@ begin
     Monitor(ltError,'Pass terminated unexpectedly in the middle of a .MACRO block');
 end;
 
-function TAssembler.DoOpcode(_parser: TLCGParser; _operands: integer): TLCGParserStackEntry;
+function TAssembler80.DoOpcode(_parser: TLCGParser; _operands: integer): TLCGParserStackEntry;
 var opcindex: integer;
     opcode:   string;
     instrec:  TInstructionRec;
@@ -1567,7 +1568,7 @@ begin
   Result.Buf := '';
 end;
 
-procedure TAssembler.FilesClose;
+procedure TAssembler80.FilesClose;
 begin
   if Assigned(FStreamLog) then
     begin
@@ -1576,7 +1577,7 @@ begin
     end;
 end;
 
-procedure TAssembler.FilesOpen;
+procedure TAssembler80.FilesOpen;
 begin
   try
     Monitor(ltDebug,'Opening %s',[FilenameLog]);
@@ -1587,14 +1588,14 @@ begin
   end;
 end;
 
-function TAssembler.GetSource: string;
+function TAssembler80.GetSource: string;
 begin
   Result := '';
   if FFileStack.Count > 0 then
     Result := FFileStack.Filename;
 end;
 
-procedure TAssembler.InitLine;
+procedure TAssembler80.InitLine;
 begin
 //  FAddrMode := ADM_IMPL;
 //  FOpCode := OPC_NOP;
@@ -1607,7 +1608,7 @@ begin
   FExprList.Clear;
 end;
 
-procedure TAssembler.InitPass;
+procedure TAssembler80.InitPass;
 var i: integer;
     symbolstring: string;
     symbolname:   string;
@@ -1652,7 +1653,7 @@ begin
     end;
 end;
 
-procedure TAssembler.InitStart;
+procedure TAssembler80.InitStart;
 begin
   Monitor(ltWarAndPeace,'Processor type = %s',[FProcessor]);
   Monitor(ltWarAndPeace,'Defines = %s',[CmdDefines.DelimitedText]);
@@ -1666,7 +1667,7 @@ begin
   Monitor(ltWarAndPeace,'tab value = %d',[TabSize]);
 end;
 
-procedure TAssembler.Monitor(LogType: TLCGLogType; const Message: string);
+procedure TAssembler80.Monitor(LogType: TLCGLogType; const Message: string);
 var s: string;
     prefix: string;
     lineinfo: string;
@@ -1718,12 +1719,12 @@ begin
   inherited Monitor(LogType,msg);
 end;
 
-procedure TAssembler.Monitor(LogType: TLCGLogType; const Message: string; const Args: array of const);
+procedure TAssembler80.Monitor(LogType: TLCGLogType; const Message: string; const Args: array of const);
 begin
   Monitor(LogType,Format(Message,Args));
 end;
 
-procedure TAssembler.OutputDebugLine(const _asmline: string);
+procedure TAssembler80.OutputDebugLine(const _asmline: string);
 var addr:     uint16;
     ent:      TDebugEntry;
 begin
@@ -1737,7 +1738,7 @@ begin
   FDebugList.Add(ent);
 end;
 
-procedure TAssembler.OutputListingLine(const _asmline: string);
+procedure TAssembler80.OutputListingLine(const _asmline: string);
 const MAX_BYTES_PER_ROW = 4;
       HEX_WIDTH = MAX_BYTES_PER_ROW * 3 + 7;
       MAX_MACRO_INDENTS = 3;
@@ -1800,7 +1801,7 @@ begin
     end;
 end;
 
-procedure TAssembler.ProcessFile(const _fn: string; _listing: boolean);
+procedure TAssembler80.ProcessFile(const _fn: string; _listing: boolean);
 begin
   Monitor(ltWarAndPeace,'Processing file %s',[_fn]);
   FFileStack.Push(_fn,_listing);
@@ -1811,7 +1812,7 @@ begin
   end;
 end;
 
-procedure TAssembler.ProcessFileInner;
+procedure TAssembler80.ProcessFileInner;
 var asmline: string;
     incl:    string;
     list:    boolean;
@@ -1862,7 +1863,7 @@ begin
     end;
 end;
 
-procedure TAssembler.ProcessMacroExpansion;
+procedure TAssembler80.ProcessMacroExpansion;
 var parms:      TStringList;
     index:   integer;
     sl:      TStringList;
@@ -1893,12 +1894,12 @@ begin
   end;
 end;
 
-function TAssembler.ProcessingAllowed: boolean;
+function TAssembler80.ProcessingAllowed: boolean;
 begin
   Result := FIfStack.Allowed and (not FDefiningMacro);
 end;
 
-procedure TAssembler.ProcessLine(const _line: string);
+procedure TAssembler80.ProcessLine(const _line: string);
 var strm: TStringStream;
 begin
   if (Length(_line) > 0) and (_line[1] = '*') then
@@ -1911,7 +1912,7 @@ begin
   end;
 end;
 
-procedure TAssembler.PumpCode(_r: TInstructionRec);
+procedure TAssembler80.PumpCode(_r: TInstructionRec);
 var i: integer;
     o: integer;
     rst_addr: integer;
@@ -1919,7 +1920,7 @@ var i: integer;
 
   procedure PumpByte(_v: integer);
   begin
-    if (_v < 0) or (_v > 255) then
+    if (_v < -128) or (_v > 255) then
       Monitor(ltError,'Instruction byte with value %8.8X cannot be used',[_v])
     else
       begin
@@ -1930,7 +1931,7 @@ var i: integer;
 
   procedure PumpWord(_v: integer);
   begin
-    if (_v < 0) or (_v > 65535) then
+    if (_v < -32768) or (_v > 65535) then
       Monitor(ltError,'Instruction word with value %8.8X cannot be used',[_v])
     else
       begin
@@ -1995,7 +1996,7 @@ begin
     end;
 end;
 
-procedure TAssembler.PushOperand(_op: TOperandOption; _v: integer);
+procedure TAssembler80.PushOperand(_op: TOperandOption; _v: integer);
 begin
   if FOperandIndex >= MAX_OPERANDS then
     Monitor(ltInternal,'Maximum number of operands exceeded')
@@ -2007,7 +2008,7 @@ begin
     end;
 end;
 
-function TAssembler.Reduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
+function TAssembler80.Reduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
 begin
   Result.Buf := '';
   if Assigned(FProcArray[RuleIndex]) then
@@ -2016,7 +2017,7 @@ begin
     Monitor(ltInternal,'Code not defined for rule no. %d (%s)',[RuleIndex,RuleProcs[RuleIndex]]);
 end;
 
-procedure TAssembler.RegisterProc(const _procname: string; _proc: TLCGParserProc; _procs: TStringArray);
+procedure TAssembler80.RegisterProc(const _procname: string; _proc: TLCGParserProc; _procs: TStringArray);
 var i: integer;
     done_one: boolean;
 begin
@@ -2031,7 +2032,7 @@ begin
     Monitor(ltInternal,'Could not find procedure %s in grammar',[_procname]);
 end;
 
-procedure TAssembler.RegisterProcs;
+procedure TAssembler80.RegisterProcs;
 var _procs: TStringArray;
 begin
   _procs := RuleProcs;
@@ -2053,7 +2054,7 @@ begin
   RegisterProc('ActDirDefine',      @ActDirDefine, _procs);
   RegisterProc('ActDirDefineExpr',  @ActDirDefineExpr, _procs);
 //RegisterProc('ActDirDefineString',@ActDirDefineString, _procs);
-//RegisterProc('ActDirDefmacro',    @ActDirDefmacro, _procs);
+  RegisterProc('ActDirDefMacro',    @ActDirDefMacro, _procs);
   RegisterProc('ActDirDS',          @ActDirDS, _procs);
   RegisterProc('ActDirDS2',         @ActDirDS2, _procs);
 //RegisterProc('ActDirDSH',         @ActDirDSH, _procs);
@@ -2070,8 +2071,8 @@ begin
   RegisterProc('ActDirInclude',     @ActDirInclude, _procs);
   RegisterProc('ActDirIncludeList', @ActDirIncludeList, _procs);
   RegisterProc('ActDirList',        @ActDirList, _procs);
-//RegisterProc('ActDirMacro',       @ActDirMacro, _procs);
-//RegisterProc('ActDirMacroNoexpr', @ActDirMacroNoexpr, _procs);
+  RegisterProc('ActDirMacro',       @ActDirMacro, _procs);
+  RegisterProc('ActDirMacroNoexpr', @ActDirMacroNoexpr, _procs);
   RegisterProc('ActDirMessage',     @ActDirMessage, _procs);
   RegisterProc('ActDirNolist',      @ActDirNolist, _procs);
   RegisterProc('ActDirOrg',         @ActDirOrg, _procs);
@@ -2148,20 +2149,20 @@ begin
   RegisterProc('ActValueSymbol',    @ActValueSymbol, _procs);
 end;
 
-procedure TAssembler.SetFilenameSrc(const _fn: string);
+procedure TAssembler80.SetFilenameSrc(const _fn: string);
 begin
   FFilenameSrc := _fn;
   if FilenameObj  = '' then FilenameObj  := ChangeFileExt(_fn,'.o80');
 end;
 
-procedure TAssembler.SetOnMonitor(_monitor: TLCGMonitorProc);
+procedure TAssembler80.SetOnMonitor(_monitor: TLCGMonitorProc);
 begin
   FOnMonitor := _monitor;
   if Assigned(FFileStack) then
     FFileStack.OnMonitor := _monitor;
 end;
 
-procedure TAssembler.WriteMapFile;
+procedure TAssembler80.WriteMapFile;
 var sl: TStringList;
 begin
   if FilenameMap = '' then
