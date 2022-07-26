@@ -111,6 +111,7 @@ type
       function  ActDirDC(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDefine(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDefineExpr(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActDirDefineExprC(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDefineString(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDefMacro(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDS(_parser: TLCGParser): TLCGParserStackEntry;
@@ -572,6 +573,23 @@ begin
   if not ProcessingAllowed then
     Exit;
   symbolname := _parser.ParserStack[_parser.ParserSP-3].Buf;
+  expression := _parser.ParserStack[_parser.ParserSP-1].Buf;
+  message := FSymbols.Define(FPass,False,symbolname,expression);
+  if message <> '' then
+    Monitor(ltError,message);
+end;
+
+function TAssembler80.ActDirDefineExprC(_parser: TLCGParser): TLCGParserStackEntry;
+var symbolname: string;
+    expression: string;
+    message:    string;
+begin
+  Result.Buf := '';
+  if not ProcessingAllowed then
+    Exit;
+  symbolname := _parser.ParserStack[_parser.ParserSP-3].Buf;
+  if (Length(symbolname) > 0) and (RightStr(symbolname,1) = ':') then
+    symbolname := LeftStr(symbolname,Length(symbolname)-1);
   expression := _parser.ParserStack[_parser.ParserSP-1].Buf;
   message := FSymbols.Define(FPass,False,symbolname,expression);
   if message <> '' then
@@ -2053,6 +2071,7 @@ begin
 //RegisterProc('ActDirDD',          @ActDirDD, _procs);
   RegisterProc('ActDirDefine',      @ActDirDefine, _procs);
   RegisterProc('ActDirDefineExpr',  @ActDirDefineExpr, _procs);
+  RegisterProc('ActDirDefineExprC', @ActDirDefineExprC, _procs);
 //RegisterProc('ActDirDefineString',@ActDirDefineString, _procs);
   RegisterProc('ActDirDefMacro',    @ActDirDefMacro, _procs);
   RegisterProc('ActDirDS',          @ActDirDS, _procs);
