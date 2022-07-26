@@ -16,3 +16,6 @@ test_prog/
 *.o80
 test_files/imported/
 *.log
+asm_all.bat
+asm_sieve.bat
+*.com

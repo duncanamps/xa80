@@ -30,6 +30,9 @@ uses
 
 // Forward declarations
 
+function IntFromBinLiteral(s: string): int32;
+function IntFromHexLiteral(s: string): int32;
+function IntFromOctLiteral(s: string): int32;
 function StripQuotes(const _s: string): string;
 function StripQuotesAndEscaped(const _s: string): string;
 function VariableFromBinLiteral(s: string): string;
@@ -42,33 +45,7 @@ uses
   strutils;
 
 
-function StripQuotes(const _s: string): string;
-var l: integer;
-begin
-  Result := _s;
-  l := Length(_s);
-  if (l > 0) and (LeftStr(_s,1) = CHR(34)) then
-    begin
-      if l < 2 then
-        raise Exception.Create('Trying to strip quotes from string which is too short ' + _s);
-      if (LeftStr(_s,1) <> Chr(34)) or
-         (RightStr(_s,1) <> Chr(34)) then
-        raise Exception.Create('Trying to strip quotes which are not present ' + _s);
-      Result := Copy(_s,2,Length(_s)-2);
-    end;
-end;
-
-function StripQuotesAndEscaped(const _s: string): string;
-begin
-  Result := StripQuotes(_s);
-  Result := StringReplace(Result,'\"','"',[rfReplaceAll]);
-  Result := StringReplace(Result,'\\','\',[rfReplaceAll]);
-  Result := StringReplace(Result,'\t',#9, [rfReplaceAll]);
-  Result := StringReplace(Result,'\n',#10,[rfReplaceAll]);
-  Result := StringReplace(Result,'\r',#13,[rfReplaceAll]);
-end;
-
-function VariableFromBinLiteral(s: string): string;
+function IntFromBinLiteral(s: string): int32;
 var decval: int64;
     i:      integer;
 begin
@@ -86,10 +63,10 @@ begin
     raise Exception.Create('BinLiteral is too short');
   for i := 1 to Length(s) do
     decval := decval * 2 + (Ord(s[i])-Ord('0'));
-  Result := IntToStr(decval);
+  Result := decval;
 end;
 
-function VariableFromHexLiteral(s: string): string;
+function IntFromHexLiteral(s: string): int32;
 var decval: int64;
 begin
   // Check for #nnnn and change to $nnnn
@@ -99,10 +76,10 @@ begin
   if (Length(s) > 0) and (UpperCase(RightStr(s,1)) = 'H') then
     s := '$' + LeftStr(s,Length(s)-1);
   decval := StrToInt(s);
-  Result := IntToStr(decval);
+  Result := decval;
 end;
 
-function VariableFromOctLiteral(s: string): string;
+function IntFromOctLiteral(s: string): int32;
 var decval: int64;
     i:      integer;
 begin
@@ -114,7 +91,49 @@ begin
   decval := 0;
   for i := 1 to Length(s) do
     decval := decval * 8 + (Ord(s[i])-Ord('0'));
-  Result := IntToStr(decval);
+  Result := decval;
+end;
+
+function StripQuotes(const _s: string): string;
+var l: integer;
+begin
+  Result := _s;
+  l := Length(_s);
+  if (l > 0) and (_s[1] in ['"','''']) then
+    begin
+      if l < 2 then
+        raise Exception.Create('Trying to strip quotes from string which is too short ' + _s);
+      if (not (_s[1] in ['"',''''])) or
+         (not (_s[Length(_s)] in ['"',''''])) or
+         (LeftStr(_s,1) <> RightStr(_s,1)) then
+        raise Exception.Create('Trying to strip quotes which are not present ' + _s);
+      Result := Copy(_s,2,Length(_s)-2);
+    end;
+end;
+
+function StripQuotesAndEscaped(const _s: string): string;
+begin
+  Result := StripQuotes(_s);
+  Result := StringReplace(Result,'\"','"',[rfReplaceAll]);
+  Result := StringReplace(Result,'\\','\',[rfReplaceAll]);
+  Result := StringReplace(Result,'\t',#9, [rfReplaceAll]);
+  Result := StringReplace(Result,'\n',#10,[rfReplaceAll]);
+  Result := StringReplace(Result,'\r',#13,[rfReplaceAll]);
+end;
+
+function VariableFromBinLiteral(s: string): string;
+begin
+  Result := IntToStr(IntFromBinLiteral(s));
+end;
+
+function VariableFromHexLiteral(s: string): string;
+begin
+  Result := IntToStr(IntFromHexLiteral(s));
+end;
+
+function VariableFromOctLiteral(s: string): string;
+begin
+  Result := IntToStr(IntFromOctLiteral(s));
 end;
 
 end.
