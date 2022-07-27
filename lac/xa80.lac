@@ -130,6 +130,7 @@ F_ORG				= MIXED("ORG(")			keyword;
 
 // Keywords 
 
+K_CPU		= MIXED("CPU")					keyword;
 K_DB        = MIXED("DB") | MIXED("DEFB")	keyword;
 K_DC		= MIXED("DC") | MIXED("DEFC")	keyword;
 K_DEFMACRO 	= MIXED("DEFMACRO")  			keyword;
@@ -147,13 +148,14 @@ K_IFDEF 	= MIXED("IFDEF") 	 			keyword;
 K_IFNDEF 	= MIXED("IFNDEF")  	 			keyword;
 K_INCLUDE   = MIXED("INCLUDE") 	 			keyword;
 K_INCLUDEFL = MIXED("INCLUDEFL") 			keyword;
-// K_LIST 		= MIXED("LIST") 	 			keyword;
 K_MACRO 	= MIXED("MACRO") 	 			keyword;
 K_MESSAGE 	= MIXED("MESSAGE") 	 			keyword;
-// K_NOLIST 	= MIXED("NOLIST") 	 			keyword;
 K_ORG 		= MIXED("ORG") 		 			keyword;
+K_TITLE		= MIXED("TITLE")				keyword;
 K_UNDEFINE  = MIXED("UNDEFINE")  			keyword;
 K_WARNING 	= MIXED("ASMWARNING")  			keyword;
+// K_LIST 		= MIXED("LIST") 	 			keyword;
+// K_NOLIST 	= MIXED("NOLIST") 	 			keyword;
 
 // Opcodes for Z80 and Z180
 
@@ -333,6 +335,8 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 <optinstruction>	: T_OPCODE <operand> "," <operand>				    # ActOpcode2
 					| T_OPCODE <operand>							    # ActOpcode1
 					| T_OPCODE 										    # ActOpcode0
+					| K_CPU	      T_DECLITERAL							# ActDirCPU
+					| K_CPU		  T_SYMBOLDEF							# ActDirCPU
 					| K_DB        <expression_list>						# ActDirDB
 					| K_DC		  <expression_list>						# ActDirDC
 					| K_DEFINE	  T_SYMBOLDEF							# ActDirDefine
@@ -351,15 +355,16 @@ InternalComment1	= "{" {NonCurlyChar}* "}" ignore;
 					| K_IFNDEF    T_SYMBOLDEF							# ActDirIfndef
 					| K_INCLUDE   T_STRINGCONSTANT						# ActDirInclude
 					| K_INCLUDEFL T_STRINGCONSTANT						# ActDirIncludeList
-//					| K_LIST											# ActDirList
 					| K_MACRO T_SYMBOLDEF <param_list>					# ActDirMacro
 					| K_MACRO T_SYMBOLDEF 								# ActDirMacroNoexpr
 					| K_MESSAGE   T_STRINGCONSTANT						# ActDirMessage
-//					| K_NOLIST 											# ActDirNolist
 					| K_ORG       <expression>							# ActDirOrg
+					| K_TITLE	  T_STRINGCONSTANT						# ActDirTitle
 					| K_UNDEFINE  T_SYMBOLDEF							# ActDirUndefine
 					| K_WARNING   T_STRINGCONSTANT						# ActDirWarning
 					| T_ASSIGN    <expression>							# ActDirSet
+//					| K_LIST											# ActDirList
+//					| K_NOLIST 											# ActDirNolist
 					|													# ActIgnore
 					;
 

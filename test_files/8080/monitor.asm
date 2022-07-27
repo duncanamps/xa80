@@ -1,4 +1,4 @@
-; TITLE '8080 system monitor, ver 1'
+		TITLE '8080 system monitor, ver 1'
 ;
 ; July 11, 2015
 ;

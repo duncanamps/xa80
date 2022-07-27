@@ -32,7 +32,7 @@ The [docs/](https://github.com/duncanamps/xa80/tree/main/docs) folder contains a
 #### Folder Structure
 Folders are organised as follows:
 
-* [<root>](https://github.com/duncanamps/xa80/tream/main) the Lazarus project files, licence and .gitignore
+* [root](https://github.com/duncanamps/xa80/tream/main) the Lazarus project files, licence and .gitignore
   * [docs/](https://github.com/duncanamps/xa80/tree/main/docs) - Documentation (user manual, technical notes)
   * [lac/](https://github.com/duncanamps/xa80/tree/main/lac) - The LaCoGen grammar for XA80. The xa80.lac file is compiled into xa80.lacobj
   * [opcodes/](https://github.com/duncanamps/xa80/tree/main/opcodes) - The folder containing the opcode compiler oc_comp (see readme.txt)

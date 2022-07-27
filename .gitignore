@@ -19,3 +19,4 @@ test_files/imported/
 asm_all.bat
 asm_sieve.bat
 *.com
+asm_monitor.bat

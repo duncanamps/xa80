@@ -36,7 +36,7 @@ C_WRITESTR  EQU     9       		; BDOS command to write $ terminated string
 MAX_PRIMES	EQU		65269  			; Maximum number of primes to check (max 65269)
 SQRT_PRIMES	EQU		255				; Square root of MAX_PRIMES
 BITBUF_SIZE	EQU		(MAX_PRIMES+7) / 8
-
+			
 ; Some error checking to ensure that SQRT_PRIMES has been set correctly!
 
 IF SQRT_PRIMES*SQRT_PRIMES > MAX_PRIMES

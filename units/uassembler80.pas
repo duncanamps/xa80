@@ -65,6 +65,7 @@ type
       FCmdIncludes:    TStringList;
       FDebugList:      TDebugList;
       FDefiningMacro:  boolean;
+      FEnded:          boolean;
       FExprList:       TExprList;
       FForceList:      boolean;
       FFilenameSrc:    string;
@@ -94,6 +95,7 @@ type
       FProcessParms:   string;
       FStreamLog:      TFileStream;
       FSymbols:        TSymbolTable;
+      FTitle:          string;
       FVerbose:        boolean;
       function  ActBinLiteral(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActCompEQ(_parser: TLCGParser): TLCGParserStackEntry;
@@ -104,6 +106,7 @@ type
       function  ActCompNE(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActCopy1(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDecLiteral(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActDirCPU(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDB(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDC(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirDefine(_parser: TLCGParser): TLCGParserStackEntry;
@@ -130,6 +133,7 @@ type
       function  ActDirNolist(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirOrg(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirSet(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActDirTitle(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirUndefine(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDirWarning(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprAdd(_parser: TLCGParser): TLCGParserStackEntry;
@@ -334,6 +338,18 @@ begin
   if (Length(s) > 0) and (UpperCase(RightStr(s,1)) = 'D') then
     s := LeftStr(s,Length(s)-1);
   SetIntEntry(Result,StrToInt(s));
+end;
+
+function TAssembler80.ActDirCPU(_parser: TLCGParser): TLCGParserStackEntry;
+var cpu: string;
+    entry: TLCGParserStackEntry;
+begin
+  Result := EmptyStackEntry;
+  if (not ProcessingAllowed) or (FPass > 1) then
+    Exit;
+  entry := _parser.ParserStack[_parser.ParserSP-1];
+  cpu := entry.Buf;
+  Monitor(ltWarning,'Specifying CPU %s has no effect, please use --processor=%s parameter',[cpu,cpu]);
 end;
 
 function TAssembler80.ActDirDB(_parser: TLCGParser): TLCGParserStackEntry;
@@ -574,9 +590,11 @@ end;
 
 function TAssembler80.ActDirEnd(_parser: TLCGParser): TLCGParserStackEntry;
 begin
-  // @@@@@ ADD CODE FOR END
-  // @@@@@ CHECK NOT IN MACRO ETC. MARK FILE AS ENDED SO FURTHER CODE WILL
-  // @@@@@ GENERATE AN ERROR
+  if FDefiningMacro then
+    Monitor(ltError,'END directive encountered in the middle of a macro definition');
+  if FIfStack.Count > 0 then
+    Monitor(ltError,'END directive encountered inside an IF statement');
+  FEnded := True;
   Result := EmptyStackEntry;
   SetStringEntry(Result,'');
 end;
@@ -765,6 +783,14 @@ begin
   message := FSymbols.Define(FPass,False,symbolname,expression,true);
   if message <> '' then
     Monitor(ltError,message);
+end;
+
+function TAssembler80.ActDirTitle(_parser: TLCGParser): TLCGParserStackEntry;
+begin
+  Result := EmptyStackEntry;
+  if FTitle <> '' then
+    Monitor(ltWarning,'TITLE has previously been set');
+  FTitle := _parser.ParserStack[_parser.ParserSP-1].Buf;
 end;
 
 function TAssembler80.ActDirUndefine(_parser: TLCGParser): TLCGParserStackEntry;
@@ -1243,6 +1269,7 @@ var i: integer;
 begin
   FBytesTotal := 0;
   FDefiningMacro := False;
+  FEnded     := False;
   FForceList := False;
   FLineCount := 0;
   FList := True;
@@ -1252,6 +1279,7 @@ begin
   FMacroNestLevel := 0;
   FOrg := DEFAULT_ORG;
   FOutput.Clear;
+  FTitle := '';
   // Now add the predefined symbols if present on the command line
   for i := 0 to CmdDefines.Count-1 do
     begin
@@ -1387,6 +1415,11 @@ begin
      (not FList) or
      (not FFileStack.IsListing) then
     Exit;
+  if (FListing.Count = 0) and (FTitle <> '') then
+    begin
+      FListing.Add(FTitle);
+      FListing.Add('');
+    end;
   if FBytesFromLine = 0 then
     FListing.Add(StringOfChar(' ',HEX_WIDTH+MAX_MACRO_INDENTS) + _asmline)
   else
@@ -1486,6 +1519,9 @@ begin
       if asmline <> '' then
         begin
           ProcessLine(asmline);
+          // Check for assembly after end
+          if FEnded and (FBytesFromLine > 0) then
+            Monitor(ltError,'Code generated after END directive');
           // Add to debug
           OutputDebugLine(asmline);
           // Add to listing
@@ -1700,6 +1736,7 @@ begin
   RegisterProc('ActCompLT',         @ActCompLT, _procs);
   RegisterProc('ActCompNE',         @ActCompNE, _procs);
   RegisterProc('ActDecLiteral',     @ActDecLiteral, _procs);
+  RegisterProc('ActDirCPU',         @ActDirCPU, _procs);
   RegisterProc('ActDirDB',          @ActDirDB, _procs);
   RegisterProc('ActDirDC',          @ActDirDC, _procs);
   RegisterProc('ActDirDefine',      @ActDirDefine, _procs);
@@ -1726,6 +1763,7 @@ begin
 //RegisterProc('ActDirNolist',      @ActDirNolist, _procs);
   RegisterProc('ActDirOrg',         @ActDirOrg, _procs);
   RegisterProc('ActDirSet',         @ActDirSet, _procs);
+  RegisterProc('ActDirTitle',       @ActDirTitle, _procs);
   RegisterProc('ActDirUndefine',    @ActDirUndefine, _procs);
   RegisterProc('ActDirWarning',     @ActDirWarning, _procs);
   RegisterProc('ActExprAdd',        @ActExprAdd, _procs);
@@ -1795,12 +1833,21 @@ end;
 
 procedure TAssembler80.WriteMapFile;
 var sl: TStringList;
+    procedure MapTitle;
+    begin
+      if FTitle <> '' then
+        begin
+          sl.Add(FTitle);
+          sl.Add('');
+        end;
+    end;
 begin
   if FilenameMap = '' then
     Exit;
   sl := TStringList.Create;
   try
     FSymbols.SortByName;
+    MapTitle;
     sl.Add('SYMBOLS BY NAME');
     sl.Add('');
     FSymbols.Dump(sl);
@@ -1808,6 +1855,7 @@ begin
     sl.Add('');
     sl.Add('');
     sl.Add('');
+    MapTitle;
     sl.Add('SYMBOLS BY VALUE');
     sl.Add('');
     FSymbols.Dump(sl);
