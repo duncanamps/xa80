@@ -1602,8 +1602,8 @@ begin
   strm := TStringStream.Create(_line);
   try
     // Preparse first
-    FPreparser.InitRun;
-    FPreparser.Parse(strm);
+//    FPreparser.InitRun;
+//    FPreparser.Parse(strm);
     Parse(strm);
   finally
     strm.Free;
