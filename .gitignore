@@ -17,3 +17,4 @@ test_prog/
 test_files/imported/
 lac/xa80pre.txt
 lac/xa80oper.txt
+*.log
