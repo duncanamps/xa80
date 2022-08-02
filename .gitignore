@@ -15,6 +15,13 @@ opcodes/source/archived/
 test_prog/
 *.o80
 test_files/imported/
-lac/xa80pre.txt
-lac/xa80oper.txt
 *.log
+asm_all.bat
+asm_sieve.bat
+*.com
+asm_monitor.bat
+*.obj80
+find.exe
+mtouch.bat
+touch.exe
+lac/xa80pre.txt

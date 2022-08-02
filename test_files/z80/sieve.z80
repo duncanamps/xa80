@@ -1,0 +1,280 @@
+;
+;  SIEVE.Z80 - Print prime numbers
+;  Test program for XA80 to run under CP/M
+;
+;  Sieve works by working out which numbers between 1 and n are prime. Prime
+;  numbers are shown, non-prime are skipped. 
+;
+;  Basic operation: A loop between 3 and sn is executed where sn is the square
+;  root of n. A set of bit masks is then set for 3,6,9,12,... until the 
+;  largest number <= n is reached.
+;
+;  This process continues all the way up to sn and stops.
+;
+;  Even numbers are assumed not prime.
+;
+;  Bit masks which are _not_ set are assumed to be prime.
+;
+;  Bit masks in the byte, bit 0 = 0, 1 = 1, 2 = 2, etc.
+;  In the next byte, bit 0 = 9, 1 = 9, 2 = 10, etc.
+; 
+;  Duncan Munro
+;  24/07/2022
+;
+
+
+;==============================================================================
+;
+; Initial defines
+;
+;==============================================================================
+
+        ORG     0100H
+
+BDOS        EQU     0005H   		; BDOS entry address
+C_WRITESTR  EQU     9       		; BDOS command to write $ terminated string
+MAX_PRIMES	EQU		65269  			; Maximum number of primes to check (max 65269)
+SQRT_PRIMES	EQU		255				; Square root of MAX_PRIMES
+BITBUF_SIZE	EQU		(MAX_PRIMES+7) / 8
+			
+; Some error checking to ensure that SQRT_PRIMES has been set correctly!
+
+IF SQRT_PRIMES*SQRT_PRIMES > MAX_PRIMES
+ASMERROR "SQRT_PRIMES is too high"
+ENDIF
+
+IF (SQRT_PRIMES+1)*(SQRT_PRIMES+1) <= MAX_PRIMES
+ASMERROR "SQRT_PRIMES is too low"
+ENDIF
+
+
+
+;==============================================================================
+;
+; Macro definitions
+;
+;==============================================================================
+
+; Rotate right HL by 1 bit
+		
+DEFMACRO	RRHL
+			OR		A,A				; Cheap trick to clear carry with 1 byte
+			RR		H				; Rotate H
+			RR		L				; into L
+ENDM
+
+; Rotate right HL by 3 bits
+
+DEFMACRO	RRHL3
+			MACRO RRHL
+			MACRO RRHL
+			MACRO RRHL
+ENDM			
+
+;==============================================================================
+;
+; Entry point
+;
+;==============================================================================
+
+; Print welcome message
+
+SIEVE:		LD      DE,MSG      	; Get address of msg
+			CALL	WRITESTR		; Write the string
+		
+
+; Main loop
+; Start off with 3 and then go 5, 7, 9 until SQRT_PRIMES has been done
+; This will be in DE as the outer loop variable. HL acts as an inner
+; loop variable to get 6,9,12...
+; Use B as the loop counter as the loop will always be <= 127
+
+			LD		B,(SQRT_PRIMES - 2) / 2	; Set loop counter
+			LD		DE,3			; The outer loop counter 3,5,7,9...
+MAIN_LOOP:	
+			PUSH	DE				; Copy DE
+			POP		HL				; to HL
+			JR		INNER_LOOP2		; Skip the first SETBIT operation
+INNER_LOOP:
+			CALL	SETBIT			; Set the bit pointed to by HL
+INNER_LOOP2:			
+			ADD		HL,DE			; Bump to next bit to be set
+			PUSH	HL				; Save HL temporarily
+			PUSH	DE				; also DE
+			OR		A,A				; Clear carry
+			LD		DE,MAX_PRIMES+1	; Get the max primes limit
+			SBC		HL,DE			; and take off HL
+			POP		DE				; Get DE back
+			POP		HL				; also HL
+			JR		C,INNER_LOOP	; Loop back if not done MAX_PRIMES yet
+			INC		DE				; Increment by 2
+			INC		DE	
+			DJNZ	MAIN_LOOP		; Loop back round if more to do
+			
+; All non-primes should have a bit set in BITBUF by now
+; Print them out to the screen
+
+			LD		HL,1			; Start off at 1
+PRINT_LOOP:
+			CALL	ISBIT			; Is bit set ?
+			JR		NZ,PRINT_NEXT	; Yes, we skip
+			PUSH	BC				; Save all
+			PUSH	DE
+			PUSH	HL
+			CALL	PRINTDEC		; Print out the number
+			CALL	WRITECRLF		; and a CRLF combo
+			POP		HL				; Get all reg back
+			POP		DE
+			POP		BC
+PRINT_NEXT:			
+			INC		HL				; Increment by 2
+;			INC		HL	
+			PUSH	HL				; Save HL temporarily
+			PUSH	DE				; also DE
+			LD		DE,MAX_PRIMES+1	; Get the max primes limit
+			SBC		HL,DE			; and take off HL
+			POP		DE				; Get DE back
+			POP		HL				; also HL
+			JR		C,PRINT_LOOP	; Loop back if not done MAX_PRIMES yet
+			RET						; Back to CP/M
+			
+			
+
+;==============================================================================
+;
+; Utility routines
+;
+;==============================================================================
+
+; Set at bit in BITBUF that is indexed by HL so this will be
+; byte offset HL >> 3, and bit offset HL & 7
+; Get IX pointing to the BITBUF and IY pointing to the BITMASK table
+
+SETBIT:
+			PUSH	DE				; Save DE as we will mess with it
+			PUSH	HL				; Save HL for now
+			CALL	CALCBIT			; Set up IX and IY
+			LD		A,[IX+0]		; Get BITBUF byte
+			OR		A,[IY+0]		; and set the appropriate bit
+			LD		[IX+0],A		; then save back
+			POP		HL				; Restore HL
+			POP		DE				; Restore DE
+			RET						; and back to caller
+			
+; Check if a bit in BITBUF index by HL is set
+
+ISBIT:
+			PUSH	DE				; Save DE as we will mess with it
+			PUSH	HL				; Save HL for now
+			CALL	CALCBIT			; Set up IX and IY
+			LD		A,[IX+0]		; Get BITBUF byte
+			AND		A,[IY+0]		; and mask with the appropriate bit
+			POP		HL				; Restore HL
+			POP		DE				; Restore DE
+			RET						; and back to caller
+			
+; Set IX to point to BITBUF and IY to point to BITMASKS based on index in HL
+
+CALCBIT:
+			PUSH	HL				; Save HL for now
+			MACRO	RRHL3			; HL <- HL / 8
+			PUSH	HL				; Copy HL
+			POP		DE				; into DE
+			LD		IX,BITBUF		; Point IX to BITBUF
+			ADD		IX,DE			; and add HL / 8
+			POP		DE				; Get HL back into DE
+			PUSH	DE				; and save again
+			XOR		A,A				; Zero A
+			LD		D,A				; copy into D
+			LD		A,E				; Get E register
+			AND		A,%00000111		; and mask to leave lower 3 bits
+			LD		E,A				; Back into E
+			LD		IY,BITMASKS		; Get address of bitmasks
+			ADD		IY,DE			; and add the bit index
+			POP		HL				; Get original HL back
+			RET						; Back to caller
+
+; Convert a 16 bit unsigned value in HL into a decimal string in BUF
+; Removes leading spaces
+
+CONVDEC:
+			LD		DE,BUF			; Point to output 
+			PUSH	DE				; Save for later
+			LD		BC,-10000
+			CALL	CONVDIG
+			LD		BC,-1000		
+			CALL	CONVDIG
+			LD		BC,-100
+			CALL	CONVDIG
+			LD		BC,-10
+			CALL	CONVDIG
+			LD		BC,-1
+			CALL	CONVDIG
+			LD		A,'$'			; Terminator
+			LD		[DE],A			; Save it in the buffer
+			POP		HL				; Get BUF pointer back but into HL this time
+			LD		B,4				; 4 digits to check
+			LD		C,' '			; Space to infill with
+			LD		A,'0'			; Digit to check against
+CNVD2:	
+			CP		A,[HL]			; ASCII zero digit ?
+			JR		NZ,CNVDX		; No, drop out of the loop
+			LD		[HL],C			; Make leading zero a space
+			INC		HL				; Move to next digit
+			DJNZ	CNVD2			; and loop back for more
+CNVDX:	
+			RET
+CONVDIG:
+			LD		A,'0'-1
+CDIG2:
+			INC		A
+			ADD		HL,BC
+			JR		C,CDIG2
+CDIGX:
+			SBC		HL,BC
+			LD		[DE],A
+			INC		DE
+			RET
+		
+; Print an unsigned 16 bit decimal number in HL
+
+PRINTDEC:
+			CALL	CONVDEC			; Convert to string in BUF
+			LD		DE,BUF			; Point to output 
+WRITESTR:		
+			LD      C,C_WRITESTR 	; Write string function
+			JP      BDOS     		; Go to BDOS to write the string
+WRITECRLF:
+			LD		DE,CRLF			; Point to string
+			JR		WRITESTR		; and output
+
+
+
+;==============================================================================
+;
+; Buffers, variables and text strings
+;
+;==============================================================================
+
+; Buffers
+
+BUF:		DS		6				; ASCII buf, 5 digits + terminating $	
+BITBUF:		DS		BITBUF_SIZE,%01010101		; Bits for sieve
+BITMASKS:	DB		%00000001
+			DB		%00000010
+			DB		%00000100
+			DB		%00001000
+			DB		%00010000
+			DB		%00100000
+			DB		%01000000
+			DB		%10000000
+
+; Text strings
+
+MSG: 		DB      'Sieve',13,10
+			DB		'Created with XA80 cross assembler',13,10,10
+			DB		'$'
+CRLF:		DB		13,10,'$'
+
+			END
+		

@@ -26,7 +26,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  Classes, SysUtils, CustApp, fileinfo, usymbol, uutility, uassembler,
+  Classes, SysUtils, CustApp, fileinfo, usymbol, uutility, uassembler80,
   ufilestack, uexpression, uoutput, uifstack, umacro,
   deployment_parser_types_12, deployment_parser_module_12, udebuglist,
   uinstruction, uasmglobals;
@@ -75,7 +75,7 @@ type
 procedure TXA80.DoRun;
 var
   ErrorMsg:   String;
-  xa80:       TAssembler;
+  xa80:       TAssembler80;
   procoption: string;
   procvalue:  string;
   taboption:  string;
@@ -233,7 +233,7 @@ begin
 
   // Create the assembler and run it
 
-  xa80 := TAssembler.Create(procvalue);
+  xa80 := TAssembler80.Create('XA80',procvalue);
   try
     // Set up the initial parameters
     xa80.FilenameSrc := filename; // Has to go first!
@@ -246,13 +246,13 @@ begin
       3: xa80.LogLevel := ltDebug;
     end;
     basename := StringReplace(xa80.FilenameSrc,ExtractFileExt(xa80.FilenameSrc),'',[rfReplaceAll]);
-    ProcessFilename(basename,xa80.FilenameDbg,'b','debug',   '.d80');
-    ProcessFilename(basename,xa80.FilenameCom,'c','com',     '.com');
-    ProcessFilename(basename,xa80.FilenameHex,'x','hex',     '.hex');
-    ProcessFilename(basename,xa80.FilenameLst,'l','listing', '.lst');
-    ProcessFilename(basename,xa80.FilenameLog,'e','errorlog','.log');
-    ProcessFilename(basename,xa80.FilenameMap,'m','map',     '.map');
-    ProcessFilename(basename,xa80.FilenameObj,'o','object',  '.o80');
+    ProcessFilename(basename,xa80.FilenameDbg,'b','debug',   FILETYPE_DEBUG);
+    ProcessFilename(basename,xa80.FilenameCom,'c','com',     FILETYPE_COM);
+    ProcessFilename(basename,xa80.FilenameHex,'x','hex',     FILETYPE_HEX);
+    ProcessFilename(basename,xa80.FilenameLst,'l','listing', FILETYPE_LIST);
+    ProcessFilename(basename,xa80.FilenameLog,'e','errorlog',FILETYPE_LOG);
+    ProcessFilename(basename,xa80.FilenameMap,'m','map',     FILETYPE_MAP);
+    ProcessFilename(basename,xa80.FilenameObj,'o','object',  FILETYPE_OBJECT);
     CmdOptionToList(Self,'d','define', xa80.CmdDefines);
     CmdOptionToList(Self,'I','include',xa80.CmdIncludes,true);
     AugmentIncludes(GetCurrentDir,xa80.CmdIncludes);

@@ -1,11 +1,11 @@
-; TITLE '8080 system monitor, ver 1'
+		TITLE '8080 system monitor, ver 1'
 ;
 ; July 11, 2015
 ;
 TOP     EQU     24      ;MEMORY TOP, K BYTES
 ORGIN   EQU     (TOP-2)*1024  ;PROGRAM START
 ;
-;       CPU     8080
+        CPU     8080
         ORG     ORGIN
 ;
 ;

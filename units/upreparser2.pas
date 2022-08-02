@@ -71,6 +71,7 @@ type
 
   TPreparserType = (ppoComma,
                     ppoComment,
+                    ppoID,
                     ppoKeyword,
                     ppoLabel,
                     ppoOperand,

@@ -41,8 +41,8 @@ type
     private
       FLocalCount: integer;
     public
-      function  Add(const name: string; slist: TStringList): integer;
-      function  IndexOf(const s: string): integer;
+      function  Add(const name: string; slist: TStringList): integer; reintroduce;
+      function  IndexOf(const s: string): integer; reintroduce;
       procedure Init;
       function  LocalPrefix: string;
   end;
@@ -53,13 +53,13 @@ implementation
 
 constructor TMacroObject.Create;
 begin
+  inherited Create;
   FList := TStringList.Create;
 end;
 
 destructor TMacroObject.Destroy;
 begin
-  if Assigned(FList) then
-    FreeAndNil(FList);
+  FreeAndNil(FList);
   inherited Destroy;
 end;
 
@@ -70,7 +70,7 @@ var obj: TMacroObject;
 begin
   obj := TMacroObject.Create;
   obj.FName := name;
-  obj.FList := slist;
+  obj.FList.Assign(slist);
   Result := inherited Add(obj);
 end;
 

@@ -1,0 +1,8 @@
+; Test for issue #12
+; "Label EQU directive not handling strings correctly"
+
+			ORG		0x200
+		
+label 		EQU 	'Duncan'
+
+table: 		DB 		27,label,"$"

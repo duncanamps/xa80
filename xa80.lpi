@@ -14,9 +14,9 @@
       <Title Value="Duncan&apos;s Macro Assembler x80"/>
       <ResourceType Value="res"/>
       <Resources Count="4">
-        <Resource_0 FileName="opcodes\source\z80.opcode.bin" Type="RCDATA" ResourceName="Z80.OPCODE"/>
-        <Resource_1 FileName="opcodes\source\8080.opcode.bin" Type="RCDATA" ResourceName="8080.OPCODE"/>
-        <Resource_2 FileName="lac\xa80oper.lacobj" Type="RCDATA" ResourceName="XA80OPER"/>
+        <Resource_0 FileName="lac\xa80.lacobj" Type="RCDATA" ResourceName="XA80"/>
+        <Resource_1 FileName="opcodes\source\z80.opcode.bin" Type="RCDATA" ResourceName="Z80.OPCODE"/>
+        <Resource_2 FileName="opcodes\source\8080.opcode.bin" Type="RCDATA" ResourceName="8080.OPCODE"/>
         <Resource_3 FileName="lac\xa80pre.lacobj" Type="RCDATA" ResourceName="XA80PRE"/>
       </Resources>
     </General>
@@ -24,17 +24,117 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="8"/>
+      <BuildNr Value="12"/>
       <StringTable LegalCopyright="Copyright (C)2020-2022 Duncan Munro" ProductName="Duncan&apos;s Macro Assembler x80" ProductVersion="0.1"/>
     </VersionInfo>
-    <BuildModes Count="4">
-      <Item1 Name="Debug" Default="True"/>
-      <Item2 Name="Release">
+    <BuildModes Count="8">
+      <Item1 Name="Win32_Release" Default="True"/>
+      <Item2 Name="Win32_Debug">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="xa80"/>
+            <Filename Value="binaries\$(TargetOS)-$(TargetCPU)\xa80"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="units;..\..\..\lacogen1\lac\core"/>
+            <UnitOutputDirectory Value="lib\debug_$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <Parsing>
+            <SyntaxOptions>
+              <IncludeAssertionCode Value="True"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <Checks>
+              <IOChecks Value="True"/>
+              <RangeChecks Value="True"/>
+              <OverflowChecks Value="True"/>
+              <StackChecks Value="True"/>
+            </Checks>
+            <VerifyObjMethodCallValidity Value="True"/>
+            <TargetCPU Value="i386"/>
+            <TargetOS Value="win32"/>
+            <Optimizations>
+              <OptimizationLevel Value="0"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+              <UseHeaptrc Value="True"/>
+              <TrashVariables Value="True"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
+          </Linking>
+          <Other>
+            <CustomOptions Value="-dPROFILE
+-dLCG8"/>
+            <OtherDefines Count="3">
+              <Define0 Value="PROFILE"/>
+              <Define1 Value="LCG8"/>
+              <Define2 Value="DEBUG_PARSER"/>
+            </OtherDefines>
+          </Other>
+        </CompilerOptions>
+      </Item2>
+      <Item3 Name="Win64_Debug">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="binaries\$(TargetOS)-$(TargetCPU)\xa80"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="units;..\..\..\lacogen1\lac\core"/>
+            <UnitOutputDirectory Value="lib\debug_$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <Parsing>
+            <SyntaxOptions>
+              <IncludeAssertionCode Value="True"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <Checks>
+              <IOChecks Value="True"/>
+              <RangeChecks Value="True"/>
+              <OverflowChecks Value="True"/>
+              <StackChecks Value="True"/>
+            </Checks>
+            <VerifyObjMethodCallValidity Value="True"/>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="win64"/>
+            <Optimizations>
+              <OptimizationLevel Value="0"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+              <UseHeaptrc Value="True"/>
+              <TrashVariables Value="True"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
+          </Linking>
+          <Other>
+            <CustomOptions Value="-dPROFILE
+-dLCG8"/>
+            <OtherDefines Count="3">
+              <Define0 Value="PROFILE"/>
+              <Define1 Value="LCG8"/>
+              <Define2 Value="DEBUG_PARSER"/>
+            </OtherDefines>
+          </Other>
+        </CompilerOptions>
+      </Item3>
+      <Item4 Name="Win64_Release">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="binaries\$(TargetOS)-$(TargetCPU)\xa80"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
@@ -43,6 +143,8 @@
           </SearchPaths>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="win64"/>
             <Optimizations>
               <OptimizationLevel Value="3"/>
             </Optimizations>
@@ -66,13 +168,13 @@
             </OtherDefines>
           </Other>
         </CompilerOptions>
-      </Item2>
-      <Item3 Name="macOS_Debug">
+      </Item4>
+      <Item5 Name="macOS_Debug">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="xa80"/>
+            <Filename Value="binaries\$(TargetOS)-$(TargetCPU)\xa80"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
@@ -92,6 +194,8 @@
               <StackChecks Value="True"/>
             </Checks>
             <VerifyObjMethodCallValidity Value="True"/>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="macos"/>
             <Optimizations>
               <OptimizationLevel Value="0"/>
             </Optimizations>
@@ -104,13 +208,13 @@
             </Debugging>
           </Linking>
         </CompilerOptions>
-      </Item3>
-      <Item4 Name="macOS_Release">
+      </Item5>
+      <Item6 Name="macOS_Release">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="xa80"/>
+            <Filename Value="binaries\$(TargetOS)-$(TargetCPU)\xa80"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
@@ -119,6 +223,8 @@
           </SearchPaths>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="macos"/>
             <Optimizations>
               <OptimizationLevel Value="3"/>
             </Optimizations>
@@ -130,7 +236,97 @@
             <LinkSmart Value="True"/>
           </Linking>
         </CompilerOptions>
-      </Item4>
+      </Item6>
+      <Item7 Name="Linux64_Debug">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="binaries\$(TargetOS)-$(TargetCPU)\xa80"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="units;..\..\..\lacogen1\lac\core"/>
+            <UnitOutputDirectory Value="lib\debug_$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <Parsing>
+            <SyntaxOptions>
+              <IncludeAssertionCode Value="True"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <Checks>
+              <IOChecks Value="True"/>
+              <RangeChecks Value="True"/>
+              <OverflowChecks Value="True"/>
+              <StackChecks Value="True"/>
+            </Checks>
+            <VerifyObjMethodCallValidity Value="True"/>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="linux"/>
+            <Optimizations>
+              <OptimizationLevel Value="0"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+              <UseHeaptrc Value="True"/>
+              <TrashVariables Value="True"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
+          </Linking>
+          <Other>
+            <CustomOptions Value="-dPROFILE
+-dLCG8"/>
+            <OtherDefines Count="3">
+              <Define0 Value="PROFILE"/>
+              <Define1 Value="LCG8"/>
+              <Define2 Value="DEBUG_PARSER"/>
+            </OtherDefines>
+          </Other>
+        </CompilerOptions>
+      </Item7>
+      <Item8 Name="Linux64_Release">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="binaries\$(TargetOS)-$(TargetCPU)\xa80"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="units;..\..\..\lacogen1\lac\core"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="linux"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <DebugInfoType Value="dsDwarf3"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+          </Linking>
+          <Other>
+            <CompilerMessages>
+              <IgnoredMessages idx5024="True"/>
+            </CompilerMessages>
+            <CustomOptions Value="-dLCG8"/>
+            <OtherDefines Count="3">
+              <Define0 Value="PROFILE"/>
+              <Define1 Value="LCG8"/>
+              <Define2 Value="DEBUG_PARSER"/>
+            </OtherDefines>
+          </Other>
+        </CompilerOptions>
+      </Item8>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -157,7 +353,7 @@
         <IsPartOfProject Value="True"/>
       </Unit3>
       <Unit4>
-        <Filename Value="units\uassembler.pas"/>
+        <Filename Value="units\uassembler80.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit4>
       <Unit5>
@@ -206,41 +402,33 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="xa80"/>
+      <Filename Value="binaries\$(TargetOS)-$(TargetCPU)\xa80"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
       <OtherUnitFiles Value="units;..\..\..\lacogen1\lac\core"/>
-      <UnitOutputDirectory Value="lib\debug_$(TargetCPU)-$(TargetOS)"/>
+      <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Parsing>
-      <SyntaxOptions>
-        <IncludeAssertionCode Value="True"/>
-      </SyntaxOptions>
-    </Parsing>
     <CodeGeneration>
-      <Checks>
-        <IOChecks Value="True"/>
-        <RangeChecks Value="True"/>
-        <OverflowChecks Value="True"/>
-        <StackChecks Value="True"/>
-      </Checks>
-      <VerifyObjMethodCallValidity Value="True"/>
+      <SmartLinkUnit Value="True"/>
+      <TargetCPU Value="i386"/>
+      <TargetOS Value="win32"/>
       <Optimizations>
-        <OptimizationLevel Value="0"/>
+        <OptimizationLevel Value="3"/>
       </Optimizations>
     </CodeGeneration>
     <Linking>
       <Debugging>
+        <GenerateDebugInfo Value="False"/>
         <DebugInfoType Value="dsDwarf3"/>
-        <UseHeaptrc Value="True"/>
-        <TrashVariables Value="True"/>
-        <UseExternalDbgSyms Value="True"/>
       </Debugging>
+      <LinkSmart Value="True"/>
     </Linking>
     <Other>
-      <CustomOptions Value="-dPROFILE
--dLCG8"/>
+      <CompilerMessages>
+        <IgnoredMessages idx5024="True"/>
+      </CompilerMessages>
+      <CustomOptions Value="-dLCG8"/>
       <OtherDefines Count="3">
         <Define0 Value="PROFILE"/>
         <Define1 Value="LCG8"/>

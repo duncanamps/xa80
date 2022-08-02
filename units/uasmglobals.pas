@@ -41,6 +41,13 @@ const
   DEFAULT_ORG                       = 0;
   DEFAULT_PROCESSOR_VALUE           = 'Z80';
   DEFAULT_TAB_SIZE                  = 4;
+  FILETYPE_COM                      = '.com';
+  FILETYPE_DEBUG                    = '.dbg80';
+  FILETYPE_HEX                      = '.hex';
+  FILETYPE_LIST                     = '.lst';
+  FILETYPE_LOG                      = '.log';
+  FILETYPE_MAP                      = '.map';
+  FILETYPE_OBJECT                   = '.obj80';
   INCLUDE_FILE_DELIMITER            = ',';
   HEX_FILE_BYTES_PER_LINE           = 16;
   MAX_BYTES_PER_CODE_RECORD         = 256;
