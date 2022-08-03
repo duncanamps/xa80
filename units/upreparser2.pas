@@ -43,7 +43,7 @@ interface
 
 uses
   Classes, SysUtils, deployment_parser_module_12, Generics.Collections,
-  deployment_parser_types_12;
+  deployment_parser_types_12, uasmglobals, ukeywords;
 
 type
 
@@ -71,7 +71,6 @@ type
 
   TPreparserType = (ppoComma,
                     ppoComment,
-                    ppoID,
                     ppoKeyword,
                     ppoLabel,
                     ppoOperand,
@@ -90,13 +89,14 @@ type
   TPreparser = class(TLCGParser)
     protected
       FPPList: TPreparserList;
+      function  IsKeyword(_kw: string): boolean;
       function  MyReduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
       procedure OptimiseComments;
       procedure OptimiseIndirection;
+      procedure OptimiseKeywords;
       procedure OptimiseLabel;
       procedure OptimiseOperands;
       procedure ProcessComma(const _s: string; _col: integer);
-      procedure ProcessKeyword(const _s: string; _col: integer);
       procedure ProcessSomething(const _s: string; _col: integer);
       procedure ProcessString(const _s: string; _col: integer);
     public
@@ -186,6 +186,14 @@ begin
       Inc(Result);
 end;
 
+
+
+//=============================================================================
+//
+//  TPreparser code
+//
+//=============================================================================
+
 constructor TPreparser.Create;
 begin
   inherited Create;
@@ -207,6 +215,19 @@ begin
   FPPList.Clear;
 end;
 
+function TPreparser.IsKeyword(_kw: string): boolean;
+var r: TKeywordRec;
+begin
+  { @@@@@@ ADD CODE IN HERE USING KEYWORD LIST AND OPCODE LIST @@@@@
+  if not Assigned(FKeywords) then
+    raise Exception.Create('Keyword list not assigned in preparser');
+  _kw := UpperCase(_kw);
+  r.Text := _kw;
+  r.Proc := nil;
+  Result := (FKeywords.IndexOf(r) >= 0);
+  }
+end;
+
 function  TPreparser.MyReduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
 var col: integer;
     s:   string;
@@ -216,10 +237,9 @@ begin
   case RuleIndex of
     0: ; // Do nothing <assembler_line> : <assembler_line> <asm_item>
     1: ; // Do nothing <assembler_line> : <asm_item>
-    2: ProcessKeyword(s,col);
-    3: ProcessString(s,col);
-    4: ProcessSomething(s,col);
-    5: ProcessComma(s,col);
+    2: ProcessString(s,col);
+    3: ProcessSomething(s,col);
+    4: ProcessComma(s,col);
   end;
   Result.Buf := '';
 end;
@@ -227,6 +247,7 @@ end;
 procedure TPreparser.Optimise;
 begin
   OptimiseComments;
+  OptimiseKeywords;
   OptimiseLabel;
   OptimiseOperands;
   OptimiseIndirection;
@@ -289,6 +310,19 @@ begin
             r.Payload[1] := '[';
             r.Payload[Length(r.Payload)] := ']';
           end;
+        FPPList[i] := r;
+      end;
+end;
+
+procedure TPreparser.OptimiseKeywords;
+var r: TPreparserRec;
+    i: integer;
+begin
+  for i := 0 to FPPList.Count-1 do
+    if (FPPList[i].RecType = ppoSomething) and IsKeyword(FPPList[i].Payload) then
+      begin
+        r := FPPList[i];
+        r.RecType := ppoKeyword;
         FPPList[i] := r;
       end;
 end;
@@ -391,15 +425,6 @@ begin
   r.ColumnNo := _col;
   r.Payload  := _s;
   r.RecType  := ppoComma;
-  FPPList.Add(r);
-end;
-
-procedure TPreparser.ProcessKeyword(const _s: string; _col: integer);
-var r: TPreparserRec;
-begin
-  r.ColumnNo := _col;
-  r.Payload  := _s;
-  r.RecType  := ppoKeyword;
   FPPList.Add(r);
 end;
 

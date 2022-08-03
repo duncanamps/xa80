@@ -2,7 +2,15 @@
 ; "Label EQU directive not handling strings correctly"
 
 			ORG		0x200
+			
+smallval	EQU		4			
+			
+			LD		A,label		; Should load A with 0x44 ('D')
+			LD		A,(label)	; Should get address
+			LD		A,(IX+smallval)
+			LD		A,(IY+'0')
 		
 label 		EQU 	'Duncan'
+address		EQU		$
 
 table: 		DB 		27,label,"$"

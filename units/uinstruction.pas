@@ -167,6 +167,10 @@ const
   	                                        '', // U16_IND
   	                                        'Z');
 
+var
+  OperandAvailable: array[TOperandOption] of boolean;
+
+
 type
   TCodeElementType = (cetNull,cetB3,cetHex,cetIM,cetR8,cetS8,cetRST,cetU8,cetU16);
 
@@ -237,9 +241,11 @@ begin
 end;
 
 constructor TInstructionList.Create(const _processor: string);
+var _proc: string;
 begin
   Create;
-  LoadFromResource(_processor + '.OPCODE');
+  _proc := UpperCase(_processor);
+  LoadFromResource(_proc + '.OPCODE');
 end;
 
 destructor TInstructionList.Destroy;
@@ -469,6 +475,7 @@ var i, j: integer;
     magic: dword;
     temp_word: word;
     temp_byte: word;
+    oo: TOperandOption;
 
   function ReadByte: BYTE;
   begin
@@ -485,7 +492,16 @@ var i, j: integer;
     _stream.Read(Result,sizeof(Result));
   end;
 
+  procedure SetOperandAvailable(_op: TOperandOption);
+  begin
+    if _op <> OPER_NULL then
+      OperandAvailable[_op] := True;
+  end;
+
 begin
+  // Some initialisation stuff
+  for oo in TOperandOption do
+    OperandAvailable[oo] := False;
   // See TInstructionList.SaveToStream for file format
   magic := ReadDword;
   if magic <> OPCODE_MAP_MAGIC then
@@ -517,6 +533,8 @@ begin
       r.OpcodeIndex := ReadWord;
       r.Operand1Index := TOperandOption(ReadByte);
       r.Operand2Index := TOperandOption(ReadByte);
+      SetOperandAvailable(r.Operand1Index);
+      SetOperandAvailable(r.Operand2Index);
       temp_byte := ReadByte;
       if (temp_byte < CODE_ELEMENT_COUNT_MINIMUM) or (temp_byte > CODE_ELEMENT_COUNT_MAXIMUM) then
         raise Exception.Create(Format('Number of code elements was not in the expected range of %d to %d',[CODE_ELEMENT_COUNT_MINIMUM,CODE_ELEMENT_COUNT_MAXIMUM]));

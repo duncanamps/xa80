@@ -123,8 +123,8 @@ T_OCTLITERAL       = {DigitOct}+(MIXED("O")|MIXED("Q"));
 
 // Labels etc.
 
-T_STRINGCONSTANT	= {DQuote} ({StringCharDQ} | {Backslash} {Escaped})* {DQuote} ;
-T_CHARCONSTANT		= {SQuote} ({StringCharSQ} | {Backslash} {Escaped}) {SQuote} ;
+T_STRINGCONSTANT	= {DQuote} ({StringCharDQ} | {Backslash} {Escaped})* {DQuote}
+					| {SQuote} ({StringCharSQ} | {Backslash} {Escaped}) {SQuote} ;
 					
 T_SYMBOLDEF 		= {SymbolStart} {SymbolMid}* ;					
 T_WHITESPACE		= {Whitespace}+ ignore;
@@ -148,7 +148,6 @@ F_ORG				= MIXED("ORG(")			keyword;
 F_POS				= MIXED("POS(")			keyword;
 F_RIGHT				= MIXED("RIGHT(")		keyword;
 F_STRING			= MIXED("STRING(")		keyword;
-F_SYMSTR			= MIXED("SYMSTR(")		keyword;
 F_TIME				= MIXED("TIME()")		keyword;
 F_UPPER				= MIXED("UPPER(")		keyword;
 F_VALUE				= MIXED("VALUE(")		keyword;
@@ -170,7 +169,6 @@ F_VALUE				= MIXED("VALUE(")		keyword;
 		  | "[" T_OPERAND_SIMPLE "]"								# ActSetOpSimpleW
 		  | "[" <expression> "]"									# ActSetOpBracketed
 		  | <expression>											# ActSetOpLiteral
-		  | T_STRINGCONSTANT										# ActCopy1
 		  ;
 
 					
@@ -253,7 +251,6 @@ F_VALUE				= MIXED("VALUE(")		keyword;
 					| F_POS <expression> "," <expression> ")"		# ActFuncPos
 					| F_VALUE <expression> ")"						# ActFuncValue
 					| T_SYMBOLDEF									# ActValueSymbol
-					| T_CHARCONSTANT								# ActCopy1
 					| F_BUILD										# ActStrBuild
 					| F_CHR <expression> ")"									# ActStrChr
 					| F_DATE										# ActStrDate
@@ -267,7 +264,7 @@ F_VALUE				= MIXED("VALUE(")		keyword;
 					| F_STRING <expression> ")"						# ActStrString
 					| F_TIME										# ActStrTime
 					| F_UPPER <expression> ")"						# ActStrUpper
-//					| F_SYMSTR T_SYMBOLDEF ")"						# ActStringSymbol
+					| T_STRINGCONSTANT								# ActStringConstant
 					| "(" <expression> ")"							# ActExprBracket
 					;
 				

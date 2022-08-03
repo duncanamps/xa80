@@ -64,6 +64,19 @@ const
 
 
 type
+  TProcessorType = (ptUnassigned,pt8080,pt8085,ptZ80,ptZ180);
+
+const
+  cProcessorType: array[TProcessorType] of string =
+    (
+      '',
+      '8080',
+      '8085',
+      'Z80',
+      'Z180'
+    );
+
+type
   TInstructionType = (itOpcode,itDirective,itMacro);
 
   // TInstruction could be Opcode, Directive, Macro
