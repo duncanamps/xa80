@@ -26,9 +26,9 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
-      <MinorVersionNr Value="1"/>
-      <BuildNr Value="12"/>
-      <StringTable LegalCopyright="Copyright (C)2020-2022 Duncan Munro" ProductName="Duncan&apos;s Macro Assembler x80" ProductVersion="0.1"/>
+      <MinorVersionNr Value="2"/>
+      <BuildNr Value="13"/>
+      <StringTable LegalCopyright="Copyright (C)2020-2022 Duncan Munro" ProductName="Duncan&apos;s Macro Assembler x80" ProductVersion="0.2"/>
     </VersionInfo>
     <BuildModes Count="8">
       <Item1 Name="Win32_Release" Default="True"/>
