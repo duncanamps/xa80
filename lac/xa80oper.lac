@@ -3,18 +3,17 @@
 //  XA80OPER.LAC - Duncan's Cross Assembler for x80 processors
 //  Includes: 8080, 8085, Z80, Z180
 //
-//  Grammer to deal with an operand. For example:
+//  Grammar to deal with an operand. For example:
 //
-//    LD A,[HL]
-//    DB 9,'Test',0
-//
-//  In the above, LD and DB are _directives_ whereas [HL], 9, 'Test', 0
-//  are operands.
+//	  [HL]
+//    9
+//	  'ABC'
+//    [ IX + ((ADDR & BIT_MASK) << 1) ]
 //
 //  Duncan Munro
 //  15/07/2022
 //
-//  Last updated 15/07/2022
+//  Last updated 03/08/2022
 //
 //======================================================================
 
@@ -61,36 +60,6 @@
 
 T_OPERAND_IX	= MIXED("IX")   keyword;
 T_OPERAND_IY	= MIXED("IY")   keyword;
-
-T_OPERAND_SIMPLE	= MIXED("A")
-					| MIXED("AF") 	
-					| MIXED("AF'") 	
-					| MIXED("B")	
-					| MIXED("BC")	
-					| MIXED("[BC]") 
-					| MIXED("C")
-					| MIXED("[C]")
-					| MIXED("D")	
-					| MIXED("DE")	
-					| MIXED("[DE]") 
-					| MIXED("E")	
-					| MIXED("F")	
-					| MIXED("H")	
-					| MIXED("HL")	
-					| MIXED("[HL]") 
-					| MIXED("I")	
-					| MIXED("L")	
-					| MIXED("M")	
-					| MIXED("NC")	
-					| MIXED("NZ")	
-					| MIXED("P")	
-					| MIXED("PE")	
-					| MIXED("PO")
-					| MIXED("PSW")
-					| MIXED("R")	
-					| MIXED("SP")
-					| MIXED("[SP]") 
-					| MIXED("Z") keyword;
   
 // Unary and Binary operators
 
@@ -144,7 +113,7 @@ F_LEFT				= MIXED("LEFT(")		keyword;
 F_LOW				= MIXED("LOW(")			keyword;
 F_LOWER				= MIXED("LOWER(")		keyword;
 F_MID				= MIXED("MID(")			keyword;
-F_ORG				= MIXED("ORG(")			keyword;
+F_ORG				= MIXED("ORG")			keyword;
 F_POS				= MIXED("POS(")			keyword;
 F_RIGHT				= MIXED("RIGHT(")		keyword;
 F_STRING			= MIXED("STRING(")		keyword;
@@ -159,14 +128,8 @@ F_VALUE				= MIXED("VALUE(")		keyword;
 //
 //==============================================================================
 
-<operand> : T_OPERAND_IX											# ActSetOpSimple
-		  | T_OPERAND_IY											# ActSetOpSimple
-		  | T_OPERAND_SIMPLE										# ActSetOpSimple
-		  | "[" T_OPERAND_IX "+" <expression> "]"					# ActSetOpIndOff
+<operand> : "[" T_OPERAND_IX "+" <expression> "]"					# ActSetOpIndOff
 		  | "[" T_OPERAND_IY "+" <expression> "]"					# ActSetOpIndOff
-		  | "[" T_OPERAND_IX "]"									# ActSetOpInd
-		  | "[" T_OPERAND_IY "]"									# ActSetOpInd
-		  | "[" T_OPERAND_SIMPLE "]"								# ActSetOpSimpleW
 		  | "[" <expression> "]"									# ActSetOpBracketed
 		  | <expression>											# ActSetOpLiteral
 		  ;
@@ -177,11 +140,6 @@ F_VALUE				= MIXED("VALUE(")		keyword;
 // Expression evaluation
 //
 //===========================================================================					
-			
-
-// ---------------------------------------
-// Logical and integer 32 bit expressions
-// ---------------------------------------
 						
 <expression>		: <expression> T_LOGICALOR <and_expr>			# ActLogOr
 					| <and_expr>									# ActCopy1
@@ -239,7 +197,7 @@ F_VALUE				= MIXED("VALUE(")		keyword;
 					;
                  
 <value>				: "$" 											# ActValueOrg 
-					| F_ORG ")"										# ActValueOrg
+					| F_ORG											# ActValueOrg
 					| T_HEXLITERAL									# ActHexLiteral
 					| T_DECLITERAL									# ActDecLiteral
 					| T_OCTLITERAL									# ActOctLiteral

@@ -1,0 +1,380 @@
+;
+; Opcode map for Duncan's Cross Assembler xa80
+;
+; i8080 opcode file - 19/08//2022
+; Intel assembler version of the 8080 opcodes that works on the basis
+; that B=0, C=1, D=2 etc. These are predefined as labels in the assembler
+; so instructions like MOV B,L are instanced as MOV 0,5
+;
+; Each line consists of 2 fields seperated by the vertical brace "|"
+;
+;   1. Instruction
+;   2. Code
+;
+;
+; INSTRUCTION FIELDS
+; ------------------
+;
+; XX specifies the opcode where XX is the mnemonic between 2 and 5
+; characters. For example: LD CCF. Valid opcodes are:
+;
+; XX specifies the operand, e.g. A or HL_IND or (IX+16). Valid values
+; are:
+;
+;   A AF AF_ B BC BC_IND C C_IND D DE DE_IND E H HL HL_IND I IX IXPD_IND 
+;   IX_IND IY IYPD_IND IY_IND L M NC NZ P PE PO PSW R SP SP_IND U16 U16_IND
+;   U8 U8_IND Z
+;
+; XX specifies the type of expression:
+;
+;	U8 / U8_IND  - Unsigned 8 bit range 0 to 255
+;   U16 - Unsigned 16 bit range 0 to 65535
+;
+;
+; CODE
+; ----
+;
+; A sequence of entries will generate 1 or 2 bytes per entry to make up the
+; whole instruction. These basic entries are
+;
+; $xx        A hex value, e.g. $ED or $57
+; xxx        A decimal value, e.g. 123
+; %xxxxxxxx  A binary value, e.g. %10100110
+; [p:R8]	 An 8 bit value as a relative range from ORG+2 where p is expr 1 or 2
+; [p:U8]	 An 8 bit unsigned value
+; [p:U16]	 A 16 bit unsigned value output as 2 bytes with the LSB first
+; [p:B3]	 A 3 bit value which can be output on its own or embedded in a
+;			 binary value, for example %101[1:B3]10
+; [p:RST]	 RST number in 3 bits representing $00,$08,$10...$38
+; [p:IM]     IM 0/1/2 generates $46 / $56 / $5E
+;
+
+;
+; 8080 - Move Load and Store
+;
+
+MOV 0 0				| %01000000
+MOV 0 1				| %01000001
+MOV 0 2				| %01000010
+MOV 0 3				| %01000011
+MOV 0 4				| %01000100
+MOV 0 5				| %01000101
+MOV 0 6				| %01000110
+MOV 0 7				| %01000111
+
+MOV 1 0				| %01001000
+MOV 1 1				| %01001001
+MOV 1 2				| %01001010
+MOV 1 3				| %01001011
+MOV 1 4				| %01001100
+MOV 1 5				| %01001101
+MOV 1 6				| %01001110
+MOV 1 7				| %01001111
+
+MOV 2 0				| %01010000
+MOV 2 1				| %01010001
+MOV 2 2				| %01010010
+MOV 2 3				| %01010011
+MOV 2 4				| %01010100
+MOV 2 5				| %01010101
+MOV 2 6				| %01010110
+MOV 2 7				| %01010111
+
+MOV 3 0				| %01011000
+MOV 3 1				| %01011001
+MOV 3 2				| %01011010
+MOV 3 3				| %01011011
+MOV 3 4				| %01011100
+MOV 3 5				| %01011101
+MOV 3 6				| %01011110
+MOV 3 7				| %01011111
+
+MOV 4 0				| %01100000
+MOV 4 1				| %01100001
+MOV 4 2				| %01100010
+MOV 4 3				| %01100011
+MOV 4 4				| %01100100
+MOV 4 5				| %01100101
+MOV 4 6				| %01100110
+MOV 4 7				| %01100111
+
+MOV 5 0				| %01101000
+MOV 5 1				| %01101001
+MOV 5 2				| %01101010
+MOV 5 3				| %01101011
+MOV 5 4				| %01101100
+MOV 5 5				| %01101101
+MOV 5 6				| %01101110
+MOV 5 7				| %01101111
+
+MOV 6 0				| %01110000
+MOV 6 1				| %01110001
+MOV 6 2				| %01110010
+MOV 6 3				| %01110011
+MOV 6 4				| %01110100
+MOV 6 5				| %01110101
+; MOV M M doesn't exist, it's the HLT instruction :)
+MOV 6 7				| %01110111
+
+MOV 7 0				| %01111000
+MOV 7 1				| %01111001
+MOV 7 2				| %01111010
+MOV 7 3				| %01111011
+MOV 7 4				| %01111100
+MOV 7 5				| %01111101
+MOV 7 6				| %01111110
+MOV 7 7				| %01111111
+
+MVI 0 U8			| %00000110 [2:U8]
+MVI 1 U8			| %00001110 [2:U8]
+MVI 2 U8			| %00010110 [2:U8]
+MVI 3 U8			| %00011110 [2:U8]
+MVI 4 U8			| %00100110 [2:U8]
+MVI 5 U8			| %00101110 [2:U8]
+MVI 6 U8			| %00110110 [2:U8]
+MVI 7 U8			| %00111110 [2:U8]
+
+LXI 0 U16			| %00000001 [2:U16]
+LXI 2 U16			| %00010001 [2:U16]
+LXI 4 U16			| %00100001 [2:U16]
+STAX 0				| %00000010
+STAX 2				| %00010010
+LDAX 0				| %00001010
+LDAX 2				| %00011010
+STA U16				| %00110010 [1:U16]
+LDA U16				| %00111010 [1:U16]
+SHLD U16			| %00100010 [1:U16]
+LHLD U16			| %00101010 [1:U16]
+XCHG				| %11101011
+
+;
+; 8080 - Stack operations
+;
+
+PUSH 0				| %11000101
+PUSH 2				| %11010101
+PUSH 4				| %11100101
+PUSH PSW			| %11110101
+POP 0				| %11000001
+POP 2				| %11010001
+POP 4				| %11100001
+POP PSW				| %11110001
+XTHL				| %11100011
+SPHL				| %11111001
+LXI SP U16			| %00110001 [2:U16]
+INX SP				| %00110011
+DCX SP				| %00111011
+
+;
+; 8080 - Jump
+;
+
+JMP U16				| %11000011 [1:U16]
+JC U16				| %11011010 [1:U16]
+JNC U16				| %11010010 [1:U16]
+JZ U16				| %11001010 [1:U16]
+JNZ U16				| %11000010 [1:U16]
+JP U16				| %11110010 [1:U16]
+JM U16				| %11111010 [1:U16]
+JPE U16				| %11101010 [1:U16]
+JPO U16				| %11100010 [1:U16]
+PCHL				| %11101001
+
+;
+; 8080 - Call
+;
+
+CALL U16			| %11001101 [1:U16]
+CC U16				| %11011100 [1:U16]
+CNC U16				| %11010100 [1:U16]
+CZ U16				| %11001100 [1:U16]
+CNZ U16				| %11000100 [1:U16]
+CP U16				| %11110100 [1:U16]
+CM U16				| %11111100 [1:U16]
+CPE U16				| %11101100 [1:U16]
+CPO U16				| %11100100 [1:U16]
+
+;
+; 8080 - Return
+;
+
+RET					| %11001001
+RC					| %11011000
+RNC					| %11010000
+RZ					| %11001000
+RNZ					| %11000000
+RP					| %11110000
+RM					| %11111000
+RPE					| %11101000  ; Incorrectly shows %11100000 in Intel manual
+RPO					| %11100000
+
+;
+; 8080 - Restart
+;
+
+RST U8				| %11[1:RST]111
+
+;
+; 8080 - Increment and Decrement
+;
+
+INR 0				| %00000100
+INR 1				| %00001100
+INR 2				| %00010100
+INR 3				| %00011100
+INR 4				| %00100100
+INR 5				| %00101100
+INR 6				| %00110100
+INR 7				| %00111100
+
+DCR 0				| %00000101
+DCR 1				| %00001101
+DCR 2				| %00010101
+DCR 3				| %00011101
+DCR 4				| %00100101
+DCR 5				| %00101101
+DCR 6				| %00110101
+DCR 7				| %00111101
+
+INX 0				| %00000011
+INX 2				| %00010011
+INX 4				| %00100011
+
+DCX 0				| %00001011
+DCX 2				| %00011011
+DCX 4				| %00101011
+
+;
+; 8080 - Add
+;
+
+ADD 0				| %10000000
+ADD 1				| %10000001
+ADD 2				| %10000010
+ADD 3				| %10000011
+ADD 4				| %10000100
+ADD 5				| %10000101
+ADD 6				| %10000110
+ADD 7				| %10000111
+
+ADC 0				| %10001000
+ADC 1				| %10001001
+ADC 2				| %10001010
+ADC 3				| %10001011
+ADC 4				| %10001100
+ADC 5				| %10001101
+ADC 6				| %10001110
+ADC 7				| %10001111
+
+ADI U8				| %11000110 [1:U8]
+ACI U8				| %11001110 [1:U8]
+
+DAD 0				| %00001001
+DAD 2				| %00011001
+DAD 4				| %00101001
+DAD SP				| %00111001
+
+;
+; 8080 - Subtract
+;
+
+SUB 0				| %10010000
+SUB 1				| %10010001
+SUB 2				| %10010010
+SUB 3				| %10010011
+SUB 4				| %10010100
+SUB 5				| %10010101
+SUB 6				| %10010110
+SUB 7				| %10010111
+
+SBB 0				| %10011000
+SBB 1				| %10011001
+SBB 2				| %10011010
+SBB 3				| %10011011
+SBB 4				| %10011100
+SBB 5				| %10011101
+SBB 6				| %10011110
+SBB 7				| %10011111
+
+SUI U8				| %11010110 [1:U8]
+SBI U8				| %11011110 [1:U8]
+
+;
+; 8080 - Logical
+;
+
+ANA 0				| %10100000
+ANA 1				| %10100001
+ANA 2				| %10100010
+ANA 3				| %10100011
+ANA 4				| %10100100
+ANA 5				| %10100101
+ANA 6				| %10100110
+ANA 7				| %10100111
+
+XRA 0				| %10101000
+XRA 1				| %10101001
+XRA 2				| %10101010
+XRA 3				| %10101011
+XRA 4				| %10101100
+XRA 5				| %10101101
+XRA 6				| %10101110
+XRA 7				| %10101111
+
+ORA 0				| %10110000
+ORA 1				| %10110001
+ORA 2				| %10110010
+ORA 3				| %10110011
+ORA 4				| %10110100
+ORA 5				| %10110101
+ORA 6				| %10110110
+ORA 7				| %10110111
+
+CMP 0				| %10111000
+CMP 1				| %10111001
+CMP 2				| %10111010
+CMP 3				| %10111011
+CMP 4				| %10111100
+CMP 5				| %10111101
+CMP 6				| %10111110
+CMP 7				| %10111111
+
+ANI U8				| %11100110 [1:U8]
+XRI U8				| %11101110 [1:U8]
+ORI U8				| %11110110 [1:U8]
+CPI U8				| %11111110 [1:U8]
+
+;
+; 8080 - Rotate
+;
+
+RLC					| %00000111
+RRC					| %00001111
+RAL					| %00010111
+RAR					| %00011111
+
+;
+; 8080 - Specials
+;
+
+CMA					| %00101111
+STC					| %00110111
+CMC					| %00111111
+DAA					| %00100111
+
+;
+; 8080 - Input / Output
+;
+
+IN U8				| %11011011 [1:U8]
+OUT U8				| %11010011 [1:U8]
+
+;
+; 8080 - Control
+;
+
+EI					| %11111011
+DI					| %11110011
+NOP					| %00000000
+HLT					| %01110110
+

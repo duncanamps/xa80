@@ -1,7 +1,7 @@
 ;
 ; Opcode map for Duncan's Cross Assembler xa80
 ;
-; Z80 opcode file - 28/06/2022
+; Z180 opcode file - 16/08/2022
 ;
 ; Each line consists of 2 fields seperated by the vertical brace "|"
 ;
@@ -674,3 +674,50 @@ OUTI            | $ED $A3
 OTIR            | $ED $B3                    
 OUTD            | $ED $AB                    
 OTDR            | $ED $BB                    
+
+; 
+; Z180 Extra instructions
+;
+
+IN0 B U8_IND		| $ED $00 [2:U8]
+IN0 C U8_IND		| $ED $08 [2:U8]
+IN0 D U8_IND		| $ED $10 [2:U8]
+IN0 E U8_IND		| $ED $18 [2:U8]
+IN0 H U8_IND		| $ED $20 [2:U8]
+IN0 L U8_IND		| $ED $28 [2:U8]
+IN0 HL_IND U8_IND	| $ED $30 [2:U8]
+IN0 A U8_IND		| $ED $38 [2:U8]
+
+MULT BC				| $ED $4C
+MULT DE				| $ED $5C
+MULT HL				| $ED $6C
+MULT SP				| $ED $7C
+
+OUT0 U16_IND B		| $ED $01 [1:U8]
+OUT0 U16_IND C		| $ED $09 [1:U8]
+OUT0 U16_IND D		| $ED $11 [1:U8]
+OUT0 U16_IND E		| $ED $19 [1:U8]
+OUT0 U16_IND H		| $ED $21 [1:U8]
+OUT0 U16_IND L		| $ED $29 [1:U8]
+OUT0 U16_IND HL_IND	| $ED $31 [1:U8]
+OUT0 U16_IND A		| $ED $39 [1:U8]
+
+OTIM				| $ED $83
+OTDM				| $ED $8B
+OTIMR				| $ED $93
+OTDMR				| $ED $9B
+
+SLP					| $ED $76
+
+TST B				| $ED $04
+TST C				| $ED $0C
+TST D				| $ED $14
+TST E				| $ED $1C
+TST H				| $ED $24
+TST L				| $ED $2C
+TST HL_IND			| $ED $34
+TST A				| $ED $3C
+
+TST U8				| $ED $64 [1:U8]
+
+TSTIO U8			| $ED $74 [1:U8]

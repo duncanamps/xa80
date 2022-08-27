@@ -1,5 +1,3 @@
-unit ufilestack;
-
 {
     XA80 - Cross Assembler for x80 processors
     Copyright (C)2020-2022 Duncan Munro
@@ -19,6 +17,8 @@ unit ufilestack;
 
     Contact: Duncan Munro  duncan@duncanamps.com
 }
+
+unit ufilestack;
 
 
 {$mode objfpc}{$H+}

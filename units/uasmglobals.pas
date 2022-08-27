@@ -1,5 +1,3 @@
-unit uasmglobals;
-
 {
     XA80 - Cross Assembler for x80 processors
     Copyright (C)2020-2022 Duncan Munro
@@ -20,12 +18,14 @@ unit uasmglobals;
     Contact: Duncan Munro  duncan@duncanamps.com
 }
 
+unit uasmglobals;
+
+{$mode objfpc}{$H+}
+
 
 //
 // Global definitions for the assembler
 //
-
-{$mode objfpc}{$H+}
 
 interface
 
@@ -34,6 +34,7 @@ uses
 
 
 const
+  DEFAULT_GRAMMAR_VALUE             = 'XA80';
   DEFAULT_LISTING_MARGIN_LEFT       = 0;
   DEFAULT_LISTING_MARGIN_TOP        = 2;
   DEFAULT_LISTING_PAGE_LENGTH       = 40;
@@ -64,17 +65,8 @@ const
 
 
 type
-  TProcessorType = (ptUnassigned,pt8080,pt8085,ptZ80,ptZ180);
+  TAsmInt = int32;
 
-const
-  cProcessorType: array[TProcessorType] of string =
-    (
-      '',
-      '8080',
-      '8085',
-      'Z80',
-      'Z180'
-    );
 
 type
   TInstructionType = (itOpcode,itDirective,itMacro);

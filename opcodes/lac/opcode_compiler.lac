@@ -24,7 +24,9 @@
 //
 
 {Digit} 		= [0-9];
+{Zero}			= [0];
 {DigitBin}		= [01];
+{Digit07}		= [0-7];
 {DigitHex}		= {Digit} + [ABCDEFabcdef];
 {DigitNonZero}	= [1-9];
 {Letter} 		= [A-Za-z];
@@ -51,11 +53,14 @@ T_DECBYTE			= {DigitNonZero} {Digit}* ;
 T_HEXBYTE			= "$" {DigitHex} {DigitHex} ;
 T_IM				= "[" {OperandNo} ":" MIXED("IM") "]" keyword ;
 T_OPCODE			= {Letter} {Letter}
+					| {Letter} {Letter} {Zero}
 					| {Letter} {Letter} {Letter}
+					| {Letter} {Letter} {Letter} {Zero}
 					| {Letter} {Letter} {Letter} {Letter}
 					| {Letter} {Letter} {Letter} {Letter} {Letter}
 					;
-T_OPERAND			= MIXED("A")
+T_OPERAND			= {Digit07}
+					| MIXED("A")
 					| MIXED("AF")
 					| MIXED("AF_")
 					| MIXED("B")

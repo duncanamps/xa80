@@ -8,7 +8,8 @@
       <Unit>
         <Filename Value="oc_comp.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="49" Y="20"/>
+        <TopLine Value="18"/>
+        <CursorPos X="27" Y="20"/>
         <UsageCount Value="35"/>
         <Loaded Value="True"/>
       </Unit>
@@ -33,8 +34,8 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="142"/>
-        <CursorPos X="46" Y="171"/>
+        <TopLine Value="226"/>
+        <CursorPos Y="256"/>
         <UsageCount Value="32"/>
         <Loaded Value="True"/>
       </Unit>

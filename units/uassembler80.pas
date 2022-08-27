@@ -70,6 +70,7 @@ type
       FForceList:      boolean;
       FFilenameSrc:    string;
       FFileStack:      TFileStack;
+      FGrammar:        string;
       FIfStack:        TIfStack;
       FIncludeNext:    string;
       FInstructionList: TInstructionList;
@@ -173,7 +174,8 @@ type
       function  ActSymbolDef(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
-      function  DoOpcode(_parser: TLCGParser; _operands: integer): TLCGParserStackEntry;
+      procedure DoOpcode;
+      function  OldDoOpcode(_parser: TLCGParser; _operands: integer): TLCGParserStackEntry;
       procedure FilesClose;
       procedure FilesOpen;
       function  GetSource: string;
@@ -211,6 +213,7 @@ type
       destructor Destroy; override;
       procedure Assemble;
       procedure AssemblePass(_pass: integer);
+      procedure DumpInstructions;
       procedure Monitor(LogType: TLCGLogType; const Message: string); override;
       procedure Monitor(LogType: TLCGLogType; const Message: string; const Args: array of const); override;
       function  Reduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
@@ -226,15 +229,25 @@ type
 implementation
 
 uses
-  uexpression, strutils;
+  uexpression, strutils, ukeywords;
 
 
 { TAssembler80 }
 
 constructor TAssembler80.Create(const _grammar: string; const _processor: string);
+
+  procedure KeywordAddDirective(const _directive: string; _proc: TKeywordProc);
+  var r: TKeywordRec;
+  begin
+    r.Text  := UpperCase(_directive);
+    r.KType := ktDirective;
+    r.Proc  := _proc;
+    FPreparser.Keywords.Add(r);
+  end;
+
 begin
   inherited Create;
-  LoadFromResource(_grammar);
+  LoadFromResource('XA80OPER');
   SetLength(FProcArray,Rules);
   FSymbols := TSymbolTable.Create;
   FFileStack := TFileStack.Create(Self);
@@ -247,8 +260,13 @@ begin
   FCmdIncludes := TStringList.Create;
   FInstructionList := TInstructionList.Create(_processor);
   FExprList        := TExprList.Create;
+  FGrammar := _grammar;
   FProcessor := _processor;
-  FPreparser := TPreparser.Create;
+  FPreparser := TPreparser.Create(_processor,@DoOpcode);
+  // @@@@@ Add more procedures here
+  KeywordAddDirective('DB', nil);
+  KeywordAddDirective('EQU',nil);
+  KeywordAddDirective('ORG',nil);
   FPass := 0;
   FTabSize := 4;
   FVerbose := False;
@@ -994,17 +1012,17 @@ end;
 
 function TAssembler80.ActOpcode0(_parser: TLCGParser): TLCGParserStackEntry;
 begin
-  Result := DoOpcode(_parser,0);
+  Result := OldDoOpcode(_parser,0);
 end;
 
 function TAssembler80.ActOpcode1(_parser: TLCGParser): TLCGParserStackEntry;
 begin
-  Result := DoOpcode(_parser,1);
+  Result := OldDoOpcode(_parser,1);
 end;
 
 function TAssembler80.ActOpcode2(_parser: TLCGParser): TLCGParserStackEntry;
 begin
-  Result := DoOpcode(_parser,2);
+  Result := OldDoOpcode(_parser,2);
 end;
 
 function TAssembler80.ActSetOpInd(_parser: TLCGParser): TLCGParserStackEntry;
@@ -1183,7 +1201,12 @@ begin
     Monitor(ltError,'Pass terminated unexpectedly in the middle of a .MACRO block');
 end;
 
-function TAssembler80.DoOpcode(_parser: TLCGParser; _operands: integer): TLCGParserStackEntry;
+procedure TAssembler80.DoOpcode;
+begin
+  // @@@@@@ Code here to implement opcode
+end;
+
+function TAssembler80.OldDoOpcode(_parser: TLCGParser; _operands: integer): TLCGParserStackEntry;
 var opcindex: integer;
     opcode:   string;
     instrec:  TInstructionRec;
@@ -1221,6 +1244,11 @@ begin
         PumpCode(instrec);
     end;
   SetStringEntry(Result,'');
+end;
+
+procedure TAssembler80.DumpInstructions;
+begin
+  FInstructionList.Dump(True);
 end;
 
 procedure TAssembler80.FilesClose;
@@ -1311,14 +1339,15 @@ end;
 procedure TAssembler80.InitStart;
 begin
   Monitor(ltWarAndPeace,'Processor type = %s',[FProcessor]);
+  Monitor(ltWarAndPeace,'Grammar type = %s',[FGrammar]);
   Monitor(ltWarAndPeace,'Defines = %s',[CmdDefines.DelimitedText]);
   Monitor(ltWarAndPeace,'Includes = %s',[CmdIncludes.DelimitedText]);
-  Monitor(ltWarAndPeace,'D80 filename = %s',[FilenameDbg]);
-  Monitor(ltWarAndPeace,'HEX filename = %s',[FilenameHex]);
-  Monitor(ltWarAndPeace,'LST filename = %s',[FilenameLst]);
-  Monitor(ltWarAndPeace,'LOG filename = %s',[FilenameLog]);
-  Monitor(ltWarAndPeace,'MAP filename = %s',[FilenameMap]);
-  Monitor(ltWarAndPeace,'O80 filename = %s',[FilenameObj]);
+  Monitor(ltWarAndPeace,'DBG80 filename = %s',[FilenameDbg]);
+  Monitor(ltWarAndPeace,'HEX   filename = %s',[FilenameHex]);
+  Monitor(ltWarAndPeace,'LST   filename = %s',[FilenameLst]);
+  Monitor(ltWarAndPeace,'LOG   filename = %s',[FilenameLog]);
+  Monitor(ltWarAndPeace,'MAP   filename = %s',[FilenameMap]);
+  Monitor(ltWarAndPeace,'OBJ80 filename = %s',[FilenameObj]);
   Monitor(ltWarAndPeace,'tab value = %d',[TabSize]);
 end;
 
@@ -1521,6 +1550,7 @@ begin
       if FDefiningMacro then
         FMacroCapture.Add(asmline);
       // Assemble the line here
+      asmline := TrimRight(asmline);
       if asmline <> '' then
         begin
           ProcessLine(asmline);
@@ -1596,17 +1626,38 @@ end;
 
 procedure TAssembler80.ProcessLine(const _line: string);
 var strm: TStringStream;
+    pplabel:    string;
+    ppkeyword:  string;
+    ppoperands: TStringList;
 begin
   if (Length(_line) > 0) and (_line[1] = '*') then
     Exit; // Comment line
   strm := TStringStream.Create(_line);
   try
     // Preparse first
-//    FPreparser.InitRun;
-//    FPreparser.Parse(strm);
-    Parse(strm);
+    FPreparser.InitRun;
+    FPreparser.Parse(strm);
+    FPreparser.Optimise;
+    // Split into label, keyword, operands
+    // Keywords can be split into
+    //   ktOpcode
+    //   ktDirective
+    //   ktMacroCall
+    // Operands can be split into
+    //   String value
+    //   Numeric value
+    //   Simple operand
+    pplabel := '';
+    ppkeyword := '';
+    ppoperands := TStringList.Create;
+    try
+      FPreparser.Split(pplabel,ppkeyword,ppoperands);
+    finally
+      FreeAndNil(ppoperands);
+    end;
+//    Parse(strm);
   finally
-    strm.Free;
+    FreeAndNil(strm);
   end;
 end;
 
@@ -1744,41 +1795,41 @@ begin
   RegisterProc('ActCompLT',         @ActCompLT, _procs);
   RegisterProc('ActCompNE',         @ActCompNE, _procs);
   RegisterProc('ActDecLiteral',     @ActDecLiteral, _procs);
-  RegisterProc('ActDirCPU',         @ActDirCPU, _procs);
-  RegisterProc('ActDirDB',          @ActDirDB, _procs);
-  RegisterProc('ActDirDC',          @ActDirDC, _procs);
-  RegisterProc('ActDirDefine',      @ActDirDefine, _procs);
-  RegisterProc('ActDirDefineExpr',  @ActDirDefineExpr, _procs);
-  RegisterProc('ActDirDefineExprC', @ActDirDefineExprC, _procs);
-  RegisterProc('ActDirDefMacro',    @ActDirDefMacro, _procs);
-  RegisterProc('ActDirDS',          @ActDirDS, _procs);
-  RegisterProc('ActDirDS2',         @ActDirDS2, _procs);
-  RegisterProc('ActDirDW',          @ActDirDW, _procs);
-  RegisterProc('ActDirElse',        @ActDirElse, _procs);
-  RegisterProc('ActDirEnd',         @ActDirEnd, _procs);
-  RegisterProc('ActDirEndif',       @ActDirEndif, _procs);
-  RegisterProc('ActDirEndm',        @ActDirEndm, _procs);
-  RegisterProc('ActDirError',       @ActDirError, _procs);
-  RegisterProc('ActDirIf',          @ActDirIf, _procs);
-  RegisterProc('ActDirIfdef',       @ActDirIfdef, _procs);
-  RegisterProc('ActDirIfndef',      @ActDirIfndef, _procs);
-  RegisterProc('ActDirInclude',     @ActDirInclude, _procs);
-  RegisterProc('ActDirIncludeList', @ActDirIncludeList, _procs);
+//RegisterProc('ActDirCPU',         @ActDirCPU, _procs);
+//RegisterProc('ActDirDB',          @ActDirDB, _procs);
+//RegisterProc('ActDirDC',          @ActDirDC, _procs);
+//RegisterProc('ActDirDefine',      @ActDirDefine, _procs);
+//RegisterProc('ActDirDefineExpr',  @ActDirDefineExpr, _procs);
+//RegisterProc('ActDirDefineExprC', @ActDirDefineExprC, _procs);
+//RegisterProc('ActDirDefMacro',    @ActDirDefMacro, _procs);
+//RegisterProc('ActDirDS',          @ActDirDS, _procs);
+//RegisterProc('ActDirDS2',         @ActDirDS2, _procs);
+//RegisterProc('ActDirDW',          @ActDirDW, _procs);
+//RegisterProc('ActDirElse',        @ActDirElse, _procs);
+//RegisterProc('ActDirEnd',         @ActDirEnd, _procs);
+//RegisterProc('ActDirEndif',       @ActDirEndif, _procs);
+//RegisterProc('ActDirEndm',        @ActDirEndm, _procs);
+//RegisterProc('ActDirError',       @ActDirError, _procs);
+//RegisterProc('ActDirIf',          @ActDirIf, _procs);
+//RegisterProc('ActDirIfdef',       @ActDirIfdef, _procs);
+//RegisterProc('ActDirIfndef',      @ActDirIfndef, _procs);
+//RegisterProc('ActDirInclude',     @ActDirInclude, _procs);
+//RegisterProc('ActDirIncludeList', @ActDirIncludeList, _procs);
 //RegisterProc('ActDirList',        @ActDirList, _procs);
-  RegisterProc('ActDirMacro',       @ActDirMacro, _procs);
-  RegisterProc('ActDirMacroNoexpr', @ActDirMacroNoexpr, _procs);
-  RegisterProc('ActDirMessage',     @ActDirMessage, _procs);
+//RegisterProc('ActDirMacro',       @ActDirMacro, _procs);
+//RegisterProc('ActDirMacroNoexpr', @ActDirMacroNoexpr, _procs);
+//RegisterProc('ActDirMessage',     @ActDirMessage, _procs);
 //RegisterProc('ActDirNolist',      @ActDirNolist, _procs);
-  RegisterProc('ActDirOrg',         @ActDirOrg, _procs);
-  RegisterProc('ActDirSet',         @ActDirSet, _procs);
-  RegisterProc('ActDirTitle',       @ActDirTitle, _procs);
-  RegisterProc('ActDirUndefine',    @ActDirUndefine, _procs);
-  RegisterProc('ActDirWarning',     @ActDirWarning, _procs);
+//RegisterProc('ActDirOrg',         @ActDirOrg, _procs);
+//RegisterProc('ActDirSet',         @ActDirSet, _procs);
+//RegisterProc('ActDirTitle',       @ActDirTitle, _procs);
+//RegisterProc('ActDirUndefine',    @ActDirUndefine, _procs);
+//RegisterProc('ActDirWarning',     @ActDirWarning, _procs);
   RegisterProc('ActExprAdd',        @ActExprAdd, _procs);
   RegisterProc('ActExprAnd',        @ActExprAnd, _procs);
   RegisterProc('ActExprBracket',    @ActExprBracket, _procs);
   RegisterProc('ActExprDiv',        @ActExprDiv, _procs);
-  RegisterProc('ActExprListItem',   @ActExprListItem, _procs);
+//RegisterProc('ActExprListItem',   @ActExprListItem, _procs);
   RegisterProc('ActExprUnaryMinus', @ActExprUnaryMinus, _procs);
   RegisterProc('ActExprMod',        @ActExprMod, _procs);
   RegisterProc('ActExprMul',        @ActExprMul, _procs);
@@ -1792,22 +1843,22 @@ begin
   RegisterProc('ActFuncIif',        @ActFuncIif, _procs);
   RegisterProc('ActFuncLow',        @ActFuncLow, _procs);
   RegisterProc('ActHexLiteral',     @ActHexLiteral, _procs);
-  RegisterProc('ActIgnore',         @ActIgnore, _procs);
+//RegisterProc('ActIgnore',         @ActIgnore, _procs);
   RegisterProc('ActLogAnd',         @ActLogAnd, _procs);
   RegisterProc('ActLogNot',         @ActLogNot, _procs);
   RegisterProc('ActLogOr',          @ActLogOr, _procs);
   RegisterProc('ActOctLiteral',     @ActOctLiteral, _procs);
-  RegisterProc('ActOpcode0',        @ActOpcode0, _procs);
-  RegisterProc('ActOpcode1',        @ActOpcode1, _procs);
-  RegisterProc('ActOpcode2',        @ActOpcode2, _procs);
+//RegisterProc('ActOpcode0',        @ActOpcode0, _procs);
+//RegisterProc('ActOpcode1',        @ActOpcode1, _procs);
+//RegisterProc('ActOpcode2',        @ActOpcode2, _procs);
   RegisterProc('ActSetOpBracketed', @ActSetOpBracketed, _procs);
-  RegisterProc('ActSetOpInd',       @ActSetOpInd, _procs);
+//RegisterProc('ActSetOpInd',       @ActSetOpInd, _procs);
   RegisterProc('ActSetOpIndOff',    @ActSetOpIndOff, _procs);
   RegisterProc('ActSetOpLiteral',   @ActSetOpLiteral, _procs);
-  RegisterProc('ActSetOpSimple',    @ActSetOpSimple, _procs);
-  RegisterProc('ActSetOpSimpleW',   @ActSetOpSimpleW, _procs);
+//RegisterProc('ActSetOpSimple',    @ActSetOpSimple, _procs);
+//RegisterProc('ActSetOpSimpleW',   @ActSetOpSimpleW, _procs);
   RegisterProc('ActStringConstant', @ActStringConstant, _procs);
-  RegisterProc('ActSymbolDef',      @ActSymbolDef, _procs);
+//RegisterProc('ActSymbolDef',      @ActSymbolDef, _procs);
   RegisterProc('ActValueOrg',       @ActValueOrg, _procs);
   RegisterProc('ActValueSymbol',    @ActValueSymbol, _procs);
 end;
@@ -1830,6 +1881,8 @@ begin
   FOnMonitor := _monitor;
   if Assigned(FFileStack) then
     FFileStack.OnMonitor := _monitor;
+  if Assigned(FPreparser) then
+    FPreparser.OnMonitor := _monitor;
 end;
 
 procedure TAssembler80.SetStringEntry(var _e: TLCGParserStackEntry; _strval: string);

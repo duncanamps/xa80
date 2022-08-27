@@ -1,5 +1,3 @@
-unit uinstruction;
-
 {
     XA80 - Cross Assembler for x80 processors
     Copyright (C)2020-2022 Duncan Munro
@@ -20,6 +18,8 @@ unit uinstruction;
     Contact: Duncan Munro  duncan@duncanamps.com
 }
 
+unit uinstruction;
+
 
 {$mode ObjFPC}{$H+}
 
@@ -35,6 +35,14 @@ uses
 
 type
   TOperandOption = (OPER_NULL,
+                    OPER_0,
+                    OPER_1,
+                    OPER_2,
+                    OPER_3,
+                    OPER_4,
+                    OPER_5,
+                    OPER_6,
+                    OPER_7,
   	            OPER_A,
   	            OPER_AF,
   	            OPER_AF_,
@@ -86,6 +94,14 @@ const
   OPCODE_MAP_MAGIC = $4D43504F;
 
   OperandStrings: array[TOperandOption] of string =  ('',
+                                                '0',
+                                                '1',
+                                                '2',
+                                                '3',
+                                                '4',
+                                                '5',
+                                                '6',
+                                                '7',
   	                                        'A',
   	                                        'AF',
   	                                        'AF_',
@@ -127,7 +143,15 @@ const
   	                                        'Z');
 
   OperandActual: array[TOperandOption] of string =  ('',
-  	                                        'A',
+                                                '0',
+                                                '1',
+                                                '2',
+                                                '3',
+                                                '4',
+                                                '5',
+                                                '6',
+                                                '7',
+                                                'A',
   	                                        'AF',
   	                                        'AF''',
   	                                        'B',
@@ -167,8 +191,55 @@ const
   	                                        '', // U16_IND
   	                                        'Z');
 
-var
-  OperandAvailable: array[TOperandOption] of boolean;
+  OperandSanitised: array[TOperandOption] of string =  ('',
+                                                'B',
+                                                'C',
+                                                'D',
+                                                'E',
+                                                'H',
+                                                'L',
+                                                'M',
+                                                'A',
+                                                'A',
+  	                                        'AF',
+  	                                        'AF''',
+  	                                        'B',
+  	                                        'BC',
+  	                                        '[BC]',
+  	                                        'C',
+  	                                        '[C]',
+  	                                        'D',
+  	                                        'DE',
+  	                                        '[DE]',
+  	                                        'E',
+  	                                        'F',
+  	                                        'H',
+  	                                        'HL',
+  	                                        '[HL]',
+  	                                        'I',
+  	                                        'IX',
+  	                                        '[IX]',
+  	                                        '[IX+NN]', // IXPD_IND
+  	                                        'IY',
+  	                                        '[IY]',
+  	                                        '[IY+NN]', // IYPD_IND
+  	                                        'L',
+                                                'M',
+  	                                        'NC',
+  	                                        'NZ',
+  	                                        'P',
+  	                                        'PE',
+  	                                        'PO',
+                                                'PSW',
+  	                                        'R',
+  	                                        'SP',
+  	                                        '[SP]',
+  	                                        'NN', // U8
+  	                                        '[NN]', // U8_IND
+  	                                        'NNNN', // U16
+  	                                        '[NNNN]', // U16_IND
+  	                                        'Z');
+
 
 
 type
@@ -199,7 +270,8 @@ type
       FHashSize:  integer;
       FHashTable: array of integer;
       FOpcodes:   TStringList;
-    public
+      FOperandAvailable: array[TOperandOption] of boolean;
+   public
       constructor Create;
       constructor Create(const _processor: string);
       destructor Destroy; override;
@@ -209,10 +281,11 @@ type
       function  CalculateHash(_opcode: word; _operand1: TOperandOption; _operand2: TOperandOption): integer;
       function  CodeElementToString(_element: TCodeElement): string;
       procedure ConstructHashTable;
-      procedure Dump;
+      procedure Dump(_sanitised: boolean = False);
       function  FindInstruction(_opcode: word; _operand1: TOperandOption; _operand2: TOperandOption; var _r: TInstructionRec): boolean;
       function  FindNextPrime(_start: integer): integer;
       function  FindOpcode(const _opcode: string; var _index: integer): boolean;
+      procedure GetSimpleOperands(_sl: TStringList);
       procedure LoadFromFile(const _filename: string);
       procedure LoadFromStream(const _stream: TStream);
       procedure LoadFromResource(const _resource: string);
@@ -225,11 +298,11 @@ type
 
 implementation
 
-
+uses
 {$IFDEF WINDOWS}
-  uses Windows; // For definition of RT_RCDATA
+  Windows, // For definition of RT_RCDATA
 {$ENDIF}
-
+  StrUtils;
 
 { TInstructionList }
 
@@ -352,42 +425,76 @@ begin
     end;
 end;
 
-procedure TInstructionList.Dump;
+procedure TInstructionList.Dump(_sanitised: boolean);
 var i: integer;
     j: integer;
     s: string;
     r: TInstructionRec;
     cs: string;
+    longest: integer;
+    sl: TStringList;
 begin
   // Dump contents of opcode list
   WriteLn(Format('OPCODE LIST (%d items in total)',[FOpcodes.Count]));
+  longest := 0;
   for i := 0 to FOpcodes.Count-1 do
-    WriteLn(Format('%d:%s',[i,FOpcodes[i]]));
+    begin
+      WriteLn(Format('%d:%s',[i,FOpcodes[i]]));
+      if Length(FOpcodes[i]) > longest then
+        longest := Length(FOpcodes[i]);
+    end;
   WriteLn;
   // Dump contents of operand list
-  WriteLn(Format('OPERAND LIST (%d items in total)',[Ord(High(TOperandOption))+1]));
+  WriteLn(Format('OPERAND LIST (%d items in total - not all may be used)',[Ord(High(TOperandOption))+1]));
   for i := 0 to Ord(High(TOperandOption))-1 do
-    WriteLn(Format('%d:%s (%s)',[i,OperandStrings[TOperandOption(i)],OperandActual[TOperandOption(i)]]));
+    if FOperandAvailable[TOperandOption(i)] then
+      WriteLn(Format('%d:%s (%s)',[i,OperandStrings[TOperandOption(i)],OperandActual[TOperandOption(i)]]));
+  WriteLn;
   // Dump contents of instruction list
-  WriteLn(Format('INSTRUCTION LIST (%d items in total)',[Count]));
-  for i := 0 to Count-1 do
-    begin
-      r := Items[i];
-      // Do the instruction first
-      s := OpcodeAtIndex(r.OpcodeIndex);
-      if r.Operand1Index <> OPER_NULL then
-        s := s + ' ' + OperandStrings[r.Operand1Index];
-      if r.Operand2Index <> OPER_NULL then
-        s := s + ',' + OperandStrings[r.Operand2Index];
-      // Then the code string
-      cs := '';
-      for j := 0 to r.CodeElementCount-1 do
-        begin
-          if j > 0 then cs := cs + ', ';
-          cs := cs + CodeElementToString(r.CodeElements[j]);
-        end;
-      WriteLn(Format('%d: %s [%s]',[i,s,cs]));
-    end;
+  sl := TStringList.Create;
+  try
+    WriteLn(Format('INSTRUCTION LIST (%d items in total)',[Count]));
+    for i := 0 to Count-1 do
+      begin
+        r := Items[i];
+        // Do the instruction first
+        s := OpcodeAtIndex(r.OpcodeIndex);
+        s := PadRight(s,longest+1);
+        if _sanitised then
+          begin
+            if r.Operand1Index <> OPER_NULL then
+              s := s + OperandSanitised[r.Operand1Index];
+            if r.Operand2Index <> OPER_NULL then
+              s := s + ',' + OperandSanitised[r.Operand2Index];
+          end
+        else
+          begin
+            if r.Operand1Index <> OPER_NULL then
+              s := s + ' ' + OperandStrings[r.Operand1Index];
+            if r.Operand2Index <> OPER_NULL then
+              s := s + ',' + OperandStrings[r.Operand2Index];
+          end;
+        // Then the code string
+        if not _sanitised then
+          begin
+            cs := '';
+            for j := 0 to r.CodeElementCount-1 do
+              begin
+                if j > 0 then cs := cs + ', ';
+                cs := cs + CodeElementToString(r.CodeElements[j]);
+              end;
+            s := s + ' [' + cs + ']';
+          end;
+        sl.Add(s);
+      end;
+    if _sanitised then
+      sl.Sort;
+    for i := 0 to sl.Count-1 do
+      WriteLn(Format('%4d: %s',[i,sl[i]]));
+    WriteLn;
+  finally
+    FreeAndNil(sl);
+  end;
 end;
 
 function TInstructionList.FindInstruction(_opcode: word; _operand1: TOperandOption; _operand2: TOperandOption; var _r: TInstructionRec): boolean;
@@ -456,6 +563,30 @@ begin
   Result := FOpcodes.Find(_opcode,_index);
 end;
 
+procedure TInstructionList.GetSimpleOperands(_sl: TStringList);
+var i:  integer;
+    r:  TInstructionRec;
+
+  procedure TryAdd(_oo: TOperandOption);
+  begin
+    if (_oo <> OPER_NULL) and
+       (FOperandAvailable[_oo]) and
+       (OperandActual[_oo] <> '') and
+       (_sl.IndexOf(OperandActual[_oo]) < 0) then
+      _sl.Add(OperandActual[_oo]);
+  end;
+
+begin
+  _sl.Clear;
+  _sl.Sorted := True;
+  for i := 0 to Count-1 do
+    begin
+      r := Items[i];
+      TryAdd(r.Operand1Index);
+      TryAdd(r.Operand2Index);
+    end;
+end;
+
 procedure TInstructionList.LoadFromFile(const _filename: string);
 var stream: TFileStream;
 begin
@@ -495,13 +626,13 @@ var i, j: integer;
   procedure SetOperandAvailable(_op: TOperandOption);
   begin
     if _op <> OPER_NULL then
-      OperandAvailable[_op] := True;
+      FOperandAvailable[_op] := True;
   end;
 
 begin
   // Some initialisation stuff
   for oo in TOperandOption do
-    OperandAvailable[oo] := False;
+    FOperandAvailable[oo] := False;
   // See TInstructionList.SaveToStream for file format
   magic := ReadDword;
   if magic <> OPCODE_MAP_MAGIC then

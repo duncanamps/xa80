@@ -1,4 +1,3 @@
-unit upreparser2;
 {
     XA80 - Cross compiler for x80 processors
     Copyright (C)2020-2022 Duncan Munro
@@ -18,6 +17,9 @@ unit upreparser2;
 
     Contact: Duncan Munro  duncan@duncanamps.com
 }
+
+unit upreparser2;
+
 {$mode ObjFPC}{$H+}
 
 //
@@ -43,7 +45,7 @@ interface
 
 uses
   Classes, SysUtils, deployment_parser_module_12, Generics.Collections,
-  deployment_parser_types_12, uasmglobals, ukeywords;
+  deployment_parser_types_12, uasmglobals, ukeywords, uinstruction;
 
 type
 
@@ -88,6 +90,8 @@ type
 
   TPreparser = class(TLCGParser)
     protected
+      FInstructions: TInstructionList;
+      FKeywords:     TKeywordList;
       FPPList: TPreparserList;
       function  IsKeyword(_kw: string): boolean;
       function  MyReduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
@@ -100,11 +104,13 @@ type
       procedure ProcessSomething(const _s: string; _col: integer);
       procedure ProcessString(const _s: string; _col: integer);
     public
+      property Keywords: TKeywordList read FKeywords;
       property PPList: TPreparserList read FPPList;
-      constructor Create; reintroduce;
+      constructor Create(const _processor: string; _default_handler: TKeywordProc);
       destructor Destroy; override;
       procedure InitRun; reintroduce;
       procedure Optimise;
+      procedure Split(var _label: string; var _keyword: string; _operands: TStringList);
   end;
 
 implementation
@@ -194,17 +200,22 @@ end;
 //
 //=============================================================================
 
-constructor TPreparser.Create;
+constructor TPreparser.Create(const _processor: string; _default_handler: TKeywordProc);
 begin
   inherited Create;
   LoadFromResource('XA80PRE');
   FPPList := TPreparserList.Create;
+  FInstructions := TInstructionList.Create(_processor);
+  FKeywords := TKeywordList.Create;
+  FKeywords.AddInstructions(FInstructions,_default_handler);
   OnReduce  := @MyReduce;
 end;
 
 destructor TPreparser.Destroy;
 begin
   OnReduce := nil;
+  FreeAndNil(FKeywords);
+  FreeAndNil(FInstructions);
   FreeAndNil(FPPList);
   inherited Destroy;
 end;
@@ -218,14 +229,12 @@ end;
 function TPreparser.IsKeyword(_kw: string): boolean;
 var r: TKeywordRec;
 begin
-  { @@@@@@ ADD CODE IN HERE USING KEYWORD LIST AND OPCODE LIST @@@@@
   if not Assigned(FKeywords) then
     raise Exception.Create('Keyword list not assigned in preparser');
   _kw := UpperCase(_kw);
   r.Text := _kw;
   r.Proc := nil;
   Result := (FKeywords.IndexOf(r) >= 0);
-  }
 end;
 
 function  TPreparser.MyReduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
@@ -374,7 +383,7 @@ begin
       else if r.RecType in [ppoSomething,ppoString] then
         begin
           if not haskeyword then
-            raise Exception.Create(Format('Attempt to define operand (%s) before keyword',[FPPList[i].Payload]));
+            raise Exception.Create(Format('Attempt to define operand (%s) before directive/opcode',[FPPList[i].Payload]));
           r.RecType := ppoOperand;
         end;
       FPPList[i] := r;
@@ -444,6 +453,47 @@ begin
   r.Payload  := _s;
   r.RecType  := ppoString;
   FPPList.Add(r);
+end;
+
+procedure TPreparser.Split(var _label: string; var _keyword: string; _operands: TStringList);
+var r: TPreparserRec;
+begin
+  // Initialise
+  _label := '';
+  _keyword := '';
+  _operands.Clear;
+  _operands.Sorted := False;
+  // Now loop through and fill out
+  for r in FPPLIst do
+    begin
+      case r.RecType of
+        ppoLabel:
+          if _label <> '' then
+            Monitor(ltInternal,'Attempt to define label more than once on line')
+          else if (_keyword <> '') or (_operands.Count > 0) then
+            Monitor(ltError,'Attempt to define label %s after keyword or operands defined',[r.Payload])
+          else
+            _label := r.Payload;
+        ppoKeyword:
+          if _keyword <> '' then
+            Monitor(ltError,'Attempt to define a keyword %s when keyword %s already defined',[r.Payload,_keyword])
+          else
+            _keyword := r.Payload;
+        ppoOperand:
+          if _keyword = '' then
+            Monitor(ltError,'Attempt to define operand with no preceding keyword')
+          else
+            _operands.Add(r.Payload);
+        ppoComment:
+          ;  // Ignore
+        ppoComma,
+        ppoSomething,
+        ppoString:
+          Monitor(ltInternal,'Attempt to process Comma/Something/String which has not already been resolved');
+        otherwise
+          Monitor(ltInternal,'Record type not catered for in TPreparser.Split');
+      end; // Case
+    end;
 end;
 
 end.

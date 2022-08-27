@@ -1,7 +1,7 @@
 ;
 ; Opcode map for Duncan's Cross Assembler xa80
 ;
-; 8080 opcode file - 30/06/2022
+; 8085 opcode file - 15/08/2022
 ;
 ; Each line consists of 2 fields seperated by the vertical brace "|"
 ;
@@ -47,7 +47,7 @@
 ;
 
 ;
-; 8080 - Move Load and Store
+; 8085 - Move Load and Store
 ;
 
 MOV B B				| %01000000
@@ -145,7 +145,7 @@ LHLD U16			| %00101010 [1:U16]
 XCHG				| %11101011
 
 ;
-; 8080 - Stack operations
+; 8085 - Stack operations
 ;
 
 PUSH B				| %11000101
@@ -163,7 +163,7 @@ INX SP				| %00110011
 DCX SP				| %00111011
 
 ;
-; 8080 - Jump
+; 8085 - Jump
 ;
 
 JMP U16				| %11000011 [1:U16]
@@ -178,7 +178,7 @@ JPO U16				| %11100010 [1:U16]
 PCHL				| %11101001
 
 ;
-; 8080 - Call
+; 8085 - Call
 ;
 
 CALL U16			| %11001101 [1:U16]
@@ -192,7 +192,7 @@ CPE U16				| %11101100 [1:U16]
 CPO U16				| %11100100 [1:U16]
 
 ;
-; 8080 - Return
+; 8085 - Return
 ;
 
 RET					| %11001001
@@ -206,13 +206,13 @@ RPE					| %11101000  ; Incorrectly shows %11100000 in Intel manual
 RPO					| %11100000
 
 ;
-; 8080 - Restart
+; 8085 - Restart
 ;
 
 RST U8				| %11[1:RST]111
 
 ;
-; 8080 - Increment and Decrement
+; 8085 - Increment and Decrement
 ;
 
 INR B				| %00000100
@@ -242,7 +242,7 @@ DCX D				| %00011011
 DCX H				| %00101011
 
 ;
-; 8080 - Add
+; 8085 - Add
 ;
 
 ADD B				| %10000000
@@ -272,7 +272,7 @@ DAD H				| %00101001
 DAD SP				| %00111001
 
 ;
-; 8080 - Subtract
+; 8085 - Subtract
 ;
 
 SUB B				| %10010000
@@ -297,7 +297,7 @@ SUI U8				| %11010110 [1:U8]
 SBI U8				| %11011110 [1:U8]
 
 ;
-; 8080 - Logical
+; 8085 - Logical
 ;
 
 ANA B				| %10100000
@@ -342,7 +342,7 @@ ORI U8				| %11110110 [1:U8]
 CPI U8				| %11111110 [1:U8]
 
 ;
-; 8080 - Rotate
+; 8085 - Rotate
 ;
 
 RLC					| %00000111
@@ -351,7 +351,7 @@ RAL					| %00010111
 RAR					| %00011111
 
 ;
-; 8080 - Specials
+; 8085 - Specials
 ;
 
 CMA					| %00101111
@@ -360,14 +360,14 @@ CMC					| %00111111
 DAA					| %00100111
 
 ;
-; 8080 - Input / Output
+; 8085 - Input / Output
 ;
 
 IN U8				| %11011011 [1:U8]
 OUT U8				| %11010011 [1:U8]
 
 ;
-; 8080 - Control
+; 8085 - Control
 ;
 
 EI					| %11111011
@@ -375,3 +375,9 @@ DI					| %11110011
 NOP					| %00000000
 HLT					| %01110110
 
+;
+; 
+; 8085 - Additional instructions over 8080
+
+RIM                 | %00100000
+SIM                 | %00110000

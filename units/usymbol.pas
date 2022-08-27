@@ -1,5 +1,3 @@
-unit usymbol;
-
 {
     XA80 - Cross Assembler for x80 processors
     Copyright (C)2020-2022 Duncan Munro
@@ -20,6 +18,7 @@ unit usymbol;
     Contact: Duncan Munro  duncan@duncanamps.com
 }
 
+unit usymbol;
 
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}

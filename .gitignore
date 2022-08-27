@@ -26,3 +26,7 @@ mtouch.bat
 touch.exe
 lac/xa80pre.txt
 lac/xa80oper.txt
+lac/test_hex_entries.*
+lac/lact.bat
+lac/temp.lac
+lac/temp.lacobj
