@@ -1,0 +1,99 @@
+object frmGrammar: TfrmGrammar
+  Left = 387
+  Height = 635
+  Top = 182
+  Width = 992
+  Caption = 'XA80 Grammar Editor'
+  ClientHeight = 610
+  ClientWidth = 992
+  DesignTimePPI = 120
+  Menu = MainMenu1
+  OnActivate = FormActivate
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  LCLVersion = '2.2.2.0'
+  object StringGrid1: TStringGrid
+    Left = 0
+    Height = 581
+    Top = 0
+    Width = 992
+    Align = alClient
+    ColCount = 1
+    TabOrder = 0
+    OnDblClick = StringGrid1DblClick
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 29
+    Top = 581
+    Width = 992
+    Panels = <>
+  end
+  object ActionList1: TActionList
+    Left = 534
+    Top = 111
+    object actFileOpen: TAction
+      Category = 'File'
+      Caption = '&Open...'
+      Hint = 'Open a new grammar file'
+      OnExecute = actFileOpenExecute
+      ShortCut = 16463
+    end
+    object actFileNew: TAction
+      Category = 'File'
+      Caption = '&New'
+      Hint = 'Create a new grammar file'
+      OnExecute = actFileNewExecute
+      ShortCut = 16462
+    end
+    object actFileSave: TAction
+      Category = 'File'
+      Caption = '&Save'
+      Hint = 'Save the current file'
+      OnExecute = actFileSaveExecute
+      ShortCut = 16467
+    end
+    object actFileSaveAs: TAction
+      Category = 'File'
+      Caption = 'Save &As...'
+      Hint = 'Save file under a new name'
+      OnExecute = actFileSaveAsExecute
+    end
+    object actFileExit: TAction
+      Category = 'File'
+      Caption = 'E&xit'
+      Hint = 'Exit the grammar editor'
+      OnExecute = actFileExitExecute
+      ShortCut = 32883
+    end
+  end
+  object MainMenu1: TMainMenu
+    Left = 449
+    Top = 108
+    object miFile: TMenuItem
+      Caption = '&File'
+      OnClick = miFileClick
+      object miFileNew: TMenuItem
+        Action = actFileNew
+      end
+      object miFileOpen: TMenuItem
+        Action = actFileOpen
+      end
+      object miFileSep1: TMenuItem
+        Caption = '-'
+      end
+      object miFileSave: TMenuItem
+        Action = actFileSave
+      end
+      object miFileSaveAs: TMenuItem
+        Action = actFileSaveAs
+      end
+      object miFileSep2: TMenuItem
+        Caption = '-'
+      end
+      object miFileExit: TMenuItem
+        Action = actFileExit
+      end
+    end
+  end
+end

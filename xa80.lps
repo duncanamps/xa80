@@ -8,9 +8,10 @@
       <Unit0>
         <Filename Value="xa80.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="2"/>
-        <TopLine Value="98"/>
-        <CursorPos X="32" Y="105"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="309"/>
+        <CursorPos X="3" Y="311"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -40,6 +41,8 @@
       <Unit4>
         <Filename Value="units\uassembler80.pas"/>
         <IsPartOfProject Value="True"/>
+        <TopLine Value="1362"/>
+        <CursorPos X="31" Y="1366"/>
         <UsageCount Value="165"/>
         <Bookmarks Count="1">
           <Item0 Y="1353" ID="1"/>
@@ -49,7 +52,7 @@
       <Unit5>
         <Filename Value="units\ufilestack.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="2"/>
         <TopLine Value="29"/>
         <CursorPos X="10" Y="29"/>
         <UsageCount Value="158"/>
@@ -90,9 +93,11 @@
       <Unit10>
         <Filename Value="..\..\..\lacogen1\lac\core\deployment_parser_module_12.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos Y="21"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="809"/>
+        <CursorPos X="3" Y="812"/>
         <UsageCount Value="97"/>
+        <Loaded Value="True"/>
       </Unit10>
       <Unit11>
         <Filename Value="..\..\..\lacogen1\lac\core\deployment_parser_types_12.pas"/>
@@ -112,8 +117,7 @@
       <Unit13>
         <Filename Value="units\uinstruction.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="4"/>
         <TopLine Value="189"/>
         <CursorPos X="28" Y="205"/>
         <UsageCount Value="73"/>
@@ -129,10 +133,11 @@
       <Unit15>
         <Filename Value="units\uenvironment.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="106"/>
-        <CursorPos X="18" Y="121"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="65"/>
+        <CursorPos X="23" Y="80"/>
         <UsageCount Value="25"/>
+        <Loaded Value="True"/>
       </Unit15>
       <Unit16>
         <Filename Value="..\..\..\lacogen1\lac\core\deployment_parser_module.pas"/>
@@ -762,113 +767,126 @@
       <Define1 Value="LCG8"/>
       <Define2 Value="DEBUG_PARSER"/>
     </OtherDefines>
-    <JumpHistory Count="27" HistoryIndex="26">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1251" Column="25" TopLine="1215"/>
+        <Caret Line="557" Column="14" TopLine="532"/>
       </Position1>
       <Position2>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="224" Column="15" TopLine="216"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="562" Column="14" TopLine="537"/>
       </Position2>
       <Position3>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="490" Column="26" TopLine="465"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="586" Column="16" TopLine="561"/>
       </Position3>
       <Position4>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="543" Column="18" TopLine="522"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="595" Column="16" TopLine="570"/>
       </Position4>
       <Position5>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="584" Column="26" TopLine="560"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="615" Column="12" TopLine="590"/>
       </Position5>
       <Position6>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="578" Column="48" TopLine="561"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="617" Column="12" TopLine="592"/>
       </Position6>
       <Position7>
-        <Filename Value="units\uinstruction.pas"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="640" Column="10" TopLine="615"/>
       </Position7>
       <Position8>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="389" Column="18" TopLine="375"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="649" Column="10" TopLine="624"/>
       </Position8>
       <Position9>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="201" Column="33" TopLine="171"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="696" Column="12" TopLine="671"/>
       </Position9>
       <Position10>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="379" Column="53" TopLine="354"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="699" Column="16" TopLine="674"/>
       </Position10>
       <Position11>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="277" Column="39" TopLine="250"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="727" Column="10" TopLine="703"/>
       </Position11>
       <Position12>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="216" Column="17" TopLine="202"/>
+        <Caret Line="772" Column="10" TopLine="747"/>
       </Position12>
       <Position13>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1251" Column="30" TopLine="1248"/>
+        <Caret Line="806" Column="12" TopLine="781"/>
       </Position13>
       <Position14>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1914" Column="18" TopLine="1889"/>
+        <Caret Line="813" Column="12" TopLine="788"/>
       </Position14>
       <Position15>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1922" Column="18" TopLine="1898"/>
+        <Caret Line="828" Column="12" TopLine="803"/>
       </Position15>
       <Position16>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1249" Column="28" TopLine="1234"/>
+        <Caret Line="837" Column="10" TopLine="812"/>
       </Position16>
       <Position17>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1251" Column="24" TopLine="1234"/>
+        <Caret Line="884" Column="14" TopLine="859"/>
       </Position17>
       <Position18>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1914" Column="18" TopLine="1889"/>
+        <Caret Line="1041" Column="14" TopLine="1016"/>
       </Position18>
       <Position19>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="235" Column="50" TopLine="235"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1062" Column="14" TopLine="1037"/>
       </Position19>
       <Position20>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="405" Column="32" TopLine="390"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1078" Column="12" TopLine="1053"/>
       </Position20>
       <Position21>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="429" Column="39" TopLine="402"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1094" Column="12" TopLine="1069"/>
       </Position21>
       <Position22>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="394" Column="40" TopLine="375"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1145" Column="12" TopLine="1120"/>
       </Position22>
       <Position23>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="410" Column="20" TopLine="395"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1164" Column="10" TopLine="1139"/>
       </Position23>
       <Position24>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1922" Column="18" TopLine="1898"/>
+        <Caret Line="1186" Column="12" TopLine="1162"/>
       </Position24>
       <Position25>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="277" Column="39" TopLine="250"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1188" Column="12" TopLine="1164"/>
       </Position25>
       <Position26>
-        <Filename Value="xa80.lpr"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1189" Column="12" TopLine="1165"/>
       </Position26>
       <Position27>
-        <Filename Value="units\uinstruction.pas"/>
-        <Caret Line="448" Column="21" TopLine="419"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1197" Column="10" TopLine="1172"/>
       </Position27>
+      <Position28>
+        <Filename Value="units\uassembler80.pas"/>
+      </Position28>
+      <Position29>
+        <Filename Value="xa80.lpr"/>
+        <Caret Line="311" Column="3" TopLine="249"/>
+      </Position29>
+      <Position30>
+        <Filename Value="xa80.lpr"/>
+        <Caret Line="71" Column="15" TopLine="56"/>
+      </Position30>
     </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>
