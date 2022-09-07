@@ -17,6 +17,7 @@ type
       btnHelp: TButton;
       edtString: TEdit;
       Label1: TLabel;
+      procedure btnOKClick(Sender: TObject);
       procedure FormCreate(Sender: TObject);
     private
     public
@@ -35,6 +36,11 @@ implementation
 procedure TfrmGrammarEditString.FormCreate(Sender: TObject);
 begin
   edtString.Text := FObj.strVar;
+end;
+
+procedure TfrmGrammarEditString.btnOKClick(Sender: TObject);
+begin
+  FObj.strVar := edtString.Text;
 end;
 
 end.

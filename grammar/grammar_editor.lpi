@@ -18,6 +18,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="2"/>
+      <StringTable CompanyName="xa80"/>
     </VersionInfo>
     <BuildModes>
       <Item Name="Debug" Default="True"/>
@@ -26,7 +27,7 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="binaries\$(TargetOS)-$(TargetCPU)\grammar_editor"/>
+            <Filename Value="..\binaries\release\$(TargetOS)-$(TargetCPU)\grammar_editor"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
@@ -94,13 +95,61 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
+      <Unit>
+        <Filename Value="forms\fgrammaredittext.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmGrammarEditText"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\units\uutility.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="forms\fgrammareditstringlist.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmGrammarEditStringList"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="forms\fgrammareditnom.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmGrammarEditNOM"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="forms\fgrammareditu16.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmGrammarEditU16"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="forms\fgrammareditboolean.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmGrammarEditBoolean"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="forms\fgrammareditmlr.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmGrammarEditMLR"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="forms\fgrammareditcharset.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmGrammarEditCharSet"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="binaries\$(TargetOS)-$(TargetCPU)\grammar_editor"/>
+      <Filename Value="..\binaries\debug\$(TargetOS)-$(TargetCPU)\grammar_editor"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

@@ -29,20 +29,84 @@ uses
   Classes, SysUtils, CustApp;
 
 procedure AugmentIncludes(s: string; list: TStringList);
+function  BinaryStrToInt(_str: string): integer;
+function  CharAsReadable(_c: char): string;
 procedure CmdOptionToList(app: TCustomApplication; shortopt: char; longopt: string; list: TStringList; delim: boolean = False);
-function ExpandTabs(const _s: string; tabsize: integer): string;
-function InQuotes(const _s: string): boolean;
-function IsPrime(_value: integer): boolean;
-function NextPrime(_value: integer): integer;
-function UnEscape(_s: string): string;
+function  ExpandTabs(const _s: string; tabsize: integer): string;
+function  InQuotes(const _s: string): boolean;
+function  IntToBinaryStr(_v: integer; _digits: integer): string;
+function  IntToOctalStr(_v: integer; _digits: integer): string;
+function  IsPrime(_value: integer): boolean;
+function  LineTerminator: string;
+function  NextPrime(_value: integer): integer;
+function  OctalStrToInt(_str: string): integer;
+function  ProgramData: string;
+function  UnEscape(_s: string): string;
 
 implementation
+
+uses
+  WinDirs;
 
 procedure AugmentIncludes(s: string; list: TStringList);
 begin
   {%H-}s := IncludeTrailingPathDelimiter(s);
   if list.IndexOf(s) < 0 then
     list.Insert(0,s);
+end;
+
+function BinaryStrToInt(_str: string): integer;
+begin
+  Result := 0;
+  while _str <> '' do
+    begin
+      Result := Result shl 1;
+      Result := Result + StrToInt(_str[1]);
+      Delete(_str,1,1);
+    end;
+end;
+
+function CharAsReadable(_c: char): string;
+begin
+  case _c of
+    #0:  Result := 'NUL';
+    #1:  Result := 'SOH';
+    #2:  Result := 'STX';
+    #3:  Result := 'ETX';
+    #4:  Result := 'EOT';
+    #5:  Result := 'ENQ';
+    #6:  Result := 'ACK';
+    #7:  Result := 'BEL';
+    #8:  Result := 'BS';
+    #9:  Result := 'HT';
+    #10: Result := 'LF';
+    #11: Result := 'VT';
+    #12: Result := 'FF';
+    #13: Result := 'CR';
+    #14: Result := 'SO';
+    #15: Result := 'SI';
+    #16: Result := 'DLE';
+    #17: Result := 'DC1';
+    #18: Result := 'DC2';
+    #19: Result := 'DC3';
+    #20: Result := 'DC4';
+    #21: Result := 'NAK';
+    #22: Result := 'SYN';
+    #23: Result := 'ETB';
+    #24: Result := 'CAN';
+    #25: Result := 'EM';
+    #26: Result := 'SUB';
+    #27: Result := 'ESC';
+    #28: Result := 'FS';
+    #29: Result := 'GS';
+    #30: Result := 'RS';
+    #31: Result := 'US';
+    #32: Result := 'SPC';
+    '!'..'~': Result := _c;
+    #127:     Result := 'DEL';
+    otherwise
+      Result := IntToStr(Ord(_c));
+  end;
 end;
 
 procedure CmdOptionToList(app: TCustomApplication; shortopt: char; longopt: string; list: TStringList; delim: boolean = False);
@@ -80,6 +144,30 @@ begin
   Result := (Length(_s) >= 2) and ((_s[1] = '''') or (_s[1] = '"'));
 end;
 
+function IntToBinaryStr(_v: integer; _digits: integer): string;
+begin
+  Result := '';
+  while _v > 0 do
+    begin
+      Result := IntToStr(_v and $01) + Result;
+      _v := _v shr 1;
+    end;
+  while Length(Result) < _digits do
+    Result := '0' + Result;
+end;
+
+function IntToOctalStr(_v: integer; _digits: integer): string;
+begin
+  Result := '';
+  while _v > 0 do
+    begin
+      Result := IntToStr(_v and $07) + Result;
+      _v := _v shr 3;
+    end;
+  while Length(Result) < _digits do
+    Result := '0' + Result;
+end;
+
 function IsPrime(_value: integer): boolean;
 var divisor: integer;
 begin
@@ -94,6 +182,15 @@ begin
       divisor := divisor + 2;
 end;
 
+function LineTerminator: string;
+begin
+{$IFDEF WINDOWS}
+  Result := #13 + #10;
+{$ELSE}
+  Result := #10;
+{$ENDIF}
+end;
+
 function NextPrime(_value: integer): integer;
 begin
   if (_value mod 2) = 0 then
@@ -101,6 +198,30 @@ begin
   while not IsPrime(_value) do
     _value := _value + 2;
   Result := _value;
+end;
+
+function OctalStrToInt(_str: string): integer;
+begin
+  Result := 0;
+  while _str <> '' do
+    begin
+      Result := Result shl 3;
+      Result := Result + StrToInt(_str[1]);
+      Delete(_str,1,1);
+    end;
+end;
+
+function ProgramData: string;
+var folder: string;
+begin
+{$IFDEF WINDOWS}
+  folder := IncludeTrailingPathDelimiter(GetWindowsSpecialDir(CSIDL_LOCAL_APPDATA));
+{$ELSE}
+  ERROR OPERATING SYSTEM NOT CATERED FOR
+{$ENDIF}
+  folder := IncludeTrailingPathDelimiter(folder + 'XA80');
+  ForceDirectories(folder); // Ensure directory exists!
+  Result := folder;
 end;
 
 { Remove enclosing ' or " if present. Turn escape characters into real ones }

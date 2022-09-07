@@ -1,9 +1,9 @@
-object frmGrammarEditString: TfrmGrammarEditString
-  Left = 1176
+object frmGrammarEditText: TfrmGrammarEditText
+  Left = 349
   Height = 120
-  Top = 208
+  Top = 335
   Width = 593
-  Caption = 'Edit String'
+  Caption = 'Edit Text'
   ClientHeight = 120
   ClientWidth = 593
   DesignTimePPI = 120
@@ -14,8 +14,8 @@ object frmGrammarEditString: TfrmGrammarEditString
     Left = 14
     Height = 20
     Top = 21
-    Width = 39
-    Caption = 'String'
+    Width = 27
+    Caption = 'Text'
     ParentColor = False
   end
   object edtString: TEdit

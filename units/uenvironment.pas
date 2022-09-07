@@ -1,7 +1,5 @@
 unit uenvironment;
 
-{$mode ObjFPC}{$H+}
-
 {
     XA80 - Cross Assembler for x80 processors
     Copyright (C)2020-2022 Duncan Munro
@@ -22,38 +20,89 @@ unit uenvironment;
     Contact: Duncan Munro  duncan@duncanamps.com
 }
 
+//
+// Sets up the environment in the following order:
+//   Default values
+//   Values from the grammar file
+//   Values from the environment variable XA80
+//   Values from the command line
+//
+// Note that the grammar entry in the environment variable and command line
+// are processed before anything else as the grammar file has to be selected
+// before the remainder of the environment variable and command line are dealt
+// with.
+//
+// The items dealt with here are:
+//
+//   High level control:
+//     Grammar type
+//     Processor type (overrides the default processor in the grammar)
+//
+//   Folders:
+//     Debug file folder
+//     Hex file folder
+//     Listing file folder
+//     Map file folder
+//     Object file folder
+//
+//   Folder lists:
+//     Include file folder list
+//
+//   Misc parameters:
+//     Defines
+//     Tab size
+//     Verbosity
+//
+//
+
+{$mode ObjFPC}{$H+}
+
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, Generics.Collections, Generics.Defaults, ucommandline;
 
 type
-  TGrammarType = (gtError,gtXA80);
 
-  TGrammarSet = set of TGrammarType;
+  TEnvironmentSource = (esDefault,esGrammar,esEnvironment,esCommandline);
 
-  TProcessorType = (ptError,pt8080,pt8085,ptZ80,ptZ180);
-
-  TProcessorSet = set of TProcessorType;
-
-  TEnvironment = class(TObject)
-    private
-      FGrammarType: TGrammarType;
-      FProcessorType: TProcessorType;
-      function GetGrammarList: string;
-      function GetProcessorList: string;
-      procedure SetGrammarType(_gt: TGrammarType);
-      procedure SetProcessorType(_pt: TProcessorType);
+  TEnvironmentElement = class(TObject)
     public
-      function  GrammarTypeToString(_gt: TGrammarType): string;
-      function  ProcessorTypeToString(_pt: TProcessorType): string;
-      function  StringToGrammarType(const _s: string): TGrammarType;
-      function  StringToProcessorType(const _s: string): TProcessorType;
-      function  ValidProcessor(const _p: string): boolean;
-      property GrammarList: string           read GetGrammarList;
-      property GrammarType: TGrammarType     read FGrammarType write SetGrammarType;
-      property ProcessorList: string         read GetProcessorList;
-      property ProcessorType: TProcessorType read FProcessorType write SetProcessorType;
+      Key:    string;
+      Data:   string;
+      Source: TEnvironmentSource;
+//      function Compare(constref left, right: TEnvironmentElement): integer;
+      {
+      property AsString:  string;
+      property AsInteger: integer;
+      property AsList:    TStringList;
+      }
+  end;
+
+  TEnvComparer = specialize IComparer<TEnvironmentElement>;
+
+  TShowAndQuit = (saqNone,saqHelp,saqDFAE,saqDFAP,saqDistribution,saqEnvironment,
+                  saqGrammar,saqInstructions,saqNFAE,saqNFAP,saqOperators,
+                  saqReserved,saqVersion,saqWarranty);
+
+  TEnvironment = class(specialize TSortedList<TEnvironmentElement>)
+    private
+      EnvComparer: specialize IComparer<TEnvironmentElement>;
+    public
+      ShowAndQuit: TShowAndQuit;
+      constructor Create(_setdefaults: boolean = true);
+      destructor Destroy; override;
+      procedure AddSourceName(const _filename: string);
+      procedure ApplyDefaults;
+      procedure Dump;
+      procedure ExpandIncludes(_src: TEnvironmentSource);
+      function  GetValue(_key: string): string;
+      procedure ProcessCommandLine;
+      procedure ProcessCommandList(_elements: TCommandElementList; _src: TEnvironmentSource);
+      procedure ProcessEnvironmentVariable;
+      procedure SetValue(_key: string; _data: boolean; _source: TEnvironmentSource);
+      procedure SetValue(_key: string; _data: integer; _source: TEnvironmentSource);
+      procedure SetValue(_key: string; _data: string;  _source: TEnvironmentSource);
   end;
 
 var
@@ -63,96 +112,334 @@ var
 implementation
 
 uses
-  typinfo, uasmglobals;
+  typinfo, umonitor;
 
-function TEnvironment.GetGrammarList: string;
-var g: TGrammarType;
-    s: string;
+
+function EnvironmentSourceAsString(_es: TEnvironmentSource): string;
 begin
-  s := '';
-  for g in TGrammarType do
-    if g <> gtError then
+  case _es of
+    esDefault:     Result := 'Default';
+    esGrammar:     Result := 'Grammar';
+    esEnvironment: Result := 'EnvironmentVar';
+    esCommandline: Result := 'CommandLine';
+    otherwise
+      Monitor(mtInternal,'Internal error - Environment source %s not catered for',[GetEnumName(TypeInfo(TEnvironmentSource),Ord(_es))]);
+  end;
+end;
+
+
+function Compare(constref left, right: TEnvironmentElement): integer;
+begin
+  if left.Key = right.Key then
+    Result := 0
+  else if left.Key > right.Key then
+    Result := 1
+  else
+    Result := -1;
+end;
+
+
+//------------------------------------------------------------------------------
+//
+//  TEnvironment code
+//
+//------------------------------------------------------------------------------
+
+constructor TEnvironment.Create(_setdefaults: boolean);
+begin
+  EnvComparer := specialize TComparer<TEnvironmentElement>.Construct(@Compare);
+  inherited Create(EnvComparer);
+  Duplicates := dupError;
+  Sorted := True;
+  ShowAndQuit := saqNone;
+  if _setdefaults then
+    ApplyDefaults;
+  // @@@@@ Delete the following
+//  Dump;
+end;
+
+destructor TEnvironment.Destroy;
+begin
+  while Count > 0 do
+    begin
+      Items[Count-1].Free;
+      Delete(Count-1);
+    end;
+  inherited Destroy;
+end;
+
+procedure TEnvironment.AddSourceName(const _filename: string);
+var s: string;
+    folder: string;
+    Info: TSearchRec;
+  procedure PushFile(const _fn: string);
+  var ss: string;
+  begin
+    ss := GetValue('SourceFiles');
+    if ss <> '' then
+      ss := ss + ';';
+    ss := ss + ExpandFilename(_fn);
+    SetValue('SourceFiles',ss,esCommandline);
+  end;
+begin
+  // Expand wildcards if required
+  if (Pos('?',_filename) > 0) or (Pos('*',_filename) > 0) then
+    begin
+      s := ExpandFilename(_filename);
+      folder := ExtractFilePath(s);
+      if SysUtils.FindFirst(s,faAnyFile,Info) = 0 then
+        repeat
+          PushFile(folder+Info.Name);
+        until SysUtils.FindNext(Info) <> 0;
+    end
+  else
+    PushFile(_filename);
+end;
+
+procedure TEnvironment.ApplyDefaults;
+begin
+  // The default items which will be optionally overridden by the grammar,
+  // environment variable, and command line
+  // Key items
+  SetValue('Defines',    '',         esDefault);
+  SetValue('Grammar',    'XA80',     esDefault);
+  SetValue('Includes',   '',         esDefault);
+  SetValue('Processor',  'Z80',      esDefault);
+  SetValue('Tab',        4,          esDefault);
+  SetValue('Verbose',    1,          esDefault);
+  SetValue('SourceFiles','',         esDefault);
+  // File specific
+  SetValue('FilenameCom',       '',  esDefault);
+  SetValue('FilenameDebug',     '',  esDefault);
+  SetValue('FilenameError',     '',  esDefault);
+  SetValue('FilenameHex',       '',  esDefault);
+  SetValue('FilenameListing',   '',  esDefault);
+  SetValue('FilenameMap',       '',  esDefault);
+  SetValue('FilenameObj',       '',  esDefault);
+  {
+  // @@@@@ Testing only - remove
+  AddSourceName('duncan.z80');
+  AddSourceName('monitor.asm');
+  AddSourceName('..\..\..\test_files\z80\*.z80');
+  }
+end;
+
+procedure TEnvironment.Dump;
+var i,j: integer;
+    sl: TStringList;
+begin
+  WriteLn('ENVIRONMENT');
+  WriteLn('-----------');
+  for i := 0 to Count-1 do
+    if  ((Items[i].Key = 'Defines') or
+         (Items[i].Key = 'Includes') or
+         (Items[i].Key = 'SourceFiles')) and
+        (Items[i].Data <> '') then
+      begin // Output as a list
+        sl := TStringList.Create;
+        try
+          sl.Delimiter := ';';
+          sl.StrictDelimiter := True;
+          sl.QuoteChar := #0;
+          sl.DelimitedText := Items[i].Data;
+          for j := 0 to sl.Count-1 do
+            if j = 0 then
+              WriteLn(Format('%3d: %-14s %-20s %s',[i,EnvironmentSourceAsString(Items[i].Source),Items[i].Key,sl[j]]))
+            else
+              WriteLn(Space(41)+sl[j]);
+        finally
+          FreeAndNil(sl);
+        end;
+      end
+    else
+      WriteLn(Format('%3d: %-14s %-20s %s',[i,EnvironmentSourceAsString(Items[i].Source),Items[i].Key,Items[i].Data]));
+  WriteLn;
+end;
+
+procedure TEnvironment.ExpandIncludes(_src: TEnvironmentSource);
+var sl: TStringList;
+    i:  integer;
+begin
+  sl := TStringList.Create;
+  try
+    sl.Delimiter := ';';
+    sl.StrictDelimiter := True;
+    sl.DelimitedText := GetValue('Includes');
+    for i := 0 to sl.Count-1 do
+      sl[i] := IncludeTrailingPathDelimiter(ExpandFilename(sl[i]));
+    SetValue('Includes',sl.DelimitedText,_src);
+  finally
+    FreeAndNil(sl);
+  end;
+end;
+
+function TEnvironment.GetValue(_key: string): string;
+var _rec: TEnvironmentElement;
+    _index: SizeInt;
+begin
+  Result := '';
+  // Check if key exists, if not flag as an error
+  _rec := TEnvironmentElement.Create;
+  try
+    _rec.Key  := _key;
+    _rec.Data := '';
+    if (Count = 0) or (not BinarySearch(_rec,_index,EnvComparer)) then
+      Monitor(mtError,'Environment value %s not found',[_key])
+    else
+      Result := Items[_index].Data;
+  finally
+    FreeAndNil(_rec);
+  end;
+end;
+
+procedure TEnvironment.ProcessCommandLine;
+var cmd_element_list: TCommandElementList;
+begin
+  cmd_element_list := TCommandElementList.create;
+  try
+    cmd_element_list.ProcessCommandLine;
+    ProcessCommandList(cmd_element_list,esCommandline);
+  finally
+    FreeAndNil(cmd_element_list);
+  end;
+end;
+
+procedure TEnvironment.ProcessCommandList(_elements: TCommandElementList; _src: TEnvironmentSource);
+var cmd_list: TCommandList;
+    option:   TCommandRec;
+    hasdata:  boolean;
+  procedure MyMonitor(_mt: TMonitorType; const _msg: string);
+  var suffix: string;
+  begin
+    case _src of
+      esDefault:     suffix := 'default';
+      esGrammar:     suffix := 'grammar';
+      esEnvironment: suffix := 'environment variable';
+      esCommandline: suffix := 'command line';
+    end;
+    Monitor(_mt,_msg + ' in ' + suffix);
+  end;
+  procedure MyMonitor(_mt: TMonitorType; const _fmt: string; const _args: array of const);
+  begin
+    MyMonitor(_mt,Format(_fmt,_args));
+  end;
+  procedure ProcessOption(const _name: string; const _data: string; _src: TEnvironmentSource);
+  begin
+    if option.Terminal then
       begin
-        if (g = High(TGrammarType)) and (s <> '') then
-          s := s + ' or '
-        else if Ord(g) > 1 then
-          s := s + ', ';
-        s := s + Copy(GetEnumName(TypeInfo(TGrammarType),Ord(g)),3,999);
-        if g = StringToGrammarType(DEFAULT_GRAMMAR_VALUE) then
-          s := s + ' (default)';
-      end;
-  Result := s;
-end;
-
-function TEnvironment.GetProcessorList: string;
-var p: TProcessorType;
-    s: string;
+        case UpperCase(_data) of
+          '':             ShowAndQuit := saqHelp;
+          'DFAE':         ShowAndQuit := saqDFAE;
+          'DFAP':         ShowAndQuit := saqDFAP;
+          'DISTRIBUTION': ShowAndQuit := saqDistribution;
+          'ENVIRONMENT':  ShowAndQuit := saqEnvironment;
+          'GRAMMAR':      ShowAndQuit := saqGrammar;
+          'INSTRUCTIONS': ShowAndQuit := saqInstructions;
+          'NFAE':         ShowAndQuit := saqNFAE;
+          'NFAP':         ShowAndQuit := saqNFAP;
+          'OPERATORS':    ShowAndQuit := saqOperators;
+          'RESERVED':     ShowAndQuit := saqReserved;
+          'VERSION':      ShowAndQuit := saqVersion;
+          'WARRANTY':     ShowAndQuit := saqWarranty;
+          otherwise
+            MyMonitor(mtError,'Invalid option for -s/--show switch %s',[_data]);
+        end;
+      end
+    else
+      SetValue(_name,_data,_src);
+  end;
 begin
-  s := '';
-  for p in TProcessorType do
-    if p <> ptError then
+  cmd_list := TCommandList.Create;
+  try
+    while _elements.Count > 0 do
       begin
-        if (p = High(TProcessorType)) and (s <> '') then
-          s := s + ' or '
-        else if Ord(p) > 1 then
-          s := s + ', ';
-        s := s + Copy(GetEnumName(TypeInfo(TProcessorType),Ord(p)),3,999);
-        if p = StringToProcessorType(DEFAULT_PROCESSOR_VALUE) then
-          s := s + ' (default)';
+        if _elements[0].ElementType = cetData then
+          begin
+            AddSourceName(_elements[0].ElementData);
+            _elements.Delete(0);
+          end
+        else if _elements[0].ElementType = cetShortswitch then
+          begin
+            option := cmd_list.CommandRecFromSwitch(_elements[0].ElementData);
+            hasdata := (_elements.Count > 1) and (_elements[1].ElementType = cetData);
+            if (option.Parameter = paMandatory) and (not hasdata) then
+              MyMonitor(mtError,'Mandatory value missing after switch %s',[_elements[0].ElementData]);
+            if (option.Parameter in [paOptional,paMandatory]) and hasdata then
+              begin
+                ProcessOption(option.EnvName,_elements[1].ElementData,_src);
+                _elements.Delete(0); // Get rid of data
+              end
+            else
+              ProcessOption(option.EnvName,'',_src);
+            _elements.Delete(0); // Get rid of -switch
+          end
+        else if _elements[0].ElementType = cetLongswitch then
+          begin
+            option := cmd_list.CommandRecFromSwitch(_elements[0].ElementData);
+            hasdata := (_elements.Count > 2) and (_elements[1].ElementType = cetEquals) and (_elements[2].ElementType = cetData);
+            if (option.Parameter = paMandatory) and (not hasdata) then
+              MyMonitor(mtError,'Mandatory value missing after switch %s',[_elements[0].ElementData]);
+            if (option.Parameter in [paOptional,paMandatory]) and hasdata then
+              begin
+                ProcessOption(option.EnvName,_elements[2].ElementData,_src);
+                _elements.Delete(0); // Get rid of data
+                _elements.Delete(0);
+              end
+            else
+              ProcessOption(option.EnvName,'',_src);
+            _elements.Delete(0); // Get rid of -switch
+          end
+        else
+          MyMonitor(mtError,'Unexpected token %s',[_elements[0].ElementData]);
       end;
-  Result := s;
+  finally
+    FreeAndNil(cmd_list);
+  end;
+  // If include folders were set up, expand them
+  ExpandIncludes(_src);
 end;
 
-function TEnvironment.GrammarTypeToString(_gt: TGrammarType): string;
+procedure TEnvironment.ProcessEnvironmentVariable;
+var cmd_list: TCommandElementList;
 begin
-
+  cmd_list := TCommandElementList.create;
+  try
+    cmd_list.ProcessEnvironmentVariable;
+    ProcessCommandList(cmd_list,esEnvironment);
+  finally
+    FreeAndNil(cmd_list);
+  end;
 end;
 
-function TEnvironment.ProcessorTypeToString(_pt: TProcessorType): string;
+procedure TEnvironment.SetValue(_key: string; _data: boolean; _source: TEnvironmentSource);
 begin
-
+  SetValue(_key,BoolToStr(_data),_source);
 end;
 
-procedure TEnvironment.SetGrammarType(_gt: TGrammarType);
+procedure TEnvironment.SetValue(_key: string; _data: integer; _source: TEnvironmentSource);
 begin
-
+  SetValue(_key,IntToStr(_data),_source);
 end;
 
-procedure TEnvironment.SetProcessorType(_pt: TProcessorType);
+procedure TEnvironment.SetValue(_key: string; _data: string; _source: TEnvironmentSource);
+var _rec: TEnvironmentElement;
+    _index: SizeInt;
 begin
-
+  // Check if key exists, if not add it
+  _rec := TEnvironmentElement.Create;
+  _rec.Key    := _key;
+  _rec.Data   := _data;
+  _rec.Source := _source;
+  if (Count = 0) or (not BinarySearch(_rec,_index,EnvComparer)) then
+    _index := Add(_rec)
+  else
+    begin
+      Items[_index].Key    := _key;
+      Items[_index].Data   := _data;
+      Items[_index].Source := _source;
+      FreeAndNil(_rec);
+    end;
 end;
-
-function TEnvironment.StringToGrammarType(const _s: string): TGrammarType;
-var g: TGrammarType;
-begin
-  Result := gtError;
-  for g in TGrammarType do
-    if UpperCase(_s) = Copy(GetEnumName(TypeInfo(TGrammarType),Ord(g)),3,999) then
-      Result := g;
-end;
-
-function TEnvironment.StringToProcessorType(const _s: string): TProcessorType;
-var p: TProcessorType;
-begin
-  Result := ptError;
-  for p in TProcessorType do
-    if UpperCase(_s) = Copy(GetEnumName(TypeInfo(TProcessorType),Ord(p)),3,999) then
-      Result := p;
-end;
-
-function TEnvironment.ValidProcessor(const _p: string): boolean;
-var pt: TProcessorType;
-begin
-  pt := StringToProcessorType(_p);
-  Result := (pt <> ptError);
-end;
-
-initialization
-  EnvObject := TEnvironment.Create;
-
-finalization
-  FreeAndNil(EnvObject);
 
 end.
 

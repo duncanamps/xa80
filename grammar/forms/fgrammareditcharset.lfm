@@ -1,10 +1,10 @@
-object frmGrammarEditString: TfrmGrammarEditString
-  Left = 1176
-  Height = 120
-  Top = 208
+object frmGrammarEditCharSet: TfrmGrammarEditCharSet
+  Left = 387
+  Height = 480
+  Top = 182
   Width = 593
-  Caption = 'Edit String'
-  ClientHeight = 120
+  Caption = 'Edit Character Set'
+  ClientHeight = 480
   ClientWidth = 593
   DesignTimePPI = 120
   OnCreate = FormCreate
@@ -14,8 +14,8 @@ object frmGrammarEditString: TfrmGrammarEditString
     Left = 14
     Height = 20
     Top = 21
-    Width = 39
-    Caption = 'String'
+    Width = 21
+    Caption = 'Set'
     ParentColor = False
   end
   object edtString: TEdit
@@ -23,12 +23,13 @@ object frmGrammarEditString: TfrmGrammarEditString
     Height = 28
     Top = 19
     Width = 508
+    OnChange = edtStringChange
     TabOrder = 0
   end
   object btnOK: TButton
-    Left = 14
+    Left = 16
     Height = 31
-    Top = 70
+    Top = 424
     Width = 94
     Caption = 'OK'
     ModalResult = 1
@@ -36,20 +37,29 @@ object frmGrammarEditString: TfrmGrammarEditString
     TabOrder = 1
   end
   object btnCancel: TButton
-    Left = 120
+    Left = 122
     Height = 31
-    Top = 71
+    Top = 425
     Width = 94
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 2
   end
   object btnHelp: TButton
-    Left = 483
+    Left = 485
     Height = 31
-    Top = 70
+    Top = 424
     Width = 94
     Caption = 'Help'
     TabOrder = 3
+  end
+  object PaintBox1: TPaintBox
+    Left = 16
+    Height = 344
+    Top = 64
+    Width = 552
+    OnClick = PaintBox1Click
+    OnMouseDown = PaintBox1MouseDown
+    OnMouseUp = PaintBox1MouseUp
   end
 end

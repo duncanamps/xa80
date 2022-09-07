@@ -52,6 +52,7 @@ type
     miFileSep2: TMenuItem;
     miFileExit: TMenuItem;
     miFile: TMenuItem;
+    SaveDialog1: TSaveDialog;
     StatusBar1: TStatusBar;
     StringGrid1: TStringGrid;
     procedure actFileExitExecute(Sender: TObject);
@@ -73,6 +74,7 @@ type
     procedure SetDirty(_v: boolean);
     procedure SetFilename(const _fn: string);
     procedure SyncGrammar;
+    procedure WriteToXML;
   public
 
   published
@@ -88,7 +90,9 @@ implementation
 {$R *.lfm}
 
 uses
-  FileCtrl, typinfo, fgrammareditstring;
+  FileCtrl, typinfo, fgrammareditstring, fgrammaredittext, uutility, DOM,
+  XMLWrite, fgrammareditstringlist, fgrammareditnom, fgrammareditu16,
+  fgrammareditboolean, fgrammareditmlr, fgrammareditcharset;
 
 procedure TfrmGrammar.FormActivate(Sender: TObject);
 begin
@@ -99,6 +103,7 @@ end;
 procedure TfrmGrammar.FormCreate(Sender: TObject);
 begin
   FGrammar := TGrammar.Create;
+  SaveDialog1.InitialDir := ProgramData;
 end;
 
 procedure TfrmGrammar.FormDestroy(Sender: TObject);
@@ -125,12 +130,23 @@ end;
 
 procedure TfrmGrammar.actFileSaveAsExecute(Sender: TObject);
 begin
-
+  if SaveDialog1.Execute then
+    begin
+      Filename := SaveDialog1.FileName;
+      WriteToXML;
+      Dirty := False;
+    end;
 end;
 
 procedure TfrmGrammar.actFileSaveExecute(Sender: TObject);
 begin
-
+  if Filename = '' then
+    actFileSaveAsExecute(Self)
+  else
+    begin
+      WriteToXML;
+      Dirty := False;
+    end;
 end;
 
 procedure TfrmGrammar.miFileClick(Sender: TObject);
@@ -148,17 +164,16 @@ begin
   // Construct an editor for the variable
   inputform := nil;
   case obj.DataType of
-    gdtString:       inputform := TfrmGrammarEditString.Create(Self,obj);
-    {
-    gdtStringList:   inputform := frmGrammarEditStringList;
-    gdtU16:          inputform := frmGrammarEditU16;
-    gdtNOM:          inputform := frmGrammarEditNOM;
-    gdtFuncDef:      inputform := frmGrammarEditStringList;
-    gdtOperatorDef:  inputform := frmGrammarEditStringList;
-    gdtCharList:     inputform := frmGrammarEditStringList;
-    gdtCharSet:      inputform := frmGrammarEditCharSet;
-    gdtBoolean:      inputform := frmGrammarEditBoolean;
-    }
+    gdtBoolean:        inputform := TfrmGrammarEditBoolean.Create(Self,obj);
+    gdtCharSet:        inputform := TfrmGrammarEditCharSet.Create(Self,obj);
+    gdtFuncDef:        inputform := TfrmGrammarEditStringList.Create(Self,obj);
+    gdtMacroLabelRule: inputform := TfrmGrammarEditMLR.Create(Self,obj);
+    gdtNOM:            inputform := TfrmGrammarEditNOM.Create(Self,obj);
+    gdtOperatorDef:    inputform := TfrmGrammarEditStringList.Create(Self,obj);
+    gdtString:         inputform := TfrmGrammarEditString.Create(Self,obj);
+    gdtStringList:     inputform := TfrmGrammarEditStringList.Create(Self,obj);
+    gdtText:           inputform := TfrmGrammarEditText.Create(Self,obj);
+    gdtU16:            inputform := TfrmGrammarEditU16.Create(Self,obj);
     otherwise
       raise Exception.Create(Format('Object DataType %s not catered for',[GetEnumName(TypeInfo(TGrammarDataType),Ord(obj.DataType))]));
   ;
@@ -167,7 +182,10 @@ begin
     begin
       try
         if inputform.ShowModal = mrOK then
-          Dirty := True;;
+          begin
+            Dirty := True;
+            SyncGrammar;
+          end;
       finally
         FreeAndNil(inputform);
       end;
@@ -253,6 +271,30 @@ begin
   // Finally set widths
   StringGrid1.ColWidths[0] := w0 + 8;
   StringGrid1.ColWidths[1] := w1 + 8;
+end;
+
+procedure TfrmGrammar.WriteToXML;
+var doc: TXMLDocument;
+    root, section, item: TDOMNode;
+    i:    integer;
+begin
+  doc := TXMLDocument.Create;
+  try
+    // Create the root
+    root := doc.CreateElement('grammar');
+    doc.AppendChild(root);
+    // Write out the sections
+    for i := 0 to FGrammar.GrammarList.Count-1 do
+      begin
+        section := doc.CreateElement(FGrammar.GrammarList[i].Title);
+        root.AppendChild(section);
+        item    := doc.CreateTextNode(FGrammar.GrammarList[i].AsText);
+        section.AppendChild(item);
+      end;
+    WriteXMLFile(doc,Filename);
+  finally
+    FreeAndNil(doc);
+  end;
 end;
 
 end.

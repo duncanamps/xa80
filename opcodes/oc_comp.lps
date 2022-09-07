@@ -3,7 +3,7 @@
   <ProjectSession>
     <PathDelim Value="\"/>
     <Version Value="12"/>
-    <BuildModes Active="Release"/>
+    <BuildModes Active="Debug"/>
     <Units>
       <Unit>
         <Filename Value="oc_comp.lpr"/>
@@ -35,7 +35,7 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <TopLine Value="226"/>
-        <CursorPos Y="256"/>
+        <CursorPos X="38" Y="233"/>
         <UsageCount Value="32"/>
         <Loaded Value="True"/>
       </Unit>

@@ -1,7 +1,5 @@
 unit ugrammar;
 
-{$mode ObjFPC}{$H+}
-
 {
     XA80 - Cross Assembler for x80 processors
     Copyright (C)2020-2022 Duncan Munro
@@ -29,6 +27,8 @@ unit ugrammar;
 // RegisterObjects allows each grammar item to be registered.
 //
 
+{$mode ObjFPC}{$H+}
+
 interface
 
 uses
@@ -44,13 +44,12 @@ const
 type
   TNOM = (tnNever,tnOptional,tnMandatory);
 
-  TMacroLabelRule = (mlrNeverLocal,mlrLocalIfPrefixed,mlrAlwaysLocal);
+  TMacroLabelRule = (mlrAlwaysGlobal,mlrGlobalIfPrefixed,mlrLocalIfPrefixed,mlrAlwaysLocal);
 
   TGrammarCharSet = set of char;
 
   TGrammarDataType = (
                         gdtBoolean,
-                        gdtCharList,
                         gdtCharSet,
                         gdtFuncDef,
                         gdtMacroLabelRule,
@@ -136,7 +135,7 @@ type
   end;
 
 const
-  InitArray: array[0..96] of TInitRec =
+  InitArray: array[0..97] of TInitRec =
   (
     (Title: 'Author';                 DataType: gdtText;           Validator: nil;                 Default: 'Duncan Munro'),
     (Title: 'CmdCPU';                 DataType: gdtStringList;     Validator: nil;                 Default: ''),
@@ -180,6 +179,7 @@ const
     (Title: 'EscapeNumbers';          DataType: gdtStringList;     Validator: nil;                 Default: 'octal|Xhex|xhex'),
     (Title: 'EscapeSet';              DataType: gdtCharset;        Validator: nil;                 Default: '[?\\"''abefnrtv]'),
     (Title: 'ExprOrg';                DataType: gdtString;         Validator: nil;                 Default: '$'),
+    (Title: 'FilenameQuoting';        DataType: gdtNOM;            Validator: nil;                 Default: 'Optional'),
     (Title: 'FuncHigh';               DataType: gdtStringList;     Validator: nil;                 Default: 'HIGH('),
     (Title: 'FuncLow';                DataType: gdtStringList;     Validator: nil;                 Default: 'LOW('),
     (Title: 'LabelCaseSensitive';     DataType: gdtBoolean;        Validator: nil;                 Default: 'False'),
@@ -192,14 +192,14 @@ const
     (Title: 'LabelMaximumLimit';      DataType: gdtU16;            Validator: nil;                 Default: '128'),
     (Title: 'LabelMaximumUsed';       DataType: gdtU16;            Validator: nil;                 Default: '128'),
     (Title: 'LabelPredefineReg';      DataType: gdtBoolean;        Validator: nil;                 Default: 'False'),
-    (Title: 'LiteralASCIIquote';      DataType: gdtStringList;     Validator: nil;                 Default: ''',"'),
+    (Title: 'LiteralASCIIquote';      DataType: gdtStringList;     Validator: nil;                 Default: #39 + '|' + #34),
     (Title: 'LiteralBinaryFormat';    DataType: gdtStringList;     Validator: nil;                 Default: '0bnnnn|0Bnnnn|%nnnn|nnnnb|nnnnB'),
     (Title: 'LiteralDecimalFormat';   DataType: gdtStringList;     Validator: nil;                 Default: 'nnnn|nnnnd|nnnnD'),
     (Title: 'LiteralHexFormat';       DataType: gdtStringList;     Validator: nil;                 Default: '0xnnnn|0Xnnnn|$nnnn|#nnnn|nnnnh|nnnnH'),
     (Title: 'LiteralOctalFormat';     DataType: gdtStringList;     Validator: nil;                 Default: 'nnnnO|nnnno|nnnnQ|nnnnq|0onnnn|0Onnnn'),
     (Title: 'MacroLabelPrefixG';      DataType: gdtString;         Validator: nil;                 Default: '%G%'),
     (Title: 'MacroLabelPrefixL';      DataType: gdtString;         Validator: nil;                 Default: ''),
-    (Title: 'MacroLabelRule';         DataType: gdtMacroLabelRule; Validator: nil;                 Default: 'Global if prefixed'),
+    (Title: 'MacroLabelRule';         DataType: gdtMacroLabelRule; Validator: nil;                 Default: 'Always local'),
     (Title: 'MacroParamPrefix';       DataType: gdtString;         Validator: nil;                 Default: ''),
     (Title: 'MacroParamUse';          DataType: gdtString;         Validator: nil;                 Default: ''),
     (Title: 'OpBinaryAdd';            DataType: gdtOperatorDef;    Validator: nil;                 Default: '+|[5]'),
@@ -269,7 +269,7 @@ end;
 destructor TGrammarObj.Destroy;
 begin
   // Check if a TStringList was made and clear it if required
-  if DataType in [gdtStringList,gdtFuncDef,gdtOperatorDef,gdtCharList] then
+  if DataType in [gdtStringList,gdtFuncDef,gdtOperatorDef] then
     FreeAndNil(strlistVar);
   // Finally, destroy this object
   inherited Destroy;
@@ -284,8 +284,7 @@ begin
       Result := EncodeStr(strVar);
     gdtStringList,
     gdtFuncDef,
-    gdtOperatorDef,
-    gdtCharList:
+    gdtOperatorDef:
       begin
         // Make a copy of the string list and use that to create the result
         sl := TStringList.Create;
@@ -310,6 +309,13 @@ begin
         tnNever:     Result := 'Never';
         tnOptional:  Result := 'Optional';
         tnMandatory: Result := 'Mandatory';
+      end;
+    gdtMacroLabelRule:
+      case mlrVar of
+        mlrAlwaysGlobal:     Result := 'Always global';
+        mlrGlobalIfPrefixed: Result := 'Global if prefixed';
+        mlrLocalIfPrefixed:  Result := 'Local if prefixed';
+        mlrAlwaysLocal:      Result := 'Always local';
       end;
     gdtCharSet:
       Result := CharSetToStr(csetVar);
@@ -408,22 +414,21 @@ function TGrammarObj.DecodeStr(_v: string): string;
 begin
   _v := StringReplace(_v,'{closebrace}', '}',[rfReplaceAll]);
   _v := StringReplace(_v,'{comma}',      ',',[rfReplaceAll]);
-  _v := StringReplace(_v,'{comma}',      ',',[rfReplaceAll]);
   _v := StringReplace(_v,'{openbrace}',  '{',[rfReplaceAll]);
   _v := StringReplace(_v,'{rule}',       '|',[rfReplaceAll]);
-  _v := StringReplace(_v,'{spc}',        ' ',[rfReplaceAll]);
-  _v := StringReplace(_v,'{tab}',        #9, [rfReplaceAll]);
   Result := _v;
 end;
 
 function TGrammarObj.EncodeStr(_v: string): string;
 begin
-  _v := StringReplace(_v,'}','{closebrace}',[rfReplaceAll]);
+  // Has to be done in a couple of steps or we end up with replacements
+  // of replacements
+  _v := StringReplace(_v,'}',#9,[rfReplaceAll]);
+  _v := StringReplace(_v,'{',#10, [rfReplaceAll]);
   _v := StringReplace(_v,',','{comma}',     [rfReplaceAll]);
-  _v := StringReplace(_v,'{','{openbrace}', [rfReplaceAll]);
   _v := StringReplace(_v,'|','{rule}',      [rfReplaceAll]);
-  _v := StringReplace(_v,' ','{spc}',       [rfReplaceAll]);
-  _v := StringReplace(_v,#9, '{tab}',       [rfReplaceAll]);
+  _v := StringReplace(_v,#9,'{closebrace}',[rfReplaceAll]);
+  _v := StringReplace(_v,#10,'{openbrace}', [rfReplaceAll]);
   Result := _v;
 end;
 
@@ -448,9 +453,10 @@ begin
     }
     gdtMacroLabelRule:
       case _v of
-        'Never Local':        mlrVar := mlrNeverLocal;
-        'Local if Prefixed':  mlrVar := mlrLocalIfPrefixed;
-        'Always Local':       mlrVar := mlrAlwaysLocal;
+        'Always global':      mlrVar := mlrAlwaysGlobal;
+        'Global if prefixed': mlrVar := mlrGlobalIfPrefixed;
+        'Local if prefixed':  mlrVar := mlrLocalIfPrefixed;
+        'Always local':       mlrVar := mlrAlwaysLocal;
         otherwise
           raise Exception.Create('Internal error, default value of ' + _v + ' not catered for in TGrammar.RegisterSingleObject');
       end;
@@ -575,7 +581,7 @@ begin
   lastc := #255;
   escaping := False;
   inrange  := False;
-  if Length(_v) < 2 then
+  if (Length(_v) < 2) or (_v[1] <> '[') or (_v[Length(_v)] <> ']') then
     raise Exception.Create('Character set badly formed, should be a set of characters or character ranges enclosed by [ ]');
   EatChar; // Get rid of the opening [
   while s <> '' do
@@ -677,105 +683,6 @@ begin
                          InitArray[i].DataType,
                          InitArray[i].Validator,
                          InitArray[i].Default);
-  {
-  RegisterSingleObject('Author',                 gdtText,           nil,                'Duncan Munro');
-  RegisterSingleObject('CmdCPU',                 gdtStringList,     nil,                '');
-  RegisterSingleObject('CmdDefineBytes',         gdtStringList,     nil,                'DB|DEFB');
-  RegisterSingleObject('CmdDefineStorage',       gdtStringList,     nil,                'DS|DEFS');
-  RegisterSingleObject('CmdDefineString',        gdtStringList,     nil,                'DM|DEFM');
-  RegisterSingleObject('CmdDefineStringH',       gdtStringList,     nil,                'DC|DEFC');
-  RegisterSingleObject('CmdDefineStringZ',       gdtStringList,     nil,                'DZ|DEFZ');
-  RegisterSingleObject('CmdDefineWord16',        gdtStringList,     nil,                'DW|DEFW');
-  RegisterSingleObject('CmdDefineWord32',        gdtStringList,     nil,                'DD|DEFD');
-  RegisterSingleObject('CmdElse',                gdtStringList,     nil,                'ELSE');
-  RegisterSingleObject('CmdEnd',                 gdtStringList,     nil,                'END');
-  RegisterSingleObject('CmdEndif',               gdtStringList,     nil,                'ENDIF');
-  RegisterSingleObject('CmdEndMacro',            gdtStringList,     nil,                'ENDM');
-  RegisterSingleObject('CmdEndRepeat',           gdtStringList,     nil,                'ENDR');
-  RegisterSingleObject('CmdEquate',              gdtStringList,     nil,                'EQU|=');
-  RegisterSingleObject('CmdError',               gdtStringList,     nil,                'ERROR');
-  RegisterSingleObject('CmdExtern',              gdtStringList,     nil,                'EXTERN|EXTERNAL');
-  RegisterSingleObject('CmdGlobal',              gdtStringList,     nil,                'GLOBAL');
-  RegisterSingleObject('CmdIf',                  gdtStringList,     nil,                'IF');
-  RegisterSingleObject('CmdIfdef',               gdtStringList,     nil,                'IFDEF');
-  RegisterSingleObject('CmdIfndef',              gdtStringList,     nil,                'IFNDEF');
-  RegisterSingleObject('CmdInclude',             gdtStringList,     nil,                'INCLUDE');
-  RegisterSingleObject('CmdMacroDefine',         gdtStringList,     nil,                'MACRO');
-  RegisterSingleObject('CmdMessage',             gdtStringList,     nil,                'MESSAGE');
-  RegisterSingleObject('CmdOrg',                 gdtStringList,     nil,                'ORG|ORIGIN');
-  RegisterSingleObject('CmdRepeat',              gdtStringList,     nil,                'REPEAT');
-  RegisterSingleObject('CmdSEGC',                gdtStringList,     nil,                'CSEG|CODE');
-  RegisterSingleObject('CmdSEGD',                gdtStringList,     nil,                'DSEG|DATA');
-  RegisterSingleObject('CmdSEGU',                gdtStringList,     nil,                'USEG|UDATA');
-  RegisterSingleObject('CmdSet',                 gdtStringList,     nil,                'SET');
-  RegisterSingleObject('CmdTitle',               gdtStringList,     nil,                'TITLE');
-  RegisterSingleObject('CmdWarning',             gdtStringList,     nil,                'WARNING');
-  RegisterSingleObject('CommentAnywhere',        gdtStringList,     nil,                ';|//');
-  RegisterSingleObject('CommentStart',           gdtStringList,     nil,                '*|;|//');
-  RegisterSingleObject('DefaultOrg',             gdtU16,            nil,                '0');
-  RegisterSingleObject('DefaultProcessor',       gdtText,           nil,                'Z80');
-  RegisterSingleObject('EndBaggage',             gdtNOM,            nil,                'Optional');
-  RegisterSingleObject('EndRule',                gdtNOM,            nil,                'Optional');
-  RegisterSingleObject('EscapeCharacter',        gdtString,         @ValidateEscapeChar,'\');
-  RegisterSingleObject('EscapeNumbers',          gdtStringList,     nil,                'octal|Xhex|xhex');
-  RegisterSingleObject('EscapeSet',              gdtCharset,        nil,                '[?\\"''abefnrtv]');
-  RegisterSingleObject('ExprOrg',                gdtString,         nil,                '$');
-  RegisterSingleObject('FuncHigh',               gdtStringList,     nil,                'HIGH(');
-  RegisterSingleObject('FuncLow',                gdtStringList,     nil,                'LOW(');
-  RegisterSingleObject('LabelCaseSensitive',     gdtBoolean,        nil,                'False');
-  RegisterSingleObject('LabelCharactersMid',     gdtCharset,        nil,                '[0-9A-Za-z]');
-  RegisterSingleObject('LabelCharactersStart',   gdtCharset,        nil,                '[A-Za-z]');
-  RegisterSingleObject('LabelColonRuleEqu',      gdtNOM,            nil,                'Never');
-  RegisterSingleObject('LabelColonRuleNormal',   gdtNOM,            nil,                'Optional');
-  RegisterSingleObject('LabelLocalPrefix',       gdtString,         nil,                '@');
-  RegisterSingleObject('LabelLocalSuffix',       gdtString,         nil,                '');
-  RegisterSingleObject('LabelMaximumLimit',      gdtU16,            nil,                '128');
-  RegisterSingleObject('LabelMaximumUsed',       gdtU16,            nil,                '128');
-  RegisterSingleObject('LabelPredefineReg',      gdtBoolean,        nil,                'False');
-  RegisterSingleObject('LiteralASCIIquote',      gdtStringList,     nil,                ''',"');
-  RegisterSingleObject('LiteralBinaryFormat',    gdtStringList,     nil,                '0bnnnn|0Bnnnn|%nnnn|nnnnb|nnnnB');
-  RegisterSingleObject('LiteralDecimalFormat',   gdtStringList,     nil,                'nnnn|nnnnd|nnnnD');
-  RegisterSingleObject('LiteralHexFormat',       gdtStringList,     nil,                '0xnnnn|0Xnnnn|$nnnn|#nnnn|nnnnh|nnnnH');
-  RegisterSingleObject('LiteralOctalFormat',     gdtStringList,     nil,                'nnnnO|nnnno|nnnnQ|nnnnq|0onnnn|0Onnnn');
-  RegisterSingleObject('MacroLabelPrefixG',      gdtString,         nil,                '%G%');
-  RegisterSingleObject('MacroLabelPrefixL',      gdtString,         nil,                '');
-  RegisterSingleObject('MacroLabelRule',         gdtMacroLabelRule, nil,                'Global if prefixed');
-  RegisterSingleObject('MacroParamPrefix',       gdtString,         nil,                '');
-  RegisterSingleObject('MacroParamUse',          gdtString,         nil,                '');
-  RegisterSingleObject('OpBinaryAdd',            gdtOperatorDef,    nil,                '+|[5]');
-  RegisterSingleObject('OpBinaryDivide',         gdtOperatorDef,    nil,                '/|DIV|[3]');
-  RegisterSingleObject('OpBinaryMod',            gdtOperatorDef,    nil,                'MOD|[3]');
-  RegisterSingleObject('OpBinaryMultiply',       gdtOperatorDef,    nil,                '*|[3]');
-  RegisterSingleObject('OpBinaryShl',            gdtOperatorDef,    nil,                '<<|[4]');
-  RegisterSingleObject('OpBinaryShr',            gdtOperatorDef,    nil,                '>>|[4]');
-  RegisterSingleObject('OpBinarySubtract',       gdtOperatorDef,    nil,                '-|[5]');
-  RegisterSingleObject('OpBitwiseAnd',           gdtOperatorDef,    nil,                '&|[3]');
-  RegisterSingleObject('OpBitwiseOr',            gdtOperatorDef,    nil,                '{rule}|[5]');
-  RegisterSingleObject('OpBitwiseXor',           gdtOperatorDef,    nil,                '^|[3]');
-  RegisterSingleObject('OpBracketClose',         gdtOperatorDef,    nil,                ')|[1]');
-  RegisterSingleObject('OpBracketOpen',          gdtOperatorDef,    nil,                '(|[1]');
-  RegisterSingleObject('OpcodeSquareRule',       gdtNOM,            nil,                'Optional');
-  RegisterSingleObject('OpCompEqual',            gdtOperatorDef,    nil,                '==|[6]');
-  RegisterSingleObject('OpCompGreater',          gdtOperatorDef,    nil,                '>|[6]');
-  RegisterSingleObject('OpCompGreaterEqual',     gdtOperatorDef,    nil,                '>=|[6]');
-  RegisterSingleObject('OpCompLess',             gdtOperatorDef,    nil,                '<|[6]');
-  RegisterSingleObject('OpCompLessEqual',        gdtOperatorDef,    nil,                '<=|[6]');
-  RegisterSingleObject('OpCompUnequal',          gdtOperatorDef,    nil,                '<>|!=|[6]');
-  RegisterSingleObject('OpLogicalAnd',           gdtOperatorDef,    nil,                '&&|AND|[7]');
-  RegisterSingleObject('OpLogicalOr',            gdtOperatorDef,    nil,                '{rule}{rule}|OR|[8]');
-  RegisterSingleObject('OpLogicalXor',           gdtOperatorDef,    nil,                '^^|XOR|[7]');
-  RegisterSingleObject('OpUnaryMinus',           gdtOperatorDef,    nil,                '-|[2]');
-  RegisterSingleObject('OpUnaryNot',             gdtOperatorDef,    nil,                '!|NOT|[9]');
-  RegisterSingleObject('OpUnaryPlus',            gdtOperatorDef,    nil,                '+|[2]');
-  RegisterSingleObject('OpUnaryResult',          gdtOperatorDef,    nil,                '');
-  RegisterSingleObject('ParserInterfldAllowed',  gdtCharSet,        nil,                '[]');
-  RegisterSingleObject('ParserInterfldMandated', gdtCharSet,        nil,                '[\t ]');
-  RegisterSingleObject('ParserInteropAllowed',   gdtCharSet,        nil,                '[\t ]');
-  RegisterSingleObject('ParserInteropMandated',  gdtCharSet,        nil,                '[,]');
-  RegisterSingleObject('StringTerminator',       gdtCharSet,        nil,                '[''"]');
-  RegisterSingleObject('Title',                  gdtText,           nil,                'Default XA80 Grammar');
-  RegisterSingleObject('TokeniserTabSize',       gdtU16,            nil,                '4');
-  }
 end;
 
 procedure TGrammar.RegisterSingleObject(const _title: string; _datatype: TGrammarDataType; _validator: TGrammarObjValidator; const _default: string);
@@ -789,7 +696,7 @@ begin
   obj.Default   := _default;
   obj.Validator := _validator;
   // If TStringList then create the list
-  if obj.DataType in [gdtStringList,gdtFuncDef,gdtOperatorDef,gdtCharList] then
+  if obj.DataType in [gdtStringList,gdtFuncDef,gdtOperatorDef] then
     begin
       obj.strlistVar := TStringList.Create;
       obj.strlistVar.Delimiter := #13;

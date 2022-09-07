@@ -96,4 +96,11 @@ object frmGrammar: TfrmGrammar
       end
     end
   end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.grammar'
+    Filter = '*.grammar'
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
+    Left = 341
+    Top = 26
+  end
 end

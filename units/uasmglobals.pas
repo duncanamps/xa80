@@ -1,3 +1,5 @@
+unit uasmglobals;
+
 {
     XA80 - Cross Assembler for x80 processors
     Copyright (C)2020-2022 Duncan Munro
@@ -17,8 +19,6 @@
 
     Contact: Duncan Munro  duncan@duncanamps.com
 }
-
-unit uasmglobals;
 
 {$mode objfpc}{$H+}
 
@@ -42,6 +42,7 @@ const
   DEFAULT_ORG                       = 0;
   DEFAULT_PROCESSOR_VALUE           = 'Z80';
   DEFAULT_TAB_SIZE                  = 4;
+  ENVIRONMENT_VARIABLE              = 'XA80';
   FILETYPE_COM                      = '.com';
   FILETYPE_DEBUG                    = '.dbg80';
   FILETYPE_HEX                      = '.hex';
@@ -60,6 +61,7 @@ const
   MAX_OPERANDS                      = 2;
   MAX_SOURCE_BYTES_PER_LISTING_LINE = 4;
   TEMP_FILE_DIVIDER                 = '?END?';
+  VERSION_STRING                    = '0.2';
   // Derived constants
   HEXBUF_LENGTH                     = ((3*MAX_HEX_BYTES_IN_LISTING) + 7);
 

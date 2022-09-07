@@ -1,34 +1,26 @@
-object frmGrammarEditString: TfrmGrammarEditString
-  Left = 1176
-  Height = 120
-  Top = 208
+object frmGrammarEditStringList: TfrmGrammarEditStringList
+  Left = 1296
+  Height = 320
+  Top = 295
   Width = 593
-  Caption = 'Edit String'
-  ClientHeight = 120
+  Caption = 'Edit String List'
+  ClientHeight = 320
   ClientWidth = 593
   DesignTimePPI = 120
   OnCreate = FormCreate
   Position = poDesktopCenter
   LCLVersion = '2.2.2.0'
-  object Label1: TLabel
-    Left = 14
-    Height = 20
-    Top = 21
-    Width = 39
-    Caption = 'String'
-    ParentColor = False
-  end
-  object edtString: TEdit
-    Left = 69
-    Height = 28
-    Top = 19
-    Width = 508
+  object Memo1: TMemo
+    Left = 16
+    Height = 242
+    Top = 14
+    Width = 563
     TabOrder = 0
   end
   object btnOK: TButton
-    Left = 14
+    Left = 16
     Height = 31
-    Top = 70
+    Top = 272
     Width = 94
     Caption = 'OK'
     ModalResult = 1
@@ -36,18 +28,18 @@ object frmGrammarEditString: TfrmGrammarEditString
     TabOrder = 1
   end
   object btnCancel: TButton
-    Left = 120
+    Left = 122
     Height = 31
-    Top = 71
+    Top = 273
     Width = 94
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 2
   end
   object btnHelp: TButton
-    Left = 483
+    Left = 485
     Height = 31
-    Top = 70
+    Top = 272
     Width = 94
     Caption = 'Help'
     TabOrder = 3
