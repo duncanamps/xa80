@@ -58,8 +58,6 @@ object frmGrammarEditCharSet: TfrmGrammarEditCharSet
     Height = 344
     Top = 64
     Width = 552
-    OnClick = PaintBox1Click
-    OnMouseDown = PaintBox1MouseDown
     OnMouseUp = PaintBox1MouseUp
   end
 end

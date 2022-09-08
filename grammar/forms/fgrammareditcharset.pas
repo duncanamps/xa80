@@ -22,11 +22,8 @@ type
     procedure btnOKClick(Sender: TObject);
     procedure edtStringChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure PaintBox1Click(Sender: TObject);
-    procedure PaintBox1MouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure PaintBox1MouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
+    procedure PaintBox1MouseUp(Sender: TObject; {%H-}Button: TMouseButton;
+      {%H-}Shift: TShiftState; X, Y: Integer);
   private
     FCharacterSet: TGrammarCharSet;
     FFaulty: boolean;
@@ -60,18 +57,6 @@ begin
   edtString.Text :=FObj.CharsetToStr(FCharacterSet);
   PaintBox1.OnPaint := @MyPaint;
   PaintBox1.Invalidate;
-end;
-
-procedure TfrmGrammarEditCharSet.PaintBox1Click(Sender: TObject);
-var x,y: integer;
-begin
-
-end;
-
-procedure TfrmGrammarEditCharSet.PaintBox1MouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-
 end;
 
 procedure TfrmGrammarEditCharSet.PaintBox1MouseUp(Sender: TObject;

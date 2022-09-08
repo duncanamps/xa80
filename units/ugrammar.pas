@@ -40,6 +40,7 @@ uses
 const
   GRAMMAR_FIELD_SEPARATOR = '|';
   GRAMMAR_FIELD_SEPARATOR_EXPANDED = ' | ';
+  GRAMMAR_MAXIMUM_LABEL_LENGTH = 256;
 
 type
   TNOM = (tnNever,tnOptional,tnMandatory);
@@ -85,6 +86,7 @@ type
       function  AsText: string;
       function  CharsetToStr(_cs: TGrammarCharSet): string;
       function  DecodeStr(_v: string): string;
+      function  DefaultStr: string;
       function  EncodeStr(_v: string): string;
       function  SetVal(const _v: string; var _msg: string): boolean;
       function  StrToCharset(const _v: string): TGrammarCharSet;
@@ -95,12 +97,14 @@ type
     protected
       FObj: TGrammarObj;
     public
-      constructor Create(AOwner: TComponent; _obj: TGrammarObj); virtual;
+      constructor Create(AOwner: TComponent; _obj: TGrammarObj); virtual; reintroduce;
   end;
 {$ENDIF}
 
-  TGrammarList = class(specialize TObjectList<TGrammarObj>)
-
+  TGrammarList = class(specialize TObjectDictionary<string,TGrammarObj>)
+    public
+      constructor Create; reintroduce;
+      function SortedList: TStringList;
   end;
 
   TGrammar = class(TObject)
@@ -192,7 +196,7 @@ const
     (Title: 'LabelMaximumLimit';      DataType: gdtU16;            Validator: nil;                 Default: '128'),
     (Title: 'LabelMaximumUsed';       DataType: gdtU16;            Validator: nil;                 Default: '128'),
     (Title: 'LabelPredefineReg';      DataType: gdtBoolean;        Validator: nil;                 Default: 'False'),
-    (Title: 'LiteralASCIIquote';      DataType: gdtStringList;     Validator: nil;                 Default: #39 + '|' + #34),
+    (Title: 'LiteralASCIIquote';      DataType: gdtCharset;        Validator: nil;                 Default: '["'']'),
     (Title: 'LiteralBinaryFormat';    DataType: gdtStringList;     Validator: nil;                 Default: '0bnnnn|0Bnnnn|%nnnn|nnnnb|nnnnB'),
     (Title: 'LiteralDecimalFormat';   DataType: gdtStringList;     Validator: nil;                 Default: 'nnnn|nnnnd|nnnnD'),
     (Title: 'LiteralHexFormat';       DataType: gdtStringList;     Validator: nil;                 Default: '0xnnnn|0Xnnnn|$nnnn|#nnnn|nnnnh|nnnnH'),
@@ -355,21 +359,21 @@ var c: char;
 
   function Bump(_c: char; _amt: integer): char;
   begin
-    if Ord(c) + _amt > 255 then
+    if Ord(_c) + _amt > 255 then
       Result := #255
     else
-      Result := Char(Ord(c) + _amt);
+      Result := Char(Ord(_c) + _amt);
   end;
 
   function BumpChkDone(_c: char; _amt: integer): char;
   begin
-    if Ord(c) + _amt > 255 then
+    if Ord(_c) + _amt > 255 then
       begin
         Result := #255;
         done := True;
       end
     else
-      Result := Char(Ord(c) + _amt);
+      Result := Char(Ord(_c) + _amt);
   end;
 
   function CalcRL(_c: char): integer;
@@ -417,6 +421,24 @@ begin
   _v := StringReplace(_v,'{openbrace}',  '{',[rfReplaceAll]);
   _v := StringReplace(_v,'{rule}',       '|',[rfReplaceAll]);
   Result := _v;
+end;
+
+function TGrammarObj.DefaultStr: string;
+begin
+  case DataType of
+    gdtBoolean:         Result := 'False';
+    gdtCharSet:         Result := '[]';
+    gdtFuncDef:         Result := '';
+    gdtMacroLabelRule:  Result := 'Always global';
+    gdtNOM:             Result := 'Optional';
+    gdtOperatorDef:     Result := '';
+    gdtString:          Result := '';
+    gdtStringList:      Result := '';
+    gdtText:            Result := '';
+    gdtU16:             Result := '0';
+    otherwise
+      raise Exception.Create(Format('Datatype %s not catered for',[GetEnumName(TypeInfo(TGrammarDataType),Ord(DataType))]));
+  end;
 end;
 
 function TGrammarObj.EncodeStr(_v: string): string;
@@ -651,6 +673,30 @@ begin
 end;
 
 
+
+//==============================================================================
+//
+//  TGrammarList code
+//
+//==============================================================================
+
+constructor TGrammarList.Create;
+begin
+  inherited Create([doOwnsValues]);
+end;
+
+function TGrammarList.SortedList: TStringList;
+var pair: TGrammarList.TDictionaryPair;
+    sl:   TStringList;
+begin
+  sl := TStringList.Create;
+  sl.Sorted := False;
+  for pair in Self do
+    sl.Add(pair.key);
+  sl.Sort;
+  Result := sl;
+end;
+
 //==============================================================================
 //
 //  TGrammar code
@@ -704,7 +750,7 @@ begin
       obj.strlistVar.QuoteChar := #0;
     end;
   // Set the default values
-  if not obj.SetVal(_default,_msg) then
+  if not obj.SetVal(_default,_msg{%H-}) then
     raise Exception.Create(Format('Unable to set default value "%s" in object "%s". %s',[_default,_title,_msg]));
   {
   case _datatype of
@@ -741,7 +787,7 @@ begin
   end;
   // Finally, add the object to the list
   if Assigned(obj) then
-    FGrammarList.Add(obj);
+    FGrammarList.Add(obj.Title,obj);
 end;
 
 end.

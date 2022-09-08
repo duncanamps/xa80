@@ -9,8 +9,12 @@ object frmGrammar: TfrmGrammar
   DesignTimePPI = 120
   Menu = MainMenu1
   OnActivate = FormActivate
+  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnResize = FormResize
+  OnShow = FormShow
   LCLVersion = '2.2.2.0'
   object StringGrid1: TStringGrid
     Left = 0
@@ -66,13 +70,25 @@ object frmGrammar: TfrmGrammar
       OnExecute = actFileExitExecute
       ShortCut = 32883
     end
+    object actToolsAutoTest: TAction
+      Category = 'Tools'
+      Caption = '&Auto test'
+      Hint = 'Turn auto checking of the grammar on and off'
+      OnExecute = actToolsAutoTestExecute
+    end
+    object actToolsTestGrammar: TAction
+      Category = 'Tools'
+      Caption = '&Test grammar'
+      Hint = 'Check the grammar file for issues'
+      OnExecute = actToolsTestGrammarExecute
+      ShortCut = 120
+    end
   end
   object MainMenu1: TMainMenu
     Left = 449
     Top = 108
     object miFile: TMenuItem
       Caption = '&File'
-      OnClick = miFileClick
       object miFileNew: TMenuItem
         Action = actFileNew
       end
@@ -94,6 +110,18 @@ object frmGrammar: TfrmGrammar
       object miFileExit: TMenuItem
         Action = actFileExit
       end
+      object miFileSepMRU: TMenuItem
+        Caption = '-'
+      end
+    end
+    object miTools: TMenuItem
+      Caption = '&Tools'
+      object miToolsAutoCheck: TMenuItem
+        Action = actToolsAutoTest
+      end
+      object miToolsTestGrammar: TMenuItem
+        Action = actToolsTestGrammar
+      end
     end
   end
   object SaveDialog1: TSaveDialog
@@ -102,5 +130,11 @@ object frmGrammar: TfrmGrammar
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
     Left = 341
     Top = 26
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.grammar'
+    Filter = '*.grammar'
+    Left = 228
+    Top = 29
   end
 end

@@ -12,7 +12,7 @@ uses
   Interfaces, // this includes the LCL widgetset
   Forms, fgrammar, ugrammar, uutility, fgrammareditstring, fgrammaredittext,
   fgrammareditstringlist, fgrammareditnom, fgrammareditu16, fgrammareditboolean,
-  fgrammareditmlr, fgrammareditcharset
+  fgrammareditmlr, fgrammareditcharset, ugrammaroptions, fgrammarerror
   { you can add units after this };
 
 {$R *.res}
