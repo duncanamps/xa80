@@ -66,7 +66,7 @@ var
 implementation
 
 uses
-  uutility;
+  uutility, ugrammar, umonitor;
 
 function TGlobalOption.GetValueB: boolean;
 begin
@@ -179,7 +179,7 @@ begin
   if TryGetValue(_optname,obj) then
     Result := obj.FValue
   else
-    raise Exception.Create('Could not find global option ' + _optname + ' in dictionary');
+    GrammarMonitor(mtInternal,'Could not find global option ' + _optname + ' in dictionary');
 end;
 
 procedure TGlobalOptionList.Load;
@@ -228,7 +228,7 @@ begin
   if TryGetValue(_optname,obj) then
     obj.FValue := _value
   else
-    raise Exception.Create('Could not find global option ' + _optname + ' in dictionary');
+    GrammarMonitor(mtInternal,'Could not find global option ' + _optname + ' in dictionary');
 end;
 
 end.

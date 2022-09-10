@@ -10,10 +10,10 @@ uses
   athreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, fgrammar, ugrammar, uutility, fgrammareditstring, fgrammaredittext,
-  fgrammareditstringlist, fgrammareditnom, fgrammareditu16, fgrammareditboolean,
-  fgrammareditmlr, fgrammareditcharset, ugrammaroptions, fgrammarerror
-  { you can add units after this };
+  Forms, fgrammar, ugrammar, uutility, umonitor, fgrammareditstring,
+  fgrammaredittext, fgrammareditstringlist, fgrammareditnom, fgrammareditu16,
+  fgrammareditboolean, fgrammareditmlr, fgrammareditcharset, ugrammaroptions,
+  fgrammarerror;
 
 {$R *.res}
 

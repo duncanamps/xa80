@@ -128,12 +128,14 @@ uses
   FileCtrl, typinfo, fgrammareditstring, fgrammaredittext, uutility, DOM,
   XMLWrite, fgrammareditstringlist, fgrammareditnom, fgrammareditu16,
   fgrammareditboolean, fgrammareditmlr, fgrammareditcharset, XMLRead,
-  ugrammaroptions, fgrammarerror;
+  ugrammaroptions, fgrammarerror, umonitor;
 
 procedure TfrmGrammar.FormActivate(Sender: TObject);
 begin
+  FGrammar.New;
+  Dirty := False;
+  SyncGrammar;
   SetCaption;
-  actFileNewExecute(Self);
 end;
 
 procedure TfrmGrammar.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -229,7 +231,7 @@ end;
 
 procedure TfrmGrammar.actFileNewExecute(Sender: TObject);
 begin
-  FGrammar.New;
+  FGrammar.New(True);
   Dirty := False;
   SyncGrammar;
 end;
@@ -294,7 +296,9 @@ begin
       finally
         FreeAndNil(frmGrammarError);
       end;
-    end;
+    end
+  else if Sender <> nil then
+    MessageDlg('Grammar OK','Grammar passed the checks',Dialogs.mtInformation,[mbOK],0);
 end;
 
 procedure TfrmGrammar.StringGrid1DblClick(Sender: TObject);
@@ -318,7 +322,7 @@ begin
     gdtText:           inputform := TfrmGrammarEditText.Create(Self,obj);
     gdtU16:            inputform := TfrmGrammarEditU16.Create(Self,obj);
     otherwise
-      raise Exception.Create(Format('Object DataType %s not catered for',[GetEnumName(TypeInfo(TGrammarDataType),Ord(obj.DataType))]));
+      GrammarMonitor(mtInternal,'Object DataType %s not catered for',[GetEnumName(TypeInfo(TGrammarDataType),Ord(obj.DataType))]);
   ;
   end;
   if Assigned(inputform) then
@@ -329,7 +333,7 @@ begin
             Dirty := True;
             SyncGrammar;
             if AutoTest then
-              actToolsTestGrammarExecute(Self);
+              actToolsTestGrammarExecute(nil);
           end;
       finally
         FreeAndNil(inputform);
@@ -342,7 +346,11 @@ begin
   Result := True; // Assume OK to close for now
   if Dirty then
     begin
-      case MessageDlg('File not saved','Warning, your file has not been saved. Do you wish to save the file? Pick Yes if you wish to save, No if you wish to lose the changes, or Cancel if you want to go back to what you were doing',mtWarning,[mbYes,mbNo,mbCancel],0) of
+      case MessageDlg('File not saved',
+                      'Warning, your file has not been saved. Do you wish to save the file? Pick Yes if you wish to save, No if you wish to lose the changes, or Cancel if you want to go back to what you were doing',
+                      Dialogs.mtWarning,
+                      [mbYes,mbNo,mbCancel],
+                      0) of
         mrYes:    if Filename = '' then
                     actFileSaveAsExecute(Self)
                   else
@@ -403,7 +411,7 @@ begin
                     begin
                       MessageDlg('Error',
                                  Format('The file "%s" no longer exists. Removing from recently used files list',[FMRUArray[index]]),
-                                 mtError,
+                                 Dialogs.mtError,
                                  [mbOK],
                                  '');
                       MRURemove(FMRUArray[index]);
@@ -469,7 +477,7 @@ begin
     // Create the root
     root := doc.FindNode('grammar');
     if not Assigned(root) then
-      raise Exception.Create('Could not find <grammar> entry in file');
+      GrammarMonitor(mtError,'Could not find <grammar> entry in file');
     // Read each section
     for pair in FGrammar.GrammarList do
       begin
@@ -479,7 +487,7 @@ begin
         else
           value := AnsiString(section.TextContent);
           if not FGrammar.GrammarList[pair.key].SetVal(value,msg{%H-}) then
-            raise Exception.Create(msg)
+            GrammarMonitor(mtError,msg)
       end;
   finally
     FreeAndNil(doc);

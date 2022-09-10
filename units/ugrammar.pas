@@ -35,7 +35,7 @@ uses
 {$IFDEF GRAMMAR_EDITOR}
   Forms,
 {$ENDIF}
-  Classes, SysUtils, Generics.Collections;
+  Classes, SysUtils, Generics.Collections, umonitor;
 
 const
   GRAMMAR_FIELD_SEPARATOR = '|';
@@ -112,17 +112,19 @@ type
       // Other variables
       FGrammarList: TGrammarList;
       // Functions / procedures
-      procedure RegisterObjects;
-      procedure RegisterSingleObject(const _title: string; _datatype: TGrammarDataType; _validator: TGrammarObjValidator; const _default: string);
+      procedure RegisterObjects(_blank: boolean = False);
+      procedure RegisterSingleObject(const _title: string; _datatype: TGrammarDataType; _validator: TGrammarObjValidator; const _default: string; _blank: boolean);
   public
       // Other properties
       property GrammarList: TGrammarList read FGrammarList;
       // Procedures, functions, ...
       constructor Create;
       destructor Destroy; override;
-      procedure New;
+      procedure New(_blank: boolean = False);
   end;
 
+procedure GrammarMonitor(_type: TMonitorType; const _msg: string);
+procedure GrammarMonitor(_type: TMonitorType; const _fmt: string; _args: array of const);
 function ValidateEscapeChar(_obj: TGrammarObj; var _msg: string): boolean;
 
 implementation
@@ -139,7 +141,7 @@ type
   end;
 
 const
-  InitArray: array[0..97] of TInitRec =
+  InitArray: array[0..103] of TInitRec =
   (
     (Title: 'Author';                 DataType: gdtText;           Validator: nil;                 Default: 'Duncan Munro'),
     (Title: 'CmdCPU';                 DataType: gdtStringList;     Validator: nil;                 Default: ''),
@@ -155,6 +157,7 @@ const
     (Title: 'CmdEndif';               DataType: gdtStringList;     Validator: nil;                 Default: 'ENDIF'),
     (Title: 'CmdEndMacro';            DataType: gdtStringList;     Validator: nil;                 Default: 'ENDM'),
     (Title: 'CmdEndRepeat';           DataType: gdtStringList;     Validator: nil;                 Default: 'ENDR'),
+    (Title: 'CmdEndWhile';            DataType: gdtStringList;     Validator: nil;                 Default: 'ENDW'),
     (Title: 'CmdEquate';              DataType: gdtStringList;     Validator: nil;                 Default: 'EQU|='),
     (Title: 'CmdError';               DataType: gdtStringList;     Validator: nil;                 Default: 'ERROR'),
     (Title: 'CmdExtern';              DataType: gdtStringList;     Validator: nil;                 Default: 'EXTERN|EXTERNAL'),
@@ -170,15 +173,17 @@ const
     (Title: 'CmdSEGC';                DataType: gdtStringList;     Validator: nil;                 Default: 'CSEG|CODE'),
     (Title: 'CmdSEGD';                DataType: gdtStringList;     Validator: nil;                 Default: 'DSEG|DATA'),
     (Title: 'CmdSEGU';                DataType: gdtStringList;     Validator: nil;                 Default: 'USEG|UDATA'),
-    (Title: 'CmdSet';                 DataType: gdtStringList;     Validator: nil;                 Default: 'SET'),
+    (Title: 'CmdSet';                 DataType: gdtStringList;     Validator: nil;                 Default: '='),
     (Title: 'CmdTitle';               DataType: gdtStringList;     Validator: nil;                 Default: 'TITLE'),
     (Title: 'CmdWarning';             DataType: gdtStringList;     Validator: nil;                 Default: 'WARNING'),
+    (Title: 'CmdWhile';               DataType: gdtStringList;     Validator: nil;                 Default: 'WHILE'),
     (Title: 'CommentAnywhere';        DataType: gdtStringList;     Validator: nil;                 Default: ';|//'),
     (Title: 'CommentStart';           DataType: gdtStringList;     Validator: nil;                 Default: '*|;|//'),
     (Title: 'DefaultOrg';             DataType: gdtU16;            Validator: nil;                 Default: '0'),
     (Title: 'DefaultProcessor';       DataType: gdtText;           Validator: nil;                 Default: 'Z80'),
     (Title: 'EndBaggage';             DataType: gdtNOM;            Validator: nil;                 Default: 'Optional'),
     (Title: 'EndRule';                DataType: gdtNOM;            Validator: nil;                 Default: 'Optional'),
+    (Title: 'EquateRedefine';         DataType: gdtBoolean;        Validator: nil;                 Default: 'False'),
     (Title: 'EscapeCharacter';        DataType: gdtString;         Validator: @ValidateEscapeChar; Default: '\'),
     (Title: 'EscapeNumbers';          DataType: gdtStringList;     Validator: nil;                 Default: 'octal|Xhex|xhex'),
     (Title: 'EscapeSet';              DataType: gdtCharset;        Validator: nil;                 Default: '[?\\"''abefnrtv]'),
@@ -186,10 +191,12 @@ const
     (Title: 'FilenameQuoting';        DataType: gdtNOM;            Validator: nil;                 Default: 'Optional'),
     (Title: 'FuncHigh';               DataType: gdtStringList;     Validator: nil;                 Default: 'HIGH('),
     (Title: 'FuncLow';                DataType: gdtStringList;     Validator: nil;                 Default: 'LOW('),
+    (Title: 'LabelAtStart';           DataType: gdtBoolean;        Validator: nil;                 Default: 'False'),
     (Title: 'LabelCaseSensitive';     DataType: gdtBoolean;        Validator: nil;                 Default: 'False'),
     (Title: 'LabelCharactersMid';     DataType: gdtCharset;        Validator: nil;                 Default: '[0-9A-Za-z]'),
     (Title: 'LabelCharactersStart';   DataType: gdtCharset;        Validator: nil;                 Default: '[A-Za-z]'),
     (Title: 'LabelColonRuleEqu';      DataType: gdtNOM;            Validator: nil;                 Default: 'Never'),
+    (Title: 'LabelColonRuleIndented'; DataType: gdtNOM;            Validator: nil;                 Default: 'Optional'),
     (Title: 'LabelColonRuleNormal';   DataType: gdtNOM;            Validator: nil;                 Default: 'Optional'),
     (Title: 'LabelLocalPrefix';       DataType: gdtString;         Validator: nil;                 Default: '@'),
     (Title: 'LabelLocalSuffix';       DataType: gdtString;         Validator: nil;                 Default: ''),
@@ -197,10 +204,10 @@ const
     (Title: 'LabelMaximumUsed';       DataType: gdtU16;            Validator: nil;                 Default: '128'),
     (Title: 'LabelPredefineReg';      DataType: gdtBoolean;        Validator: nil;                 Default: 'False'),
     (Title: 'LiteralASCIIquote';      DataType: gdtCharset;        Validator: nil;                 Default: '["'']'),
-    (Title: 'LiteralBinaryFormat';    DataType: gdtStringList;     Validator: nil;                 Default: '0bnnnn|0Bnnnn|%nnnn|nnnnb|nnnnB'),
-    (Title: 'LiteralDecimalFormat';   DataType: gdtStringList;     Validator: nil;                 Default: 'nnnn|nnnnd|nnnnD'),
-    (Title: 'LiteralHexFormat';       DataType: gdtStringList;     Validator: nil;                 Default: '0xnnnn|0Xnnnn|$nnnn|#nnnn|nnnnh|nnnnH'),
-    (Title: 'LiteralOctalFormat';     DataType: gdtStringList;     Validator: nil;                 Default: 'nnnnO|nnnno|nnnnQ|nnnnq|0onnnn|0Onnnn'),
+    (Title: 'LiteralBinaryFormat';    DataType: gdtStringList;     Validator: nil;                 Default: '0b[#]|0B[#]|[#]b|[#]B'),
+    (Title: 'LiteralDecimalFormat';   DataType: gdtStringList;     Validator: nil;                 Default: '[#]|[#]d|[#]D'),
+    (Title: 'LiteralHexFormat';       DataType: gdtStringList;     Validator: nil;                 Default: '0x[#]|0X[#]|#[#]|[#]h|[#]H'),
+    (Title: 'LiteralOctalFormat';     DataType: gdtStringList;     Validator: nil;                 Default: '[#]O|[#]o|[#]Q|[#]q|0o[#]|0O[#]'),
     (Title: 'MacroLabelPrefixG';      DataType: gdtString;         Validator: nil;                 Default: '%G%'),
     (Title: 'MacroLabelPrefixL';      DataType: gdtString;         Validator: nil;                 Default: ''),
     (Title: 'MacroLabelRule';         DataType: gdtMacroLabelRule; Validator: nil;                 Default: 'Always local'),
@@ -229,7 +236,8 @@ const
     (Title: 'OpLogicalOr';            DataType: gdtOperatorDef;    Validator: nil;                 Default: '{rule}{rule}|OR|[8]'),
     (Title: 'OpLogicalXor';           DataType: gdtOperatorDef;    Validator: nil;                 Default: '^^|XOR|[7]'),
     (Title: 'OpUnaryMinus';           DataType: gdtOperatorDef;    Validator: nil;                 Default: '-|[2]'),
-    (Title: 'OpUnaryNot';             DataType: gdtOperatorDef;    Validator: nil;                 Default: '!|NOT|[9]'),
+    (Title: 'OpUnaryNot';             DataType: gdtOperatorDef;    Validator: nil;                 Default: '!|NOT|[2]'),
+    (Title: 'OpUnaryOnesComp';        DataType: gdtOperatorDef;    Validator: nil;                 Default: '~|[2]'),
     (Title: 'OpUnaryPlus';            DataType: gdtOperatorDef;    Validator: nil;                 Default: '+|[2]'),
     (Title: 'OpUnaryResult';          DataType: gdtOperatorDef;    Validator: nil;                 Default: ''),
     (Title: 'ParserInterfldAllowed';  DataType: gdtCharSet;        Validator: nil;                 Default: '[]'),
@@ -240,6 +248,20 @@ const
     (Title: 'Title';                  DataType: gdtText;           Validator: nil;                 Default: 'Default XA80 Grammar'),
     (Title: 'TokeniserTabSize';       DataType: gdtU16;            Validator: nil;                 Default: '4')
   );
+
+procedure GrammarMonitor(_type: TMonitorType; const _msg: string);
+begin
+{$IFDEF GRAMMAR_EDITOR}
+  raise Exception.Create(mtToString(_type)+' '+_msg);
+{$ELSE}
+  Monitor(_type,_msg);
+{$ENDIF}
+end;
+
+procedure GrammarMonitor(_type: TMonitorType; const _fmt: string; _args: array of const);
+begin
+  GrammarMonitor(_type,Format(_fmt,_args));
+end;
 
 function ValidateEscapeChar(_obj: TGrammarObj; var _msg: string): boolean;
 begin
@@ -331,7 +353,7 @@ begin
     gdtText:
       Result := strVar;
     otherwise
-      raise Exception.Create(Format('Internal error, data type %s not catered for in TGrammarObj.AsText',[GetEnumName(TypeInfo(TGrammarDataType),Ord(DataType))]));
+      GrammarMonitor(mtInternal,'Data type %s not catered for in TGrammarObj.AsText',[GetEnumName(TypeInfo(TGrammarDataType),Ord(DataType))]);
   end;
 end;
 
@@ -437,7 +459,7 @@ begin
     gdtText:            Result := '';
     gdtU16:             Result := '0';
     otherwise
-      raise Exception.Create(Format('Datatype %s not catered for',[GetEnumName(TypeInfo(TGrammarDataType),Ord(DataType))]));
+      GrammarMonitor(mtInternal,'Datatype %s not catered for',[GetEnumName(TypeInfo(TGrammarDataType),Ord(DataType))]);
   end;
 end;
 
@@ -480,7 +502,7 @@ begin
         'Local if prefixed':  mlrVar := mlrLocalIfPrefixed;
         'Always local':       mlrVar := mlrAlwaysLocal;
         otherwise
-          raise Exception.Create('Internal error, default value of ' + _v + ' not catered for in TGrammar.RegisterSingleObject');
+          GrammarMonitor(mtInternal,'Default value of ' + _v + ' not catered for in TGrammar.RegisterSingleObject');
       end;
     gdtNOM:
       case _v of
@@ -488,7 +510,7 @@ begin
         'Optional':  nomVar := tnOptional;
         'Mandatory': nomVar := tnMandatory;
         otherwise
-          raise Exception.Create('Internal error, default value of ' + _v + ' not catered for in TGrammar.RegisterSingleObject');
+          GrammarMonitor(mtError,'Default value of ' + _v + ' not catered for in TGrammar.RegisterSingleObject');
       end;
     gdtOperatorDef:
       begin
@@ -505,17 +527,17 @@ begin
         if strlistVar.Count > 0 then
           begin
             if strlistVar.Count < 2 then
-              raise Exception.Create('Insufficient number of parameters for operator definition ' + _v);
+              GrammarMonitor(mtError,'Insufficient number of parameters for operator definition ' + _v);
             precedence_str := strListVar[strListVar.Count-1];
             if (Length(precedence_str) < 3) or
                (Length(precedence_str) > 4) or
                (precedence_str[1] <> '[') or
                (precedence_str[Length(precedence_str)] <> ']') then
-              raise Exception.Create('Operator precedence should be [n] or [nn] with nn being 0 to 99');
+              GrammarMonitor(mtError,'Operator precedence should be [n] or [nn] with nn being 0 to 99');
             precedence_val := StrToInt(Copy(precedence_str,2,Length(precedence_str)-2));
             if (precedence_val < 0) or
                (precedence_val > 99) then
-              raise Exception.Create('Operator precedence should be [n] or [nn] with nn being 0 to 99');
+              GrammarMonitor(mtError,'Operator precedence should be [n] or [nn] with nn being 0 to 99');
           end;
       end;
     gdtString:
@@ -536,7 +558,7 @@ begin
     gdtU16:
       wordVar := StrToInt(_v);
     otherwise
-      raise Exception.Create(Format('Internal error, data type %s not catered for in TGrammarObj.AsText',[GetEnumName(TypeInfo(TGrammarDataType),Ord(DataType))]));
+      GrammarMonitor(mtInternal,'Data type %s not catered for in TGrammarObj.AsText',[GetEnumName(TypeInfo(TGrammarDataType),Ord(DataType))]);
   end; // case
   except // Catch all exception
     on E:Exception do
@@ -571,7 +593,7 @@ var s: string;
   var ival: integer;
   begin
     if Length(s) < 3 then
-      raise Exception.Create('Incorrect hex escape character in ' + _v + ', should be \0xx where xx is a pair of hex digits');
+      GrammarMonitor(mtError,'Incorrect hex escape character in ' + _v + ', should be \0xx where xx is a pair of hex digits');
     ival := StrToInt('$' + Copy(s,2,2));
     Result := Chr(ival);
     Delete(s,1,3);
@@ -604,7 +626,7 @@ begin
   escaping := False;
   inrange  := False;
   if (Length(_v) < 2) or (_v[1] <> '[') or (_v[Length(_v)] <> ']') then
-    raise Exception.Create('Character set badly formed, should be a set of characters or character ranges enclosed by [ ]');
+    GrammarMonitor(mtError,'Character set badly formed, should be a set of characters or character ranges enclosed by [ ]');
   EatChar; // Get rid of the opening [
   while s <> '' do
     begin
@@ -629,7 +651,7 @@ begin
             '-': c := EatChar;
             '0': c := EatHex;
             otherwise
-              raise Exception.Create(Format('Illegal escape character %s in %s',[NextChar,_v]));;
+              GrammarMonitor(mtError,'Illegal escape character %s in %s',[NextChar,_v]);
           end;
           escaping := False;
           haschar := True; // Escape sequence will always yield a character
@@ -638,7 +660,7 @@ begin
         case NextChar of
           ']' : begin // End of input
                   if inrange then
-                    raise Exception.Create('Premature end of character set in ' + _v);
+                    GrammarMonitor(mtError,'Premature end of character set in ' + _v);
                   EatChar;
                 end;
           '\' : begin
@@ -715,23 +737,24 @@ begin
   inherited Destroy;
 end;
 
-procedure TGrammar.New;
+procedure TGrammar.New(_blank: boolean = False);
 begin
   FGrammarList.Clear;
-  RegisterObjects;
+  RegisterObjects(_blank);
 end;
 
-procedure TGrammar.RegisterObjects;
+procedure TGrammar.RegisterObjects(_blank: boolean = False);
 var i: integer;
 begin
   for i := Low(InitArray) to High(InitArray) do
     RegisterSingleObject(InitArray[i].Title,
                          InitArray[i].DataType,
                          InitArray[i].Validator,
-                         InitArray[i].Default);
+                         InitArray[i].Default,
+                         _blank);
 end;
 
-procedure TGrammar.RegisterSingleObject(const _title: string; _datatype: TGrammarDataType; _validator: TGrammarObjValidator; const _default: string);
+procedure TGrammar.RegisterSingleObject(const _title: string; _datatype: TGrammarDataType; _validator: TGrammarObjValidator; const _default: string; _blank: boolean);
 var obj: TGrammarObj;
     _msg: string;
 begin
@@ -741,6 +764,8 @@ begin
   obj.DataType  := _datatype;
   obj.Default   := _default;
   obj.Validator := _validator;
+  if _blank then
+    obj.Default := obj.DefaultStr;
   // If TStringList then create the list
   if obj.DataType in [gdtStringList,gdtFuncDef,gdtOperatorDef] then
     begin
@@ -750,38 +775,8 @@ begin
       obj.strlistVar.QuoteChar := #0;
     end;
   // Set the default values
-  if not obj.SetVal(_default,_msg{%H-}) then
-    raise Exception.Create(Format('Unable to set default value "%s" in object "%s". %s',[_default,_title,_msg]));
-  {
-  case _datatype of
-    gdtString:
-      obj.strVar := _default;
-    gdtStringList,
-    gdtFuncDef,
-    gdtOperatorDef,
-    gdtCharList:
-      obj.strlistVar.DelimitedText := _default;
-    gdtU16:
-      obj.wordVar := StrToInt(_default);
-    gdtNOM:
-      case _default of
-        'Never':     obj.nomVar := tnNever;
-        'Optional':  obj.nomVar := tnOptional;
-        'Mandatory': obj.nomVar := tnMandatory;
-        otherwise
-          raise Exception.Create('Internal error, default value of ' + _default + ' not catered for in TGrammar.RegisterSingleObject');
-      end;
-    gdtCharSet:
-      ; // Needs to be coded
-    gdtBoolean:
-      case _default of
-        'True':  obj.boolVar := True;
-        'False': obj.boolVar := False;
-      end;
-    otherwise
-      raise Exception.Create(Format('Internal error, data type %s not catered for in TGrammarObj.AsText',[GetEnumName(TypeInfo(TGrammarDataType),Ord(_datatype))]));
-  end;
-  }
+  if not obj.SetVal(obj.Default,_msg{%H-}) then
+    GrammarMonitor(mtInternal,'Unable to set default value "%s" in object "%s". %s',[_default,_title,_msg]);
   except
     FreeAndNil(obj);
   end;

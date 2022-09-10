@@ -44,6 +44,7 @@ procedure Monitor(_type: TMonitorType; const _msg: string);
 procedure Monitor(_type: TMonitorType; const _fmt: string; _args: array of const);
 procedure Monitor(_pass: integer; const _filename: string; _line, _col: integer;  _type: TMonitorType; const _msg: string);
 procedure Monitor(_pass: integer; const _filename: string; _line, _col: integer;  _type: TMonitorType; const _fmt: string; _args: array of const);
+function  mtToString(_mt: TMonitorType): string;
 
 implementation
 
