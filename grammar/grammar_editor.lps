@@ -12,7 +12,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="56"/>
+        <UsageCount Value="57"/>
       </Unit>
       <Unit>
         <Filename Value="forms\fgrammar.pas"/>
@@ -20,22 +20,22 @@
         <ComponentName Value="frmGrammar"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <TopLine Value="452"/>
-        <CursorPos X="21" Y="120"/>
-        <UsageCount Value="56"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="62"/>
+        <CursorPos X="46" Y="76"/>
+        <UsageCount Value="57"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\units\ugrammar.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
-        <TopLine Value="164"/>
-        <CursorPos Y="207"/>
-        <UsageCount Value="55"/>
+        <TopLine Value="134"/>
+        <CursorPos X="26" Y="144"/>
+        <UsageCount Value="56"/>
         <Bookmarks Count="1">
-          <Item0 X="3" Y="441" ID="1"/>
+          <Item0 X="3" Y="446" ID="1"/>
         </Bookmarks>
         <Loaded Value="True"/>
       </Unit>
@@ -48,7 +48,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="17"/>
         <CursorPos X="3" Y="38"/>
-        <UsageCount Value="47"/>
+        <UsageCount Value="48"/>
       </Unit>
       <Unit>
         <Filename Value="forms\fgrammaredittext.pas"/>
@@ -59,7 +59,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="18"/>
         <CursorPos Y="39"/>
-        <UsageCount Value="38"/>
+        <UsageCount Value="39"/>
       </Unit>
       <Unit>
         <Filename Value="..\units\uutility.pas"/>
@@ -67,7 +67,7 @@
         <EditorIndex Value="3"/>
         <TopLine Value="235"/>
         <CursorPos X="19" Y="244"/>
-        <UsageCount Value="38"/>
+        <UsageCount Value="39"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -78,7 +78,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="29"/>
         <CursorPos Y="47"/>
-        <UsageCount Value="36"/>
+        <UsageCount Value="37"/>
         <Bookmarks Count="1">
           <Item0 X="41" Y="51" ID="2"/>
         </Bookmarks>
@@ -92,7 +92,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="9"/>
         <CursorPos X="39" Y="23"/>
-        <UsageCount Value="34"/>
+        <UsageCount Value="35"/>
       </Unit>
       <Unit>
         <Filename Value="forms\fgrammareditu16.pas"/>
@@ -102,7 +102,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="69"/>
         <CursorPos X="19" Y="88"/>
-        <UsageCount Value="32"/>
+        <UsageCount Value="33"/>
       </Unit>
       <Unit>
         <Filename Value="forms\fgrammareditboolean.pas"/>
@@ -112,7 +112,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="6"/>
         <CursorPos X="47" Y="44"/>
-        <UsageCount Value="30"/>
+        <UsageCount Value="31"/>
       </Unit>
       <Unit>
         <Filename Value="forms\fgrammareditmlr.pas"/>
@@ -122,7 +122,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="12"/>
         <CursorPos X="55" Y="42"/>
-        <UsageCount Value="30"/>
+        <UsageCount Value="31"/>
       </Unit>
       <Unit>
         <Filename Value="forms\fgrammareditcharset.pas"/>
@@ -133,7 +133,7 @@
         <EditorIndex Value="2"/>
         <TopLine Value="11"/>
         <CursorPos X="12" Y="26"/>
-        <UsageCount Value="29"/>
+        <UsageCount Value="30"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit>
@@ -143,7 +143,7 @@
         <EditorIndex Value="6"/>
         <TopLine Value="167"/>
         <CursorPos X="31" Y="182"/>
-        <UsageCount Value="26"/>
+        <UsageCount Value="27"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -154,7 +154,7 @@
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="1"/>
         <CursorPos X="50" Y="25"/>
-        <UsageCount Value="25"/>
+        <UsageCount Value="26"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit>
@@ -164,7 +164,7 @@
         <EditorIndex Value="5"/>
         <TopLine Value="29"/>
         <CursorPos X="11" Y="47"/>
-        <UsageCount Value="23"/>
+        <UsageCount Value="24"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -269,14 +269,6 @@
       <Define0 Value="GRAMMAR_EDITOR"/>
     </OtherDefines>
     <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="forms\fgrammar.pas"/>
-        <Caret Line="69" Column="25" TopLine="45"/>
-      </Position>
-      <Position>
-        <Filename Value="forms\fgrammar.pas"/>
-        <Caret Line="139" TopLine="111"/>
-      </Position>
       <Position>
         <Filename Value="forms\fgrammar.pas"/>
         <Caret Line="235" TopLine="207"/>
@@ -386,6 +378,14 @@
       <Position>
         <Filename Value="..\units\ugrammar.pas"/>
         <Caret Line="211" TopLine="189"/>
+      </Position>
+      <Position>
+        <Filename Value="..\units\ugrammar.pas"/>
+        <Caret Line="149" TopLine="142"/>
+      </Position>
+      <Position>
+        <Filename Value="..\units\ugrammar.pas"/>
+        <Caret Line="144" Column="26" TopLine="134"/>
       </Position>
     </JumpHistory>
     <RunParams>

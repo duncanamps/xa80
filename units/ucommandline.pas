@@ -85,12 +85,12 @@ const
       (
         ShortOption:  '-b';
         LongOption:   '--debug';
-        ParamName:    '<bn>';
-        EnvName:      'FilenameDebug';
-        Description:  'Set the debug output name to <bn>';
+        ParamName:    '<d>';
+        EnvName:      'DebugInfo';
+        Description:  'Set the debug info inclusion level to <d>';
         Allowed:      [caEnvironment,caCommandLine];
-        Parameter:    paOptional;
-        MandateFiles: True;
+        Parameter:    paMandatory;
+        MandateFiles: False;
         Terminal:     False;
         Value:        ''
       ),
@@ -155,7 +155,7 @@ const
         Value:        ''
       ),
       (
-        ShortOption:  '-I';
+        ShortOption:  '-i';
         LongOption:   '--include';
         ParamName:    '<il>';
         EnvName:      'Includes';

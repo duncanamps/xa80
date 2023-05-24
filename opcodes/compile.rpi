@@ -1,0 +1,7 @@
+#!/bin/bash
+
+../binaries/release/linux-arm/oc_comp source/8080.opcode
+../binaries/release/linux-arm/oc_comp source/8085.opcode
+../binaries/release/linux-arm/oc_comp source/i8080.opcode
+../binaries/release/linux-arm/oc_comp source/z80.opcode
+../binaries/release/linux-arm/oc_comp source/z180.opcode

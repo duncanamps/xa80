@@ -15,3 +15,4 @@ binaries/debug/
 test_files/backup/
 test_files/imported/
 tch.bat
+backup/

@@ -45,8 +45,10 @@ function  UnEscape(_s: string): string;
 
 implementation
 
+{$IFDEF WINDOWS}
 uses
   WinDirs;
+{$ENDIF}
 
 procedure AugmentIncludes(s: string; list: TStringList);
 begin
@@ -216,7 +218,13 @@ var folder: string;
 begin
 {$IFDEF WINDOWS}
   folder := IncludeTrailingPathDelimiter(GetWindowsSpecialDir(CSIDL_LOCAL_APPDATA));
-{$ELSE}
+  {$DEFINE PROGRAMDATA_DEFINED}
+{$ENDIF}
+{$IFDEF LINUX}
+  folder := IncludeTrailingPathDelimiter(GetAppConfigDir(False));
+  {$DEFINE PROGRAMDATA_DEFINED}
+  {$ENDIF}
+{$IFNDEF PROGRAMDATA_DEFINED}
   ERROR OPERATING SYSTEM NOT CATERED FOR
 {$ENDIF}
   folder := IncludeTrailingPathDelimiter(folder + 'XA80');

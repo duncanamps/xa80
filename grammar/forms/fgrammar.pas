@@ -21,7 +21,7 @@ unit fgrammar;
 
     Contact: Duncan Munro  duncan@duncanamps.com
 }
-
+{$WARN 5024 off : Parameter "$1" not used}
 interface
 
 uses
