@@ -26,10 +26,8 @@ uses
   {$IFDEF UNIX}
   cthreads,
   {$ENDIF}
-  Classes, SysUtils, CustApp,
-  { you can add units after this }
-  deployment_parser_module_12, deployment_parser_types_12,
-uinstruction;
+  Classes, SysUtils, CustApp, deployment_parser_types_12,
+  deployment_parser_module_12, uinstruction;
 
 type
   TMyReduceFunc = function (Parser: TLCGParser): TLCGParserStackEntry of object;
@@ -107,7 +105,7 @@ begin
       Terminate;
       Exit;
     end;
-  FSrcName := Params[1];
+  FSrcName := ExpandFilename(Params[1]);
   FDstName := FSrcName + '.bin';
 
   { add your program here }

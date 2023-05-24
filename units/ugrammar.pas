@@ -2,7 +2,7 @@ unit ugrammar;
 
 {
     XA80 - Cross Assembler for x80 processors
-    Copyright (C)2020-2022 Duncan Munro
+    Copyright (C)2020-2023 Duncan Munro
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -141,11 +141,12 @@ type
   end;
 
 const
-  InitArray: array[0..103] of TInitRec =
+  InitArray: array[0..108] of TInitRec =
   (
     (Title: 'Author';                 DataType: gdtText;           Validator: nil;                 Default: 'Duncan Munro'),
     (Title: 'CmdCPU';                 DataType: gdtStringList;     Validator: nil;                 Default: ''),
     (Title: 'CmdDefineBytes';         DataType: gdtStringList;     Validator: nil;                 Default: 'DB|DEFB'),
+    (Title: 'CmdDefineFloat';         DataType: gdtStringList;     Validator: Nil;                 Default: 'DF|DEFF'),
     (Title: 'CmdDefineStorage';       DataType: gdtStringList;     Validator: nil;                 Default: 'DS|DEFS'),
     (Title: 'CmdDefineString';        DataType: gdtStringList;     Validator: nil;                 Default: 'DM|DEFM'),
     (Title: 'CmdDefineStringH';       DataType: gdtStringList;     Validator: nil;                 Default: 'DC|DEFC'),
@@ -198,6 +199,7 @@ const
     (Title: 'LabelColonRuleEqu';      DataType: gdtNOM;            Validator: nil;                 Default: 'Never'),
     (Title: 'LabelColonRuleIndented'; DataType: gdtNOM;            Validator: nil;                 Default: 'Optional'),
     (Title: 'LabelColonRuleNormal';   DataType: gdtNOM;            Validator: nil;                 Default: 'Optional'),
+    (Title: 'LabelLocalInsert';       DataType: gdtString;         Validator: nil;                 Default: ''),
     (Title: 'LabelLocalPrefix';       DataType: gdtString;         Validator: nil;                 Default: '@'),
     (Title: 'LabelLocalSuffix';       DataType: gdtString;         Validator: nil;                 Default: ''),
     (Title: 'LabelMaximumLimit';      DataType: gdtU16;            Validator: nil;                 Default: '128'),
@@ -208,11 +210,14 @@ const
     (Title: 'LiteralDecimalFormat';   DataType: gdtStringList;     Validator: nil;                 Default: '[#]|[#]d|[#]D'),
     (Title: 'LiteralHexFormat';       DataType: gdtStringList;     Validator: nil;                 Default: '0x[#]|0X[#]|#[#]|[#]h|[#]H'),
     (Title: 'LiteralOctalFormat';     DataType: gdtStringList;     Validator: nil;                 Default: '[#]O|[#]o|[#]Q|[#]q|0o[#]|0O[#]'),
+    (Title: 'MacroAllowKeywords';     DataType: gdtBoolean;        Validator: nil;                 Default: 'False'),
     (Title: 'MacroLabelPrefixG';      DataType: gdtString;         Validator: nil;                 Default: '%G%'),
     (Title: 'MacroLabelPrefixL';      DataType: gdtString;         Validator: nil;                 Default: ''),
     (Title: 'MacroLabelRule';         DataType: gdtMacroLabelRule; Validator: nil;                 Default: 'Always local'),
-    (Title: 'MacroParamPrefix';       DataType: gdtString;         Validator: nil;                 Default: ''),
-    (Title: 'MacroParamUse';          DataType: gdtString;         Validator: nil;                 Default: ''),
+    (Title: 'MacroParamIndexZero';    DataType: gdtBoolean;        Validator: nil;                 Default: 'False'),
+    (Title: 'MacroParamNamed';        DataType: gdtBoolean;        Validator: nil;                 Default: 'True'),
+    (Title: 'MacroParamNamePrefix';   DataType: gdtString;         Validator: nil;                 Default: ''),
+    (Title: 'MacroParamUsePrefix';    DataType: gdtString;         Validator: nil;                 Default: ''),
     (Title: 'OpBinaryAdd';            DataType: gdtOperatorDef;    Validator: nil;                 Default: '+|[5]'),
     (Title: 'OpBinaryDivide';         DataType: gdtOperatorDef;    Validator: nil;                 Default: '/|DIV|[3]'),
     (Title: 'OpBinaryMod';            DataType: gdtOperatorDef;    Validator: nil;                 Default: 'MOD|[3]'),

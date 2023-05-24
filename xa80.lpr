@@ -4,7 +4,7 @@ program xa80;
 
 {
     XA80 - Cross Assembler for x80 processors
-    Copyright (C)2020-2022 Duncan Munro
+    Copyright (C)2020-2023 Duncan Munro
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,55 @@ uses
   uenvironment, ucommandline, umonitor, typinfo, uutility, uasmglobals,
   uassembler80;
 
+const
+  CRLF = #13 + #10;
+//             .........|.........|.........|.........|.........|.........|.........|.........|
+  HELP_INFO = '<cn>, <en>, <ln>, <mn>, <on>, <hn> can be filenames or folders. If a folder,' + CRLF +
+              'the output file will become the assembler file name with the filetype changed' + CRLF +
+              'to .com/.log/.lst/.map/.obj80/.hex as appropriate. If a filename then this will' + CRLF +
+              'be used for the output, if no filetype specified one will be added.' + CRLF +
+              CRLF +
+              '<b> is the debug info inclusion level and defines what gets added to the object' + CRLF +
+              'files, and can be:' + CRLF +
+              '  0 No debug info inclusion (default)' + CRLF +
+              '  1 Include line numbers and source file names in object file' + CRLF +
+              '  2 Include line numbers and all source code in object file' + CRLF +
+              CRLF +
+              '<id> is the define and can be a symbol name, or symbol=value. 16 bit numbers' + CRLF +
+              'and strings can be used. The ; separates multiple entries. For example: ' + CRLF +
+              '--define=DEBUG;PSIZE=128;TITLE="Home page"' + CRLF +
+              CRLF +
+              '<gt> is the grammar type, <pt> is the processor type. Please refer to' + CRLF +
+              'documentation for more details. The default is XA80 and Z80 respectively.' + CRLF +
+              CRLF +
+              '<il> is the include list. Like with <id> ; can be used to separate.' + CRLF +
+              CRLF +
+              '<tp> topics are case insensitive and can be:' + CRLF +
+              '  DFAE         Show DFA for Expression analyser' + CRLF +
+              '  DFAP         Show DFA for Preparser' + CRLF +
+              '  Distribution Show distribution terms for this software' + CRLF +
+              '  Environment  Show the environment for the assembler' + CRLF +
+              '  Grammar      Show the grammar rules in use' + CRLF +
+              '  Grammars     Show the different grammars available by default' + CRLF +
+              '  Instructions Show the instruction set for the chosen processor' + CRLF +
+              '  NFAE         Show the NFA for the Expression analyser' + CRLF +
+              '  NFAP         Show the NFA for the Preparser' + CRLF +
+              '  Operators    Show the logical and mathematical operations for this grammar' + CRLF +
+              '  Processors   Show the different processors available by default' + CRLF +
+              '  Reserved     Show a list of reserved words for this grammar/processor' + CRLF +
+              '  Version      Show the version information for the software' + CRLF +
+              '  Warranty     Show the warranty information for the software' + CRLF +
+              CRLF +
+              '<ts> sets the Tab size for tab expansions, the default is 4.' + CRLF +
+              CRLF +
+              '<n> can be one of:' + CRLF +
+              '  0: Silent, only show fatal and internal software errors' + CRLF +
+              '  1: Normal level, the default' + CRLF +
+              '  2: Verbose, show more information' + CRLF +
+              '  3: War and Peace, show much more information' + CRLF +
+              '  4: Debug, only relevant with debug versions of the software' + CRLF +
+              CRLF;
+
 type
 
   { TXA80 }
@@ -48,6 +97,8 @@ type
     procedure ShowHelp;
     procedure ShowTitle;
   end;
+
+
 
 { TXA80 }
 
@@ -176,51 +227,14 @@ begin
   finally
     FreeAndNil(cmd_list);
   end;
-  WriteLn('<bn>, <cn>, <en>, <ln>, <mn>, <on>, <hn> can be filenames or folders. If a');
-  WriteLn('folder, the output file will become the assembler file name with the filetype');
-  WriteLn('changed to .dbg80/.com/.log/.lst/.map/.obj80/.hex as appropriate. If a filename');
-  WriteLn('then this will be used for the output, if no filetype specified one will be');
-  WriteLn('added.');
-  WriteLn;
-  WriteLn('<id> is the define and can be a symbol name, or symbol=value. 16 bit numbers');
-  WriteLn('and strings can be used. The ; separates multiple entries. For example:');
-  WriteLn('--define=DEBUG;PSIZE=128;TITLE="Home page"');
-  WriteLn;
-  WriteLn('<gt> is the grammar type, <pt> is the processor type. Please refer to');
-  WriteLn('documentation for more details. The default is XA80 and Z80 respectively.');
-  WriteLn;
-  WriteLn('<il> is the include list. Like with <id> ; can be used to separate.');
-  WriteLn;
-  WriteLn('<tp> topics are case insensitive and can be:');
-  WriteLn('  DFAE         Show DFA for Expression analyser');
-  WriteLn('  DFAP         Show DFA for Preparser');
-  WriteLn('  Distribution Show distribution terms for this software');
-  WriteLn('  Environment  Show the environment for the assembler');
-  WriteLn('  Grammar      Show the grammar rules in use');
-  WriteLn('  Instructions Show the instruction set for the chosen processor');
-  WriteLn('  NFAE         Show the NFA for the Expression analyser');
-  WriteLn('  NFAP         Show the NFA for the Preparser');
-  WriteLn('  Operators    Show the logical and mathematical operations for this grammar');
-  WriteLn('  Reserved     Show a list of reserved words for this grammar/processor');
-  WriteLn('  Version      Show the version information for the software');
-  WriteLn('  Warranty     Show the warranty information for the software');
-  WriteLn;
-  WriteLn('<ts> sets the Tab size for tab expansions, the default is 4.');
-  WriteLn;
-  WriteLn('<n> can be one of:');
-  WriteLn('  0: Silent, only show fatal and internal software errors');
-  WriteLn('  1: Normal level, the default');
-  WriteLn('  2: Verbose, show more information');
-  WriteLn('  3: War and Peace, show much more information');
-  WriteLn('  4: Debug, only relevant with debug versions of the software');
-  WriteLn;
+  WriteLn(HELP_INFO);
 end;
 
 procedure TXA80.ShowTitle;
 begin
   WriteLn;
   WriteLn('XA80 Cross Assembler for x80 processors V' + VERSION_STRING);
-  WriteLn('Copyright (C)2020-2022 Duncan Munro');
+  WriteLn('Copyright (C)2020-2023 Duncan Munro');
   WriteLn;
   if ParamCount = 0 then
     begin

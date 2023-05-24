@@ -32,7 +32,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="units"/>
+            <OtherUnitFiles Value="units;lexer_parser\units"/>
             <UnitOutputDirectory Value="lib\release\$(TargetOS)-$(TargetCPU)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -58,7 +58,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="units"/>
+            <OtherUnitFiles Value="units;lexer_parser\units"/>
             <UnitOutputDirectory Value="lib\debug\$(TargetOS)-$(TargetCPU)"/>
           </SearchPaths>
           <Parsing>
@@ -122,6 +122,22 @@
         <Filename Value="units\ugrammar.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="lexer_parser\units\udmdfa.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="lexer_parser\units\udmnfa.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="lexer_parser\units\udmset.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="lexer_parser\units\udmyala.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -132,7 +148,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="units"/>
+      <OtherUnitFiles Value="units;lexer_parser\units"/>
       <UnitOutputDirectory Value="lib\debug\$(TargetOS)-$(TargetCPU)"/>
     </SearchPaths>
     <Parsing>

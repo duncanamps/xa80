@@ -15,7 +15,7 @@ object frmGrammar: TfrmGrammar
   OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
-  LCLVersion = '2.2.2.0'
+  LCLVersion = '2.2.6.0'
   object StringGrid1: TStringGrid
     Left = 0
     Height = 581
