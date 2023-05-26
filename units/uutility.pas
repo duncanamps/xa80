@@ -30,25 +30,32 @@ uses
 
 procedure AugmentIncludes(s: string; list: TStringList);
 function  BinaryStrToInt(_str: string): integer;
+function  BinToDecStr(_s: string): string;
+function  BooleanToYN(_b: boolean): string;
 function  CharAsReadable(_c: char): string;
 procedure CmdOptionToList(app: TCustomApplication; shortopt: char; longopt: string; list: TStringList; delim: boolean = False);
 function  ExpandTabs(const _s: string; tabsize: integer): string;
+function  Indirected(_str: string): boolean;
 function  InQuotes(const _s: string): boolean;
 function  IntToBinaryStr(_v: integer; _digits: integer): string;
 function  IntToOctalStr(_v: integer; _digits: integer): string;
 function  IsPrime(_value: integer): boolean;
 function  LineTerminator: string;
+function  NCSPos(_a, _b: string): integer;
 function  NextPrime(_value: integer): integer;
 function  OctalStrToInt(_str: string): integer;
+function  OctToDecStr(_s: string): string;
 function  ProgramData: string;
+procedure UnderlinedText(_sl: TStringList; _text: string; _blank_after: boolean = True; _underline_char: char = '-');
 function  UnEscape(_s: string): string;
 
 implementation
 
-{$IFDEF WINDOWS}
 uses
-  WinDirs;
+{$IFDEF WINDOWS}
+  WinDirs,
 {$ENDIF}
+  uasmglobals;
 
 procedure AugmentIncludes(s: string; list: TStringList);
 begin
@@ -66,6 +73,27 @@ begin
       Result := Result + StrToInt(_str[1]);
       Delete(_str,1,1);
     end;
+end;
+
+function BinToDecStr(_s: string): string;
+var i: integer;
+    v: integer;
+begin
+  v := 0;
+  for i := 3 to Length(_s) do // Start at 3 to skip the '0b' at the start
+    begin
+      v := v * 2;
+      v := v + Ord(_s[i]) - Ord('0');
+    end;
+  result := IntToStr(v);
+end;
+
+function BooleanToYN(_b: boolean): string;
+begin
+  if _b then
+    BooleanToYN := 'Y'
+  else
+    BooleanToYN := 'N';
 end;
 
 function CharAsReadable(_c: char): string;
@@ -141,6 +169,114 @@ begin
     end;
 end;
 
+procedure IdentifyStringPos(const _src: string; var _start,_length: integer);
+type TISPState = (stNormal,stDQStr,stDQEsc,stSQStr,stSQEsc);
+var state: TISPState;
+    ch:    char;
+    index: integer;
+    srclen: integer;
+    done:   boolean;
+begin
+  state   := stNormal;
+  srclen  := Length(_src);
+  index   := 1;
+  _start  := 0;
+  _length := 0;
+  done    := False;
+  while (index <= srclen) and (not done) do
+    begin
+      ch := _src[index];
+      case state of
+        stNormal: case ch of
+                    SQ: begin
+                          state := stSQStr;
+                          _start := index;
+                        end;
+                    DQ: begin
+                          state := stDQStr;
+                          _start := index;
+                        end;
+                  end;
+        stDQStr: case ch of
+                    DQ: begin
+                          state := stNormal;
+                          done  := True;
+                          _length := index - _start + 1;
+                        end;
+                    ESCAPE: state := stDQEsc;
+                  end;
+        stDQEsc: if ch in ESCAPED then
+                    state := stDQStr
+                  else
+                    raise Exception.Create('Illegal escape character ' + ch);
+        stSQStr: case ch of
+                    SQ: begin
+                          state := stNormal;
+                          done  := True;
+                          _length := index - _start + 1;
+                        end;
+                    ESCAPE: state := stSQEsc;
+                  end;
+        stSQEsc: if ch in ESCAPED then
+                    state := stSQStr
+                  else
+                    raise Exception.Create('Illegal escape character ' + ch);
+      end;
+      Inc(index);
+    end;
+end;
+
+// Return True if an operand is Indirected, e.g.
+//
+// (HL)                   True
+// 1+(C)                  False
+// (IX+3)                 True
+// (0x03ab)               True
+// (buffer)               True
+// (buffer+1)*(2+3)       False
+// (buffer+ASC(")"))      True
+// (ASC(LEFT("3\"))",1))) True
+
+function Indirected(_str: string): boolean;
+var i: integer;
+    ch: char;
+    sp: integer;
+    sl: integer;
+    brace_count: integer;
+    brace_min:   integer;
+begin
+  Indirected := False;
+  if (Length(_str) >= 3) and
+     (LeftStr(_str,1) = '(') and
+     (RightStr(_str,1) = ')') then
+    begin
+      sp := 0;
+      sl := 0;
+      repeat
+        IdentifyStringPos(_str,sp,sl);
+        if sp > 0 then
+          Delete(_str,sp,sl);
+      until sp < 1;
+      brace_count := 0;
+      brace_min   := 1;
+      for i := 1 to Length(_str) do
+        begin
+          ch := _str[i];
+          if ch = '(' then
+            Inc(brace_count)
+          else if ch = ')' then
+            begin
+              Dec(brace_count);
+              if (brace_count < brace_min) and (i < Length(_str)) then
+                brace_min := brace_count;
+            end;
+        end;
+      if brace_count <> 0 then
+        raise Exception.Create('Mismatched parenthesis in operand');
+      Indirected := (brace_min > 0);
+    end;
+end;
+
 function InQuotes(const _s: string): boolean;
 begin
   Result := (Length(_s) >= 2) and ((_s[1] = '''') or (_s[1] = '"'));
@@ -193,6 +329,11 @@ begin
 {$ENDIF}
 end;
 
+function NCSPos(_a, _b: string): integer;
+begin
+  NCSPos := Pos(UpperCase(_a),UpperCase(_b));
+end;
+
 function NextPrime(_value: integer): integer;
 begin
   if (_value mod 2) = 0 then
@@ -213,6 +354,19 @@ begin
     end;
 end;
 
+function OctToDecStr(_s: string): string;
+var i: integer;
+    v: integer;
+begin
+  v := 0;
+  for i := 2 to Length(_s) do // Start at 2 to skip the '0' at the start
+    begin
+      v := v * 8;
+      v := v + Ord(_s[i]) - Ord('0');
+    end;
+  result := IntToStr(v);
+end;
+
 function ProgramData: string;
 var folder: string;
 begin
@@ -230,6 +384,14 @@ begin
   folder := IncludeTrailingPathDelimiter(folder + 'XA80');
   ForceDirectories(folder); // Ensure directory exists!
   Result := folder;
+end;
+
+procedure UnderlinedText(_sl: TStringList; _text: string; _blank_after: boolean = True; _underline_char: char = '-');
+begin
+  _sl.Add(_text);
+  _sl.Add(StringOfChar(_underline_char,Length(_text)));
+  if _blank_after then
+    _sl.Add('');
 end;
 
 { Remove enclosing ' or " if present. Turn escape characters into real ones }
@@ -268,6 +430,7 @@ begin
       Inc(i);
     end;
 end;
+
 
 end.
 

@@ -146,7 +146,7 @@ const
     (Title: 'Author';                 DataType: gdtText;           Validator: nil;                 Default: 'Duncan Munro'),
     (Title: 'CmdCPU';                 DataType: gdtStringList;     Validator: nil;                 Default: ''),
     (Title: 'CmdDefineBytes';         DataType: gdtStringList;     Validator: nil;                 Default: 'DB|DEFB'),
-    (Title: 'CmdDefineFloat';         DataType: gdtStringList;     Validator: Nil;                 Default: 'DF|DEFF'),
+    (Title: 'CmdDefineFloat';         DataType: gdtStringList;     Validator: nil;                 Default: 'DF|DEFF'),
     (Title: 'CmdDefineStorage';       DataType: gdtStringList;     Validator: nil;                 Default: 'DS|DEFS'),
     (Title: 'CmdDefineString';        DataType: gdtStringList;     Validator: nil;                 Default: 'DM|DEFM'),
     (Title: 'CmdDefineStringH';       DataType: gdtStringList;     Validator: nil;                 Default: 'DC|DEFC'),

@@ -66,6 +66,17 @@ const
   HEXBUF_LENGTH                     = ((3*MAX_HEX_BYTES_IN_LISTING) + 7);
 
 
+const DIGITS:  set of char = ['0'..'9'];
+      ALPHA:   set of char = ['A'..'Z','a'..'z'];
+      ESCAPED: set of char = [#34,#39,'t','n','r','\'];
+      BAD:     set of char = [#0..#9,#11..#31,#127];
+      LABELX:  set of char = ['.','?','@','_','$'];
+      LF = #10;     // Line feed
+      SQ = #39;     // Single quote '
+      DQ = #34;     // Double quote "
+      ESCAPE = '\'; // Escape character
+
+
 type
   TAsmInt = int32;
 
@@ -114,78 +125,8 @@ type
   end;
 
 
-function BinToDecStr(_s: string): string;
-function BooleanToYN(_b: boolean): string;
-// function ExpandTabs(_src: string; _tabsize: integer): string;
-function NCSPos(_a, _b: string): integer;
-function OctToDecStr(_s: string): string;
-procedure UnderlinedText(_sl: TStringList; _text: string; _blank_after: boolean = True; _underline_char: char = '-');
 
 implementation
-
-function BinToDecStr(_s: string): string;
-var i: integer;
-    v: integer;
-begin
-  v := 0;
-  for i := 3 to Length(_s) do // Start at 3 to skip the '0b' at the start
-    begin
-      v := v * 2;
-      v := v + Ord(_s[i]) - Ord('0');
-    end;
-  result := IntToStr(v);
-end;
-
-function BooleanToYN(_b: boolean): string;
-begin
-  if _b then
-    BooleanToYN := 'Y'
-  else
-    BooleanToYN := 'N';
-end;
-
-{
-function ExpandTabs(_src: string; _tabsize: integer): string;
-var i: integer;
-begin
-  result := '';
-  for i := 1 to Length(_src) do
-    if _src[i] = #9 then
-      repeat  // Expand to boundary
-        result := result + ' ';
-      until (Length(result) mod _tabsize) = 0
-    else
-      result := result + _src[i];
-  ExpandTabs := result;
-end;
-}
-
-function NCSPos(_a, _b: string): integer;
-begin
-  NCSPos := Pos(UpperCase(_a),UpperCase(_b));
-end;
-
-function OctToDecStr(_s: string): string;
-var i: integer;
-    v: integer;
-begin
-  v := 0;
-  for i := 2 to Length(_s) do // Start at 2 to skip the '0' at the start
-    begin
-      v := v * 8;
-      v := v + Ord(_s[i]) - Ord('0');
-    end;
-  result := IntToStr(v);
-end;
-
-procedure UnderlinedText(_sl: TStringList; _text: string; _blank_after: boolean = True; _underline_char: char = '-');
-begin
-  _sl.Add(_text);
-  _sl.Add(StringOfChar(_underline_char,Length(_text)));
-  if _blank_after then
-    _sl.Add('');
-end;
-
 
 end.
 

@@ -29,7 +29,7 @@ uses
   Classes, SysUtils, CustApp,
   { you can add units after this }
   uenvironment, ucommandline, umonitor, typinfo, uutility, uasmglobals,
-  uassembler80;
+  uassembler80, ugrammar;
 
 const
   CRLF = #13 + #10;
@@ -86,6 +86,7 @@ type
 
   TXA80 = class(TCustomApplication)
   protected
+    FGrammar: TGrammar;
     procedure DoRun; override;
   public
     constructor Create(TheOwner: TComponent); override;
