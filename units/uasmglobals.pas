@@ -68,17 +68,26 @@ const
 
 const DIGITS:  set of char = ['0'..'9'];
       ALPHA:   set of char = ['A'..'Z','a'..'z'];
-      ESCAPED: set of char = [#34,#39,'t','n','r','\'];
-      BAD:     set of char = [#0..#9,#11..#31,#127];
+      DEFAULT_ESCAPE = '\'; // Escape character
+      DEFAULT_ESCAPED: set of char = [#34,#39,'a','n','r','t','\'];
+      BAD:     set of char = [#0..#31,#127];
       LABELX:  set of char = ['.','?','@','_','$'];
+      TAB = #9;     // Tab
       LF = #10;     // Line feed
+      FF = #13;     // Form feed
+      CR = #13;     // Carriage return
       SQ = #39;     // Single quote '
       DQ = #34;     // Double quote "
-      ESCAPE = '\'; // Escape character
+{$IFDEF WINDOWS}
+      LINE_TERMINATOR = CR + LF;
+{$ELSE}
+      LINE_TERMINATOR = LF;
+{$ENDIF}
 
 
 type
   TAsmInt = int32;
+  TSetOfChar = set of char;
 
 
 type

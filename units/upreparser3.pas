@@ -14,7 +14,7 @@ unit upreparser3;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections;
+  Classes, SysUtils, Generics.Collections, uasmglobals;
 
 type
   TParserState = (psNone,
@@ -22,6 +22,7 @@ type
                   psDirective,
                   psCommand,
                   psInstruction,
+                  psMacro,
                   psOperand,
                   psComment,
                   psUnknown,
@@ -32,123 +33,134 @@ type
                   psDQEsc,
                   psSQStr,
                   psSQEsc,
-                  psDone,
-                  psError);
+                  psDone);
 
   TParserProp = record
-    State:    TParserState;
-    Payload:  string;
-    Column:   integer;
-    Level:    integer;
+    State:    TParserState;  // Parser object type
+    Payload:  string;        // Payload, the string that caused this
+    Column:   integer;       // Column number in the line 1..n
+    Index:    integer;       // Index of the opcode or directive
+    Level:    integer;       // Bracket level at end of object, e.g LOW(( -> 2
   end;
 
   TPreparser = class(specialize TList<TParserProp>)
     private
+      FCommands:      TStringList;
       FErrorMsg:      string;
+      FEscape:        char;
+      FEscaped:       TSetOfChar;
       FForceColon:    boolean;
+      FInstructions:  TStringList;
+      FMacros:        TStringList;
+      procedure AdjustComments;
+      procedure AssignCommands;
       procedure AssignDirective;
       procedure AssignIndirect;
       procedure AssignInstructions;
       procedure AssignLabel;
+      procedure AssignMacros;
       procedure AssignOperands;
       procedure Crunch;
-      procedure CrunchComments;
+      procedure CrunchCommaSpace;
       procedure CrunchOperands;
+      procedure CrunchOperandsAugment;
       procedure CrunchWhitespace;
     public
       constructor Create;
       destructor Destroy; override;
       procedure Init;
       function  Parse(_input: string): boolean;
+      property Commands:      TStringList read FCommands;
       property ErrorMsg:      string      read FErrorMsg;
+      property Escape:        char        read FEscape         write FEscape;
+      property Escaped:       TSetOfChar  read FEscaped        write FEscaped;
       property ForceColon:    boolean     read FForceColon     write FForceColon;
+      property Instructions:  TStringList read FInstructions;
+      property Macros:        TStringList read FMacros;
   end;
 
 
 implementation
 
 uses
-  uasmglobals, uutility, typinfo;
-
-var
-  Instructions: array[0..66] of string = ('ADC',
-                                          'ADD',
-                                          'AND',
-                                          'BIT',
-                                          'CALL',
-                                          'CCF',
-                                          'CP',
-                                          'CPD',
-                                          'CPDR',
-                                          'CPI',
-                                          'CPIR',
-                                          'CPL',
-                                          'DAA',
-                                          'DEC',
-                                          'DI',
-                                          'DJNZ',
-                                          'EI',
-                                          'EX',
-                                          'EXX',
-                                          'HALT',
-                                          'IM',
-                                          'IN',
-                                          'INC',
-                                          'IND',
-                                          'INDR',
-                                          'INI',
-                                          'INIR',
-                                          'JP',
-                                          'JR',
-                                          'LD',
-                                          'LDD',
-                                          'LDDR',
-                                          'LDI',
-                                          'LDIR',
-                                          'NEG',
-                                          'NOP',
-                                          'OR',
-                                          'OTDR',
-                                          'OTIR',
-                                          'OUT',
-                                          'OUTD',
-                                          'OUTI',
-                                          'POP',
-                                          'PUSH',
-                                          'RES',
-                                          'RET',
-                                          'RETI',
-                                          'RETN',
-                                          'RL',
-                                          'RLA',
-                                          'RLC',
-                                          'RLCA',
-                                          'RLD',
-                                          'RR',
-                                          'RRA',
-                                          'RRC',
-                                          'RRCA',
-                                          'RRD',
-                                          'RST',
-                                          'SBC',
-                                          'SCF',
-                                          'SET',
-                                          'SLA',
-                                          'SRA',
-                                          'SRL',
-                                          'SUB',
-                                          'XOR');
+  uutility, typinfo, umessages;
 
 
 constructor TPreparser.Create;
 begin
+{$IFDEF DEBUG_LOG}
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Entering function TPreparser.Create']);
+{$ENDIF}
   inherited Create;
+  FEscape  := DEFAULT_ESCAPE;
+  FEscaped := DEFAULT_ESCAPED;
   FForceColon := False;
+  FCommands := TStringList.Create;
+  FCommands.Sorted := True;
+  FInstructions := TStringList.Create;
+  FInstructions.Sorted := True;
+  FMacros := TStringList.Create;
+  FMacros.Sorted := True;
+{$IFDEF DEBUG_LOG}
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Leaving function TPreparser.Create']);
+{$ENDIF}
 end;
 
 destructor TPreparser.Destroy;
 begin
+{$IFDEF DEBUG_LOG}
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Entering function TPreparser.Destroy']);
+{$ENDIF}
+  FreeAndNil(FCommands);
+  FreeAndNil(FInstructions);
+  FreeAndNil(FMacros);
   inherited Destroy;
+{$IFDEF DEBUG_LOG}
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Leaving function TPreparser.Destroy']);
+{$ENDIF}
+end;
+
+// Fix problems with // comments, part will be left on the payload of the
+// previous item
+
+procedure TPreparser.AdjustComments;
+var rec: TParserProp;
+begin
+  if (Count > 1) and
+     (Items[Count-1].State = psComment) and
+     (Items[Count-1].Payload <> '') and
+     (Items[Count-1].Payload[1] = '/') then
+    begin
+      rec := Items[Count-1];
+      rec.Payload := '/' + Items[Count-1].Payload;
+      Items[Count-1] := rec;
+      rec := Items[Count-2];
+      rec.Payload := LeftStr(Items[Count-2].Payload,Length(Items[Count-2].Payload)-1);
+      Items[Count-2] := rec;
+      if Items[Count-2].Payload = '' then
+        Delete(Count-2);
+    end;
+end;
+
+procedure TPreparser.AssignCommands;
+var i,j: integer;
+    rec: TParserProp;
+    cmd: string;
+begin
+  i := 0;
+  while (i < Count) and (Items[i].State <> psDirective) do
+    Inc(i);
+  if (i < Count) then
+    begin
+      rec := Items[i];
+      cmd := UpperCase(rec.Payload);
+      if FCommands.Find(cmd,j) then
+        begin
+          rec.State := psCommand;
+          rec.Index := j;
+          Items[i] := rec;
+        end;
+    end;
 end;
 
 procedure TPreparser.AssignDirective;
@@ -178,7 +190,7 @@ begin
          (Length(rec.Payload) >= 3) and
          (LeftStr(rec.Payload,1) = '(') and
          (RightStr(rec.Payload,1) = ')') and
-         (Indirected(rec.Payload)) then
+         (Indirected(rec.Payload,FEscape,FEscaped)) then
         begin
           rec.Payload[1] := '[';
           rec.Payload[Length(rec.Payload)] := ']';
@@ -190,6 +202,7 @@ end;
 procedure TPreparser.AssignInstructions;
 var i,j: integer;
     rec: TParserProp;
+    mnemonic: string;
 begin
   i := 0;
   while (i < Count) and (Items[i].State <> psDirective) do
@@ -197,12 +210,11 @@ begin
   if (i < Count) then
     begin
       rec := Items[i];
-      j := 0;
-      while (j < 67) and (rec.Payload <> Instructions[j]) do
-        Inc(j);
-      if j < 67 then
+      mnemonic := UpperCase(rec.Payload);
+      if FInstructions.Find(mnemonic,j) then
         begin
           rec.State := psInstruction;
+          rec.Index := j;
           Items[i] := rec;
         end;
     end;
@@ -213,22 +225,34 @@ var rec: TParserProp;
 begin
   if Count = 0 then
     Exit;
-  if FForceColon then
-    begin // Colon required, must be in first place and have a colon
-      if (Items[0].State = psGlob) and (RightStr(Items[0].Payload,1) = ':') then
+  // Label must be in first place
+  // Even if force colon, some labels will not have a colon on them
+  // e.g.  TABLE EQU 17
+  if (Items[0].State = psGlob) then
+    begin
+      rec := Items[0];
+      rec.State := psLabel;
+      Items[0] := rec;
+    end;
+end;
+
+procedure TPreparser.AssignMacros;
+var i,j: integer;
+    rec: TParserProp;
+    cmd: string;
+begin
+  i := 0;
+  while (i < Count) and (Items[i].State <> psDirective) do
+    Inc(i);
+  if (i < Count) then
+    begin
+      rec := Items[i];
+      cmd := UpperCase(rec.Payload);
+      if FMacros.Find(cmd,j) then
         begin
-          rec := Items[0];
-          rec.State := psLabel;
-          Items[0] := rec;
-        end;
-    end
-  else
-    begin // Colon not required, label must be in first place
-      if Items[0].State = psGlob then
-        begin
-          rec := Items[0];
-          rec.State := psLabel;
-          Items[0] := rec;
+          rec.State := psMacro;
+          rec.Index := -1;
+          Items[i] := rec;
         end;
     end;
 end;
@@ -248,12 +272,15 @@ begin
       Items[i] := rec;
       // Scan for more
       Inc(i);
-      while (i < Count-1) and (Items[i].State = psComma) and (Items[i+1].State in [psGlob,psDQStr,psSQStr]) do
+      while (i < Count-1) do
         begin
-          Delete(i); // Get rid of comma
-          rec := Items[i];
-          rec.State := psOperand;
-          Items[i] := rec;
+          if  (Items[i].State = psComma) and (Items[i+1].State in [psGlob,psDQStr,psSQStr]) then
+            begin
+              Delete(i); // Get rid of comma
+              rec := Items[i];
+              rec.State := psOperand;
+              Items[i] := rec;
+            end;
           Inc(i);
         end;
     end;
@@ -261,32 +288,38 @@ end;
 
 procedure TPreparser.Crunch;
 begin
-  CrunchComments;
+  AdjustComments;
   CrunchOperands;
   AssignLabel;
-  CrunchWhitespace;
   AssignDirective;
+  CrunchCommaSpace;
   AssignOperands;
+  CrunchOperandsAugment;
+  CrunchWhitespace;
   AssignIndirect;
+  AssignCommands;
   AssignInstructions;
+  AssignMacros;
 end;
 
-procedure TPreparser.CrunchComments;
-var rec: TParserProp;
+procedure TPreparser.CrunchCommaSpace;
+var i: integer;
 begin
-  if (Count > 1) and
-     (Items[Count-1].State = psComment) and
-     (Items[Count-1].Payload <> '') and
-     (Items[Count-1].Payload[1] = '/') then
+  // Crunch  whitespace comma -> comma
+  i := 0;
+  while i < Count-1 do
     begin
-      rec := Items[Count-1];
-      rec.Payload := '/' + Items[Count-1].Payload;
-      Items[Count-1] := rec;
-      rec := Items[Count-2];
-      rec.Payload := LeftStr(Items[Count-2].Payload,Length(Items[Count-2].Payload)-1);
-      Items[Count-2] := rec;
-      if Items[Count-2].Payload = '' then
-        Delete(Count-2);
+      while (i < Count-1) and (Items[i].State = psWhitespace) and (Items[i+1].State = psComma) do
+        Delete(i);
+      Inc(i);
+    end;
+  // Crunch  comma whitespace -> comma
+  i := 0;
+  while i < Count-1 do
+    begin
+      while (i < Count-1) and (Items[i].State = psComma) and (Items[i+1].State = psWhitespace) do
+        Delete(i+1);
+      Inc(i);
     end;
 end;
 
@@ -294,6 +327,7 @@ procedure TPreparser.CrunchOperands;
 var i: integer;
     rec: TParserProp;
 begin
+  // Join the bracketed levels
   i := 0;
   while i < Count do
     begin
@@ -303,6 +337,26 @@ begin
           rec.Payload := rec.Payload + Items[i+1].Payload;
           rec.Level   := Items[i+1].Level;
           Items[i] := rec;
+          Delete(i+1);
+        end;
+      Inc(i);
+    end;
+end;
+
+procedure TPreparser.CrunchOperandsAugment;
+var i: integer;
+    rec: TParserProp;
+begin
+  // Crunch <operand> <whitespace> <glob>
+  i := 0;
+  while i < (Count-2) do
+    begin
+      while (i < (Count-2)) and (Items[i].State = psOperand) and (Items[i+1].State = psWhitespace) and (Items[i+2].State = psGlob) do
+        begin
+          rec := Items[i];
+          rec.Payload := rec.Payload + Items[i+1].Payload + Items[i+2].Payload;
+          Items[i] := rec;
+          Delete(i+2);
           Delete(i+1);
         end;
       Inc(i);
@@ -333,13 +387,7 @@ var i: integer;
     prev_ch: char;
     inp_len: integer;
     level:   integer;
-
-  procedure RaiseError(const _msg: string);
-  begin
-    state := psError;
-    FErrorMsg := _msg + ' in column ' + IntToStr(i);
-    Parse := False;
-  end;
+    iter:    TParserProp;
 
   procedure NewState(_newstate: TParserState);
   var prop: TParserProp;
@@ -354,6 +402,7 @@ var i: integer;
             prop.Column   := column;
             prop.Payload  := payload;
             prop.Level    := level;
+            prop.Index    := -1;
             Add(prop);
           end;
         state := _newstate;
@@ -363,6 +412,7 @@ var i: integer;
   end;
 
 begin
+  ErrorObj.ColNumber := 0;
   Parse := True;
   Init;
   inp_len := Length(_input);
@@ -378,6 +428,7 @@ begin
   // where globs are things like ASC(LEFT(sVal,1))
   for i := 1 to inp_len do
     begin
+      ErrorObj.ColNumber := i;
       ch := _input[i];
       case state of
         psNone:
@@ -433,25 +484,27 @@ begin
         psDQStr:
           case ch of
             DQ:     NewState(psUnknown);
-            ESCAPE: state := psDQEsc;
+            otherwise
+              if ch = FEscape then
+                state := psDQEsc;
           end;
         psDQEsc:
           if ch in ESCAPED then
             state := psDQStr
           else
-            RaiseError('Illegal escape sequence');
+            ErrorObj.Show(ltError,E2001_ILLEGAL_ESCAPE_CHARACTER,[ch,CharSetToStr(ESCAPED)]);
         psSQStr:
           case ch of
             SQ:     NewState(psUnknown);
-            ESCAPE: state := psSQEsc;
+            otherwise
+              if ch = FEscape then
+                state := psSQEsc;
           end;
         psSQEsc:
           if ch in ESCAPED then
             state := psSQStr
           else
-            RaiseError('Illegal escape sequence');
-        psError:
-          Exit;
+            ErrorObj.Show(ltError,E2001_ILLEGAL_ESCAPE_CHARACTER,[ch,CharSetToStr(ESCAPED)]);
       end;
       if (ch = '(') and (state = psGlob) then
         Inc(level);
@@ -460,8 +513,17 @@ begin
       payload := payload + ch;
       prev_ch := ch;
     end;
+  if state in [psSQStr,psSQEsc,psDQStr,psDQEsc] then
+    ErrorObj.Show(ltError,E2002_UNTERMINATED_STRING,[payload]);
   NewState(psDone);
   Crunch;
+  // Check for unresolved globs etc.
+  for iter in Self do
+    if not (iter.State in [psLabel,psCommand,psInstruction,psMacro,psOperand]) then
+      begin
+        ErrorObj.ColNumber := iter.Column;
+        ErrorObj.Show(ltError,E2003_UNRECOGNISED_CONTENT,[iter.Payload]);
+      end;
   Parse := True;
 end;
 

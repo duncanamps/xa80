@@ -2,7 +2,7 @@ unit uutility;
 
 {
     XA80 - Cross Assembler for x80 processors
-    Copyright (C)2020-2022 Duncan Munro
+    Copyright (C)2020-2023 Duncan Munro
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,16 +26,17 @@ unit uutility;
 interface
 
 uses
-  Classes, SysUtils, CustApp;
+  Classes, SysUtils, CustApp, uasmglobals;
 
 procedure AugmentIncludes(s: string; list: TStringList);
 function  BinaryStrToInt(_str: string): integer;
 function  BinToDecStr(_s: string): string;
 function  BooleanToYN(_b: boolean): string;
 function  CharAsReadable(_c: char): string;
+function  CharSetToStr(_s: TSetOfChar): string;
 procedure CmdOptionToList(app: TCustomApplication; shortopt: char; longopt: string; list: TStringList; delim: boolean = False);
 function  ExpandTabs(const _s: string; tabsize: integer): string;
-function  Indirected(_str: string): boolean;
+function  Indirected(_str: string; _escape: char; _escaped: TSetOfChar): boolean;
 function  InQuotes(const _s: string): boolean;
 function  IntToBinaryStr(_v: integer; _digits: integer): string;
 function  IntToOctalStr(_v: integer; _digits: integer): string;
@@ -55,7 +56,7 @@ uses
 {$IFDEF WINDOWS}
   WinDirs,
 {$ENDIF}
-  uasmglobals;
+  umessages;
 
 procedure AugmentIncludes(s: string; list: TStringList);
 begin
@@ -139,6 +140,17 @@ begin
   end;
 end;
 
+function CharSetToStr(_s: TSetOfChar): string;
+var ch: char;
+    ans:  string;
+begin
+  ans := '';
+  for ch in [' '..'~'] do
+    if ch in _s then
+      ans := ans + ch;
+  CharSetToStr := ans;
+end;
+
 procedure CmdOptionToList(app: TCustomApplication; shortopt: char; longopt: string; list: TStringList; delim: boolean = False);
 var i: integer;
 begin
@@ -169,7 +181,7 @@ begin
     end;
 end;
 
-procedure IdentifyStringPos(const _src: string; var _start,_length: integer);
+procedure IdentifyStringPos(const _src: string; var _start,_length: integer; _escape: char; _escaped: TSetOfChar);
 type TISPState = (stNormal,stDQStr,stDQEsc,stSQStr,stSQEsc);
 var state: TISPState;
     ch:    char;
@@ -203,24 +215,28 @@ begin
                           done  := True;
                           _length := index - _start + 1;
                         end;
-                    ESCAPE: state := stDQEsc;
+                    otherwise
+                      if ch = _escape then
+                        state := stDQEsc;
                   end;
-        stDQEsc: if ch in ESCAPED then
+        stDQEsc: if ch in _escaped then
                     state := stDQStr
                   else
-                    raise Exception.Create('Illegal escape character ' + ch);
+                    ErrorObj.Show(ltError,E2001_ILLEGAL_ESCAPE_CHARACTER,[ch,CharSetToStr(_escaped)]);
         stSQStr: case ch of
                     SQ: begin
                           state := stNormal;
                           done  := True;
                           _length := index - _start + 1;
                         end;
-                    ESCAPE: state := stSQEsc;
+                    otherwise
+                      if ch = _escape then
+                        state := stSQEsc;
                   end;
-        stSQEsc: if ch in ESCAPED then
+        stSQEsc: if ch in _escaped then
                     state := stSQStr
                   else
-                    raise Exception.Create('Illegal escape character ' + ch);
+                    ErrorObj.Show(ltError,E2001_ILLEGAL_ESCAPE_CHARACTER,[ch,CharSetToStr(_escaped)]);
       end;
       Inc(index);
     end;
@@ -237,7 +253,7 @@ end;
 // (buffer+ASC(")"))      True
 // (ASC(LEFT("3\"))",1))) True
 
-function Indirected(_str: string): boolean;
+function Indirected(_str: string; _escape: char; _escaped: TSetOfChar): boolean;
 var i: integer;
     ch: char;
     sp: integer;
@@ -253,7 +269,7 @@ begin
       sp := 0;
       sl := 0;
       repeat
-        IdentifyStringPos(_str,sp,sl);
+        IdentifyStringPos(_str,sp,sl,_escape,_escaped);
         if sp > 0 then
           Delete(_str,sp,sl);
       until sp < 1;
