@@ -16,3 +16,5 @@ test_files/backup/
 test_files/imported/
 tch.bat
 backup/
+clean.bat
+_deprecated/

@@ -40,11 +40,11 @@ BITBUF_SIZE	EQU		(MAX_PRIMES+7) / 8
 ; Some error checking to ensure that SQRT_PRIMES has been set correctly!
 
 IF SQRT_PRIMES*SQRT_PRIMES > MAX_PRIMES
-ASMERROR "SQRT_PRIMES is too high"
+	ASMERROR "SQRT_PRIMES is too high"
 ENDIF
 
 IF (SQRT_PRIMES+1)*(SQRT_PRIMES+1) <= MAX_PRIMES
-ASMERROR "SQRT_PRIMES is too low"
+	ASMERROR "SQRT_PRIMES is too low"
 ENDIF
 
 
@@ -57,19 +57,19 @@ ENDIF
 
 ; Rotate right HL by 1 bit
 		
-DEFMACRO	RRHL
+RRHL		MACRO
 			OR		A,A				; Cheap trick to clear carry with 1 byte
 			RR		H				; Rotate H
 			RR		L				; into L
-ENDM
+			ENDM
 
 ; Rotate right HL by 3 bits
 
-DEFMACRO	RRHL3
-			MACRO RRHL
-			MACRO RRHL
-			MACRO RRHL
-ENDM			
+RRHL3		MACRO
+			RRHL
+			RRHL
+			RRHL
+			ENDM			
 
 ;==============================================================================
 ;
@@ -154,9 +154,9 @@ SETBIT:
 			PUSH	DE				; Save DE as we will mess with it
 			PUSH	HL				; Save HL for now
 			CALL	CALCBIT			; Set up IX and IY
-			LD		A,[IX+0]		; Get BITBUF byte
-			OR		A,[IY+0]		; and set the appropriate bit
-			LD		[IX+0],A		; then save back
+			LD		A,(IX+0)		; Get BITBUF byte
+			OR		A,(IY+0)		; and set the appropriate bit
+			LD		(IX+0),A		; then save back
 			POP		HL				; Restore HL
 			POP		DE				; Restore DE
 			RET						; and back to caller
@@ -167,8 +167,8 @@ ISBIT:
 			PUSH	DE				; Save DE as we will mess with it
 			PUSH	HL				; Save HL for now
 			CALL	CALCBIT			; Set up IX and IY
-			LD		A,[IX+0]		; Get BITBUF byte
-			AND		A,[IY+0]		; and mask with the appropriate bit
+			LD		A,(IX+0)		; Get BITBUF byte
+			AND		A,(IY+0)		; and mask with the appropriate bit
 			POP		HL				; Restore HL
 			POP		DE				; Restore DE
 			RET						; and back to caller
@@ -177,7 +177,7 @@ ISBIT:
 
 CALCBIT:
 			PUSH	HL				; Save HL for now
-			MACRO	RRHL3			; HL <- HL / 8
+			RRHL3					; HL <- HL / 8
 			PUSH	HL				; Copy HL
 			POP		DE				; into DE
 			LD		IX,BITBUF		; Point IX to BITBUF
@@ -211,15 +211,15 @@ CONVDEC:
 			LD		BC,-1
 			CALL	CONVDIG
 			LD		A,'$'			; Terminator
-			LD		[DE],A			; Save it in the buffer
+			LD		(DE),A			; Save it in the buffer
 			POP		HL				; Get BUF pointer back but into HL this time
 			LD		B,4				; 4 digits to check
 			LD		C,' '			; Space to infill with
 			LD		A,'0'			; Digit to check against
 CNVD2:	
-			CP		A,[HL]			; ASCII zero digit ?
+			CP		A,(HL)			; ASCII zero digit ?
 			JR		NZ,CNVDX		; No, drop out of the loop
-			LD		[HL],C			; Make leading zero a space
+			LD		(HL),C			; Make leading zero a space
 			INC		HL				; Move to next digit
 			DJNZ	CNVD2			; and loop back for more
 CNVDX:	
@@ -232,7 +232,7 @@ CDIG2:
 			JR		C,CDIG2
 CDIGX:
 			SBC		HL,BC
-			LD		[DE],A
+			LD		(DE),A
 			INC		DE
 			RET
 		
@@ -271,10 +271,9 @@ BITMASKS:	DB		%00000001
 
 ; Text strings
 
-MSG: 		DB      'Sieve',13,10
-			DB		'Created with XA80 cross assembler',13,10,10
+MSG: 		DB      "Sieve",13,10
+			DB		"Created with XA80 cross assembler",13,10,10
 			DB		'$'
 CRLF:		DB		13,10,'$'
 
 			END
-		
