@@ -26,7 +26,7 @@ unit uutility;
 interface
 
 uses
-  Classes, SysUtils, CustApp, uasmglobals;
+  Classes, SysUtils, CustApp, uasmglobals, deployment_parser_types_12;
 
 procedure AugmentIncludes(s: string; list: TStringList);
 function  BinaryStrToInt(_str: string): integer;
@@ -47,8 +47,13 @@ function  NextPrime(_value: integer): integer;
 function  OctalStrToInt(_str: string): integer;
 function  OctToDecStr(_s: string): string;
 function  ProgramData: string;
+function  StripQuotes(const _s: string): string;
+function  StripQuotesAndEscaped(const _s: string): string;
 procedure UnderlinedText(_sl: TStringList; _text: string; _blank_after: boolean = True; _underline_char: char = '-');
 function  UnEscape(_s: string): string;
+function  VariableFromBinLiteral(const _s: string): integer;
+function  VariableFromHexLiteral(const _s: string): integer;
+function  VariableFromOctLiteral(const _s: string): integer;
 
 implementation
 
@@ -402,6 +407,32 @@ begin
   Result := folder;
 end;
 
+function StripQuotes(const _s: string): string;
+var l: integer;
+begin
+  Result := _s;
+  l := Length(_s);
+  if (l > 0) and (LeftStr(_s,1) = CHR(34)) then
+    begin
+      if l < 2 then
+        raise Exception.Create('Trying to strip quotes from string which is too short ' + _s);
+      if (LeftStr(_s,1) <> Chr(34)) or
+         (RightStr(_s,1) <> Chr(34)) then
+        raise Exception.Create('Trying to strip quotes which are not present ' + _s);
+      Result := Copy(_s,2,Length(_s)-2);
+    end;
+end;
+
+function StripQuotesAndEscaped(const _s: string): string;
+begin
+  Result := StripQuotes(_s);
+  Result := StringReplace(Result,'\"','"',[rfReplaceAll]);
+  Result := StringReplace(Result,'\\','\',[rfReplaceAll]);
+  Result := StringReplace(Result,'\t',#9, [rfReplaceAll]);
+  Result := StringReplace(Result,'\n',#10,[rfReplaceAll]);
+  Result := StringReplace(Result,'\r',#13,[rfReplaceAll]);
+end;
+
 procedure UnderlinedText(_sl: TStringList; _text: string; _blank_after: boolean = True; _underline_char: char = '-');
 begin
   _sl.Add(_text);
@@ -445,6 +476,82 @@ begin
         Result := Result + ch;
       Inc(i);
     end;
+end;
+
+function VariableFromBinLiteral(const _s: string): integer;
+var decval: int64;
+    i:      integer;
+    buf:    string;
+    code:   integer;
+begin
+  // Could be %101
+  //       or 0101b
+  //       or 0101B
+  //       or 0b101
+  //       or 0B101
+  decval := 0;
+  if Length(_s) < 2 then
+    ErrorObj.Show(ltError,E2006_BINARY_LITERAL_TOO_SHORT,[_s])
+  else
+    begin
+      if LeftStr(_s,1) = '%' then
+        buf := _s
+      else if UpperCase(RightStr(_s,1)) = 'B' then
+        buf := '%' + LeftStr(_s,Length(_s)-1)
+      else if (Length(_s) >= 3) and (UpperCase(LeftStr(_s,2)) = '0B') then
+        buf := '%' + RightStr(_s,Length(_s)-2)
+      else
+        ErrorObj.Show(ltError,E2006_BINARY_LITERAL_TOO_SHORT,[_s]);
+      Val(buf,decval,code);
+      if code > 0 then
+        ErrorObj.Show(ltInternal,X3005_BINARY_CONVERSION_FAILURE,[_s]);
+    end;
+  Result := decval;
+end;
+
+function VariableFromHexLiteral(const _s: string): integer;
+var decval: int64;
+    buf:    string;
+    code:   integer;
+begin
+  // Could be $033A
+  //       or #033A
+  //       or 033Ah
+  //       or 033AH
+  decval := 0;
+  if Length(_s) < 2 then
+    ErrorObj.Show(ltError,E2008_HEX_LITERAL_TOO_SHORT,[_s])
+  else
+    begin
+      if _s[1] = '$' then
+        buf := _s
+      else if _s[1] = '#' then
+        buf := '$' + RightStr(_s,Length(_s)-1)
+      else if UpperCase(RightStr(_s,1)) = 'H' then
+        buf := '$' + LeftStr(_s,Length(_s)-1)
+      else
+        ErrorObj.Show(ltError,E2008_HEX_LITERAL_TOO_SHORT,[_s]);
+      Val(buf,decval,code);
+      if code > 0 then
+        ErrorObj.Show(ltInternal,X3006_HEX_CONVERSION_FAILURE,[_s]);
+    end;
+  Result := decval;
+end;
+
+function VariableFromOctLiteral(const _s: string): integer;
+var decval: int64;
+    i:      integer;
+begin
+  // Could be 123o
+  //       or 123O
+  //       or 123q
+  //       or 123Q
+  decval := 0;
+  if Length(_s) < 2 then
+    ErrorObj.Show(ltError,E2007_OCTAL_LITERAL_TOO_SHORT,[_s]);
+  for i := 1 to Length(_s)-1 do
+    decval := decval * 8 + (Ord(_s[i])-Ord('0'));
+  Result := decval;
 end;
 
 

@@ -13,13 +13,19 @@
       <Title Value="XA80"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
+      <Resources Count="4">
+        <Resource_0 FileName="opcodes\source\8080.opcode.bin" Type="RCDATA" ResourceName="8080.OPCODE"/>
+        <Resource_1 FileName="opcodes\source\8085.opcode.bin" Type="RCDATA" ResourceName="8085.OPCODE"/>
+        <Resource_2 FileName="opcodes\source\z80.opcode.bin" Type="RCDATA" ResourceName="Z80.OPCODE"/>
+        <Resource_3 FileName="opcodes\source\z180.opcode.bin" Type="RCDATA" ResourceName="Z180.OPCODE"/>
+      </Resources>
     </General>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <MinorVersionNr Value="2"/>
       <BuildNr Value="15"/>
       <Language Value="0809"/>
-      <StringTable LegalCopyright="Copyright 2020-2022 Duncan Munro" ProductName="XA80" ProductVersion="0.2"/>
+      <StringTable LegalCopyright="Copyright 2020-2023 Duncan Munro" ProductName="XA80" ProductVersion="0.2"/>
     </VersionInfo>
     <BuildModes>
       <Item Name="Debug" Default="True"/>
@@ -119,10 +125,6 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="units\ugrammar.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
         <Filename Value="lexer_parser\units\udmdfa.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
@@ -136,6 +138,10 @@
       </Unit>
       <Unit>
         <Filename Value="lexer_parser\units\udmyala.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\uprocessors.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>

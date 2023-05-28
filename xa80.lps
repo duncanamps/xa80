@@ -9,20 +9,20 @@
         <Filename Value="xa80.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="148"/>
-        <CursorPos X="25" Y="32"/>
-        <UsageCount Value="53"/>
+        <TopLine Value="44"/>
+        <CursorPos X="74" Y="62"/>
+        <UsageCount Value="54"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="units\uenvironment.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="8"/>
-        <TopLine Value="109"/>
-        <CursorPos X="3" Y="88"/>
-        <UsageCount Value="53"/>
+        <TopLine Value="195"/>
+        <CursorPos Y="224"/>
+        <UsageCount Value="54"/>
         <Bookmarks Count="1">
-          <Item0 X="11" Y="332" ID="1"/>
+          <Item0 X="11" Y="325" ID="1"/>
         </Bookmarks>
         <Loaded Value="True"/>
       </Unit>
@@ -30,41 +30,41 @@
         <Filename Value="units\uasmglobals.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="6"/>
-        <CursorPos X="27" Y="5"/>
-        <UsageCount Value="53"/>
+        <TopLine Value="48"/>
+        <CursorPos X="3" Y="64"/>
+        <UsageCount Value="54"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="units\ucommandline.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="9"/>
-        <CursorPos X="27" Y="5"/>
-        <UsageCount Value="40"/>
+        <CursorPos X="30" Y="83"/>
+        <UsageCount Value="41"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="units\umonitor.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="5"/>
-        <CursorPos X="35" Y="11"/>
-        <UsageCount Value="31"/>
+        <TopLine Value="127"/>
+        <CursorPos Y="152"/>
+        <UsageCount Value="32"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="units\uassembler80.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="4"/>
-        <CursorPos X="27" Y="5"/>
-        <UsageCount Value="24"/>
+        <CursorPos Y="22"/>
+        <UsageCount Value="25"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="units\ugrammar.pas"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
-        <TopLine Value="91"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="4"/>
         <UsageCount Value="23"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="lexer_parser\units\udmdfa.pas"/>
@@ -73,7 +73,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="22"/>
       </Unit>
       <Unit>
         <Filename Value="lexer_parser\units\udmnfa.pas"/>
@@ -82,7 +82,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="22"/>
       </Unit>
       <Unit>
         <Filename Value="lexer_parser\units\udmset.pas"/>
@@ -91,7 +91,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="22"/>
       </Unit>
       <Unit>
         <Filename Value="lexer_parser\units\udmyala.pas"/>
@@ -100,7 +100,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="22"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\..\core\lexer_parser\units\udmdfa.pas"/>
@@ -198,143 +198,160 @@
         <EditorIndex Value="7"/>
         <TopLine Value="166"/>
         <CursorPos X="29" Y="227"/>
-        <UsageCount Value="14"/>
+        <UsageCount Value="15"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\xa80_old\units\unfa.pas"/>
         <EditorIndex Value="2"/>
+        <TopLine Value="88"/>
         <CursorPos X="27" Y="7"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\xa80_old\units\udfa.pas"/>
         <EditorIndex Value="3"/>
         <CursorPos X="27" Y="10"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\uprocessors.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="15"/>
+        <CursorPos X="3" Y="41"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\..\core\verinfo\VerView.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="148"/>
+        <UsageCount Value="10"/>
       </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
       <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="38" Column="31" TopLine="8"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uasmglobals.pas"/>
-        <Caret Line="45" Column="37" TopLine="33"/>
-      </Position>
-      <Position>
-        <Filename Value="units\ugrammar.pas"/>
-        <Caret Line="729" TopLine="450"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="110" Column="46" TopLine="90"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uutility.pas"/>
-        <Caret Line="51" Column="9" TopLine="32"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uutility.pas"/>
-        <Caret Line="229" TopLine="205"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uutility.pas"/>
-        <Caret Line="224" Column="66" TopLine="207"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="110" Column="46" TopLine="55"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="48" Column="23" TopLine="23"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="143" Column="31" TopLine="118"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="225" TopLine="196"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="83" TopLine="55"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="230" TopLine="211"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="57" Column="48" TopLine="33"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="229" Column="15" TopLine="204"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="94" Column="5" TopLine="82"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="102" TopLine="98"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="231" Column="10" TopLine="216"/>
-      </Position>
-      <Position>
-        <Filename Value="..\xa80_old\units\udfa.pas"/>
-        <Caret Line="578" Column="79" TopLine="440"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="92" Column="85" TopLine="62"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="7" Column="27"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="237" Column="34" TopLine="222"/>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="229" TopLine="219"/>
       </Position>
       <Position>
         <Filename Value="units\uenvironment.pas"/>
-        <Caret Line="5" Column="27"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uasmglobals.pas"/>
-        <Caret Line="5" Column="27"/>
-      </Position>
-      <Position>
-        <Filename Value="units\ucommandline.pas"/>
-        <Caret Line="5" Column="27"/>
-      </Position>
-      <Position>
-        <Filename Value="units\ugrammar.pas"/>
-        <Caret Line="121" Column="22" TopLine="101"/>
-      </Position>
-      <Position>
-        <Filename Value="units\ugrammar.pas"/>
-        <Caret Line="735" Column="3" TopLine="234"/>
-      </Position>
-      <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="32" Column="25" TopLine="148"/>
+        <Caret Line="248" TopLine="223"/>
       </Position>
       <Position>
         <Filename Value="units\uenvironment.pas"/>
-        <Caret Line="109" Column="3" TopLine="94"/>
+        <Caret Line="226" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="227" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="228" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="229" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="248" TopLine="223"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="226" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="227" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="228" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="229" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="248" TopLine="223"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="226" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="227" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="228" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="229" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="248" TopLine="223"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="226" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="227" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="228" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="230" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="248" TopLine="223"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="226" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="227" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="228" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="229" TopLine="219"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uenvironment.pas"/>
+        <Caret Line="248" TopLine="223"/>
+      </Position>
+      <Position>
+        <Filename Value="xa80.lpr"/>
+        <Caret Line="197" Column="34" TopLine="178"/>
+      </Position>
+      <Position>
+        <Filename Value="xa80.lpr"/>
+        <Caret Line="95" Column="27" TopLine="74"/>
+      </Position>
+      <Position>
+        <Filename Value="xa80.lpr"/>
+        <Caret Line="266" Column="3" TopLine="237"/>
       </Position>
     </JumpHistory>
     <RunParams>
@@ -342,7 +359,8 @@
       <Modes ActiveMode="default">
         <Mode Name="default">
           <local>
-            <CommandLineParams Value="--help"/>
+            <CommandLineParams Value="--show=Environment"/>
+            <LaunchingApplication PathPlusParams="C:\Windows\system32\cmd.exe /C ${TargetCmdLine}"/>
           </local>
         </Mode>
       </Modes>
@@ -351,16 +369,28 @@
       <List Name="LaunchingApplication" Type="File" Count="1">
         <Item1 Value="C:\Windows\system32\cmd.exe /C ${TargetCmdLine}"/>
       </List>
-      <List Name="CommandLineParameters" Count="5">
-        <Item1 Value="--help"/>
-        <Item2 Value="..\..\..\test_files\*.z80 myfile.asm --define=DEBUG;DLIST=7;TITLE=&quot;Title Page&quot; -v 2 --show"/>
-        <Item3 Value="..\..\..\test_files\*.z80 myfile.asm --define=DEBUG;DLIST=7;TITLE=&quot;Title Page&quot; -v 2"/>
-        <Item4 Value="*.asm --define=DEBUG;DLIST=7;TITLE=&quot;Title Page&quot; -v 2"/>
-        <Item5 Value="*.asm --define=DEBUG;DLIST=7;TITLE=&quot;Title&quot; -v 2"/>
+      <List Name="CommandLineParameters" Count="7">
+        <Item1 Value="--show=Environment"/>
+        <Item2 Value="--show=Processors"/>
+        <Item3 Value="--help"/>
+        <Item4 Value="..\..\..\test_files\*.z80 myfile.asm --define=DEBUG;DLIST=7;TITLE=&quot;Title Page&quot; -v 2 --show"/>
+        <Item5 Value="..\..\..\test_files\*.z80 myfile.asm --define=DEBUG;DLIST=7;TITLE=&quot;Title Page&quot; -v 2"/>
+        <Item6 Value="*.asm --define=DEBUG;DLIST=7;TITLE=&quot;Title Page&quot; -v 2"/>
+        <Item7 Value="*.asm --define=DEBUG;DLIST=7;TITLE=&quot;Title&quot; -v 2"/>
       </List>
+      <List Name="WorkingDirectory" Type="File" Count="1"/>
     </HistoryLists>
   </ProjectSession>
   <Debugging>
+    <BreakPoints>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="units\uenvironment.pas"/>
+        <Line Value="155"/>
+      </Item>
+    </BreakPoints>
     <Watches>
       <Item>
         <Expression Value="cmd_line"/>

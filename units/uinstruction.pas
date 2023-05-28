@@ -1,6 +1,6 @@
 {
     XA80 - Cross Assembler for x80 processors
-    Copyright (C)2020-2022 Duncan Munro
+    Copyright (C)2020-2023 Duncan Munro
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -156,23 +156,23 @@ const
   	                                        'AF''',
   	                                        'B',
   	                                        'BC',
-  	                                        '[BC]',
+  	                                        '(BC)',
   	                                        'C',
-  	                                        '[C]',
+  	                                        '(C)',
   	                                        'D',
   	                                        'DE',
-  	                                        '[DE]',
+  	                                        '(DE)',
   	                                        'E',
   	                                        'F',
   	                                        'H',
   	                                        'HL',
-  	                                        '[HL]',
+  	                                        '(HL)',
   	                                        'I',
   	                                        'IX',
-  	                                        '[IX]',
+  	                                        '(IX)',
   	                                        '', // IXPD_IND
   	                                        'IY',
-  	                                        '[IY]',
+  	                                        '(IY)',
   	                                        '', // IYPD_IND
   	                                        'L',
                                                 'M',
@@ -184,7 +184,7 @@ const
                                                 'PSW',
   	                                        'R',
   	                                        'SP',
-  	                                        '[SP]',
+  	                                        '(SP)',
   	                                        '', // U8
   	                                        '', // U8_IND
   	                                        '', // U16
@@ -205,24 +205,24 @@ const
   	                                        'AF''',
   	                                        'B',
   	                                        'BC',
-  	                                        '[BC]',
+  	                                        '(BC)',
   	                                        'C',
-  	                                        '[C]',
+  	                                        '(C)',
   	                                        'D',
   	                                        'DE',
-  	                                        '[DE]',
+  	                                        '(DE)',
   	                                        'E',
   	                                        'F',
   	                                        'H',
   	                                        'HL',
-  	                                        '[HL]',
+  	                                        '(HL)',
   	                                        'I',
   	                                        'IX',
-  	                                        '[IX]',
-  	                                        '[IX+NN]', // IXPD_IND
+  	                                        '(IX)',
+  	                                        '(IX+NN)', // IXPD_IND
   	                                        'IY',
-  	                                        '[IY]',
-  	                                        '[IY+NN]', // IYPD_IND
+  	                                        '(IY)',
+  	                                        '(IY+NN)', // IYPD_IND
   	                                        'L',
                                                 'M',
   	                                        'NC',
@@ -233,11 +233,11 @@ const
                                                 'PSW',
   	                                        'R',
   	                                        'SP',
-  	                                        '[SP]',
+  	                                        '(SP)',
   	                                        'NN', // U8
-  	                                        '[NN]', // U8_IND
+  	                                        '(NN)', // U8_IND
   	                                        'NNNN', // U16
-  	                                        '[NNNN]', // U16_IND
+  	                                        '(NNNN)', // U16_IND
   	                                        'Z');
 
 

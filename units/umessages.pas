@@ -50,13 +50,13 @@ interface
 //
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, deployment_parser_types_12;
 
 type
-  TLogType = (ltDebug,ltWarAndPeace,ltVerbose,ltInfo,ltWarning,ltError,ltInternal);
+//  TLogType = (ltDebug,ltWarAndPeace,ltVerbose,ltInfo,ltWarning,ltError,ltInternal);
 
-  EErrorException = class(Exception);      // Exception for trapped errors
-  EInternalException = class(Exception);   // Exception for internal errors
+//  EErrorException = class(Exception);      // Exception for trapped errors
+//  EInternalException = class(Exception);   // Exception for internal errors
                                            // which shouldn't happen...
 
 
@@ -68,7 +68,22 @@ type
                      E2001_ILLEGAL_ESCAPE_CHARACTER,
                      E2002_UNTERMINATED_STRING,
                      E2003_UNRECOGNISED_CONTENT,
+                     E2004_EXPECTED_NUMBER,
+                     E2005_INTEGER_OVERFLOW,
+                     E2006_BINARY_LITERAL_TOO_SHORT,
+                     E2007_OCTAL_LITERAL_TOO_SHORT,
+                     E2008_HEX_LITERAL_TOO_SHORT,
+                     E2009_DIVIDE_BY_ZERO,
+                     E2010_EXPECTED_STRING,
+                     E2011_EXPECTED_POS_NUMBER,
+                     E2012_CONVERSION_ERROR,
+                     E2013_PARSER_ERROR,
                      X3001_UNHANDLED_CASE_OPTION,
+                     X3002_PREPARSER_PEEK_ERROR,
+                     X3003_PROCEDURE_NOT_IN_GRAMMAR,
+                     X3004_REDUCTION_NOT_DEFINED,
+                     X3005_BINARY_CONVERSION_FAILURE,
+                     X3006_HEX_CONVERSION_FAILURE,
                      X3999_UNHANDLED_EXCEPTION
                     );
 
@@ -78,23 +93,23 @@ type
     private
       FLogStream: TFileStream;
       FStartTime: TDateTime;
-      function  MonitorString(_logtype: TLogType; _msgno: TMessageNumbers; _args: array of const): string;
+      function  MonitorString(_logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const): string;
     public
       ColNumber:  integer;
       Filename:   string;
-      InfoLimit:  TLogType;
+      InfoLimit:  TLCGLogType;
       LineNumber: integer;
       Silent:     boolean;
       constructor Create;
       destructor  Destroy; override;
       procedure SetFilename(_fn: string);
-      procedure Show(_logtype: TLogType; _msgno: TMessageNumbers);
-      procedure Show(_logtype: TLogType; _msgno: TMessageNumbers; _args: array of const);
+      procedure Show(_logtype: TLCGLogType; _msgno: TMessageNumbers);
+      procedure Show(_logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
   end;
 
 var
   ErrorObj: TErrorObject;
-  IsTerminal: set of TLogType = [ltInternal,ltError];
+  IsTerminal: set of TLCGLogType = [ltInternal,ltError];
 
 
 implementation
@@ -113,7 +128,22 @@ var
     'Illegal escape character %s, valid are %s',
     'Unterminated string %s',
     'Unrecognised content %s',
+    'Expected number %s',
+    'Integer overflow',
+    'Binary literal %s is too short',
+    'Octal literal %s is too short',
+    'Hex literal %s is too short',
+    'Divide by zero',
+    'Expected string %s',
+    'Expected positive number %s',
+    'String %s failed to convert',
+    'Parser error %s',
     'Unhandled case option at %s',
+    'Preparser peeek error',
+    'Could not find procedure %s in grammar',
+    'Reduction code not defined for rule no. %d (%s)',
+    'Binary constant %s failed to convert',
+    'Hex constant %s failed to convert',
     'Unhandled exception %s'
   );
 
@@ -136,12 +166,12 @@ begin
   inherited Destroy;
 end;
 
-function TErrorObject.MonitorString(_logtype: TLogType; _msgno: TMessageNumbers; _args: array of const): string;
+function TErrorObject.MonitorString(_logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const): string;
 var s: string;
     enum: string;
 begin
   s := Format('[%7.3f] ',[(Now-FStartTime)*86400.0]);
-  if _logtype >= ltWarning then
+  if _logtype <= ltWarning then
     begin
       // Prepend the line number, column number and ANNNN message number
       enum := GetEnumName(TypeInfo(TMessageNumbers),Ord(_msgno));
@@ -149,7 +179,7 @@ begin
       s := s + enum + ' ';
     end;
   s := s + Format(ErrorMessages[_msgno],_args);
-  if _logtype >= ltWarning then
+  if _logtype <= ltWarning then
     begin
       // Append the line number and filename
       if (LineNumber > 0) and (ColNumber > 0) and (Filename <> '') then
@@ -168,24 +198,26 @@ begin
   FLogStream := TFileStream.Create(_fn,fmCreate);
 end;
 
-procedure TErrorObject.Show(_logtype: TLogType; _msgno: TMessageNumbers);
+procedure TErrorObject.Show(_logtype: TLCGLogType; _msgno: TMessageNumbers);
 begin
   Show(_logtype,_msgno,[]);
 end;
 
-procedure TErrorObject.Show(_logtype: TLogType; _msgno: TMessageNumbers; _args: array of const);
+procedure TErrorObject.Show(_logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
 var msg: string;
 begin
   msg := MonitorString(_logtype,_msgno,_args);
+{$IFDEF CONSOLE_APP}
   WriteLn(msg);
+{$ENDIF}
   if Assigned(FLogStream) then
     begin
       msg := msg + LINE_TERMINATOR;
       FLogStream.Write(msg[1],Length(msg));
     end;
   case _logtype of
-    ltError:    raise EErrorException.Create(msg);
-    ltInternal: raise EInternalException.Create(msg);
+    ltError:    raise LCGErrorException.Create(msg);
+    ltInternal: raise LCGInternalException.Create(msg);
   end;
 end;
 

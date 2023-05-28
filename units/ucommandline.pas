@@ -80,7 +80,7 @@ uses
 
 const
 
-  CommandEntries: array[0..14] of TCommandRec =
+  CommandEntries: array[0..13] of TCommandRec =
     (
       (
         ShortOption:  '-b';
@@ -127,18 +127,6 @@ const
         Allowed:      [caEnvironment,caCommandLine];
         Parameter:    paOptional;
         MandateFiles: True;
-        Terminal:     False;
-        Value:        ''
-      ),
-      (
-        ShortOption:  '-g';
-        LongOption:   '--grammar';
-        ParamName:    '<gt>';
-        EnvName:      'Grammar';
-        Description:  'Set grammar type to <gt>';
-        Allowed:      [caEnvironment,caCommandLine];
-        Parameter:    paMandatory;
-        MandateFiles: False;
         Terminal:     False;
         Value:        ''
       ),

@@ -29,7 +29,7 @@ uses
   Classes, SysUtils, CustApp,
   { you can add units after this }
   uenvironment, ucommandline, umonitor, typinfo, uutility, uasmglobals,
-  uassembler80, ugrammar;
+  uassembler80, uprocessors;
 
 const
   CRLF = #13 + #10;
@@ -49,9 +49,6 @@ const
               'and strings can be used. The ; separates multiple entries. For example: ' + CRLF +
               '--define=DEBUG;PSIZE=128;TITLE="Home page"' + CRLF +
               CRLF +
-              '<gt> is the grammar type, <pt> is the processor type. Please refer to' + CRLF +
-              'documentation for more details. The default is XA80 and Z80 respectively.' + CRLF +
-              CRLF +
               '<il> is the include list. Like with <id> ; can be used to separate.' + CRLF +
               CRLF +
               '<tp> topics are case insensitive and can be:' + CRLF +
@@ -59,14 +56,12 @@ const
               '  DFAP         Show DFA for Preparser' + CRLF +
               '  Distribution Show distribution terms for this software' + CRLF +
               '  Environment  Show the environment for the assembler' + CRLF +
-              '  Grammar      Show the grammar rules in use' + CRLF +
-              '  Grammars     Show the different grammars available by default' + CRLF +
               '  Instructions Show the instruction set for the chosen processor' + CRLF +
               '  NFAE         Show the NFA for the Expression analyser' + CRLF +
               '  NFAP         Show the NFA for the Preparser' + CRLF +
-              '  Operators    Show the logical and mathematical operations for this grammar' + CRLF +
+              '  Operators    Show the logical and mathematical operators' + CRLF +
               '  Processors   Show the different processors available by default' + CRLF +
-              '  Reserved     Show a list of reserved words for this grammar/processor' + CRLF +
+              '  Reserved     Show a list of reserved words' + CRLF +
               '  Version      Show the version information for the software' + CRLF +
               '  Warranty     Show the warranty information for the software' + CRLF +
               CRLF +
@@ -86,7 +81,6 @@ type
 
   TXA80 = class(TCustomApplication)
   protected
-    FGrammar: TGrammar;
     procedure DoRun; override;
   public
     constructor Create(TheOwner: TComponent); override;
@@ -96,7 +90,9 @@ type
     procedure ShowAndQuit;
     procedure ShowEnvironment;
     procedure ShowHelp;
+    procedure ShowProcessors;
     procedure ShowTitle;
+    procedure ShowVersion;
   end;
 
 
@@ -158,8 +154,6 @@ begin
     // Initial processing of environment variable and command line to get grammar file
     EnvObject.ProcessEnvironmentVariable;
     EnvObject.ProcessCommandLine;
-    // Load the grammar file and other initialisation
-    Monitor(mtVerbose,'Loading grammar file');
 end;
 
 procedure TXA80.Assemble;
@@ -197,13 +191,13 @@ begin
     saqDFAP:          ;
     saqDistribution:  ;
     saqEnvironment:   ShowEnvironment;
-    saqGrammar:       ;
     saqInstructions:  ;
     saqNFAE:          ;
     saqNFAP:          ;
     saqOperators:     ;
+    saqProcessors:    ShowProcessors;
     saqReserved:      ;
-    saqVersion:       ;
+    saqVersion:       ShowVersion;
     saqWarranty:      ;
     otherwise
       Monitor(mtInternal,'No handler for ShowAndQuit option %s',[GetEnumName(TypeInfo(TShowAndQuit),Ord(EnvObject.ShowAndQuit))]);
@@ -231,6 +225,15 @@ begin
   WriteLn(HELP_INFO);
 end;
 
+procedure TXA80.ShowProcessors;
+var i: integer;
+begin
+  WriteLn('XA80 Processors available with -p/--processor switch');
+  WriteLn;
+  for i := 0 to ProcessorList.Count-1 do
+    WriteLn('    ' + ProcessorList[i]);
+end;
+
 procedure TXA80.ShowTitle;
 begin
   WriteLn;
@@ -255,6 +258,13 @@ begin
       WriteLn('Use xa80 --help for more details');
       WriteLn;
     end;
+end;
+
+procedure TXA80.ShowVersion;
+begin
+  WriteLn('Version:    V' + VERSION_STRING);
+  WriteLn('Target CPU: ' + {$I %FPCTARGETCPU%});
+  WriteLn('Target OS:  ' + {$I %FPCTARGETOS%});
 end;
 
 begin

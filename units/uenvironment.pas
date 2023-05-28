@@ -82,7 +82,7 @@ type
   TEnvComparer = specialize IComparer<TEnvironmentElement>;
 
   TShowAndQuit = (saqNone,saqHelp,saqDFAE,saqDFAP,saqDistribution,saqEnvironment,
-                  saqGrammar,saqInstructions,saqNFAE,saqNFAP,saqOperators,
+                  saqInstructions,saqNFAE,saqNFAP,saqOperators,saqProcessors,
                   saqReserved,saqVersion,saqWarranty);
 
   TEnvironment = class(specialize TSortedList<TEnvironmentElement>)
@@ -198,11 +198,10 @@ end;
 
 procedure TEnvironment.ApplyDefaults;
 begin
-  // The default items which will be optionally overridden by the grammar,
+  // The default items which will be optionally overridden by the
   // environment variable, and command line
   // Key items
   SetValue('Defines',    '',         esDefault);
-  SetValue('Grammar',    'XA80',     esDefault);
   SetValue('Includes',   '',         esDefault);
   SetValue('Processor',  'Z80',      esDefault);
   SetValue('Tab',        4,          esDefault);
@@ -216,12 +215,6 @@ begin
   SetValue('FilenameListing',   '',  esDefault);
   SetValue('FilenameMap',       '',  esDefault);
   SetValue('FilenameObj',       '',  esDefault);
-  {
-  // @@@@@ Testing only - remove
-  AddSourceName('duncan.z80');
-  AddSourceName('monitor.asm');
-  AddSourceName('..\..\..\test_files\z80\*.z80');
-  }
 end;
 
 procedure TEnvironment.Dump;
@@ -333,11 +326,11 @@ var cmd_list: TCommandList;
           'DFAP':         ShowAndQuit := saqDFAP;
           'DISTRIBUTION': ShowAndQuit := saqDistribution;
           'ENVIRONMENT':  ShowAndQuit := saqEnvironment;
-          'GRAMMAR':      ShowAndQuit := saqGrammar;
           'INSTRUCTIONS': ShowAndQuit := saqInstructions;
           'NFAE':         ShowAndQuit := saqNFAE;
           'NFAP':         ShowAndQuit := saqNFAP;
           'OPERATORS':    ShowAndQuit := saqOperators;
+          'PROCESSORS':   ShowAndQuit := saqProcessors;
           'RESERVED':     ShowAndQuit := saqReserved;
           'VERSION':      ShowAndQuit := saqVersion;
           'WARRANTY':     ShowAndQuit := saqWarranty;

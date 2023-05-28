@@ -87,7 +87,7 @@ const DIGITS:  set of char = ['0'..'9'];
 
 type
   TAsmInt = int32;
-  TSetOfChar = set of char;
+//  TSetOfChar = set of char;
 
 
 type

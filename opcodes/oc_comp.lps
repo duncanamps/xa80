@@ -9,9 +9,32 @@
         <Filename Value="oc_comp.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="9"/>
-        <CursorPos X="48" Y="29"/>
+        <TopLine Value="136"/>
+        <CursorPos Y="152"/>
         <UsageCount Value="36"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\units\uinstruction.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="226"/>
+        <CursorPos X="38" Y="233"/>
+        <UsageCount Value="33"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="lac\deployment_parser_module_12.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="lac\deployment_parser_types_12.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="2"/>
+        <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -26,15 +49,6 @@
         <EditorIndex Value="-1"/>
         <CursorPos Y="20"/>
         <UsageCount Value="36"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\units\uinstruction.pas"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="3"/>
-        <TopLine Value="226"/>
-        <CursorPos X="38" Y="233"/>
-        <UsageCount Value="33"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\units\uasmtypes.pas"/>
@@ -71,26 +85,8 @@
         <EditorIndex Value="-1"/>
         <UsageCount Value="10"/>
       </Unit>
-      <Unit>
-        <Filename Value="lac\deployment_parser_module_12.pas"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="lac\deployment_parser_types_12.pas"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="2"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
-      </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="oc_comp.lpr"/>
-        <Caret Line="243" TopLine="228"/>
-      </Position>
       <Position>
         <Filename Value="oc_comp.lpr"/>
         <Caret Line="251" TopLine="228"/>
@@ -202,7 +198,11 @@
       </Position>
       <Position>
         <Filename Value="oc_comp.lpr"/>
-        <Caret Line="29" Column="30" TopLine="9"/>
+        <Caret Line="29" Column="48" TopLine="9"/>
+      </Position>
+      <Position>
+        <Filename Value="oc_comp.lpr"/>
+        <Caret Line="176" TopLine="160"/>
       </Position>
     </JumpHistory>
     <RunParams>

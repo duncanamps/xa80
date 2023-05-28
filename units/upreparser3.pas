@@ -14,7 +14,7 @@ unit upreparser3;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, uasmglobals;
+  Classes, SysUtils, Generics.Collections, uasmglobals, udfa_preparser;
 
 type
   TParserState = (psNone,
@@ -43,14 +43,13 @@ type
 
   TPreparser = class(specialize TList<TParserProp>)
     private
-      FCommands:      TStringList;
+      FDFA:           TPreparserDFA;
       FErrorMsg:      string;
       FEscape:        char;
       FEscaped:       TSetOfChar;
       FForceColon:    boolean;
-      FInstructions:  TStringList;
       procedure AdjustComments;
-      procedure AllocateKeywords(_replacewith: TParserState; _list: TStringList);
+      procedure AllocateKeywords;
       procedure AllocateLabels;
       procedure AllocateOperands;
       procedure AllocateMacros;
@@ -63,19 +62,18 @@ type
       destructor Destroy; override;
       procedure Init;
       function  Parse(_input: string): boolean;
-      property Commands:      TStringList read FCommands;
-      property ErrorMsg:      string      read FErrorMsg;
-      property Escape:        char        read FEscape         write FEscape;
-      property Escaped:       TSetOfChar  read FEscaped        write FEscaped;
-      property ForceColon:    boolean     read FForceColon     write FForceColon;
-      property Instructions:  TStringList read FInstructions;
+      property DFA:           TPreparserDFA read FDFA            write FDFA;
+      property ErrorMsg:      string        read FErrorMsg;
+      property Escape:        char          read FEscape         write FEscape;
+      property Escaped:       TSetOfChar    read FEscaped        write FEscaped;
+      property ForceColon:    boolean       read FForceColon     write FForceColon;
   end;
 
 
 implementation
 
 uses
-  uutility, typinfo, umessages;
+  uutility, typinfo, umessages, udmnfa;
 
 
 constructor TPreparser.Create;
@@ -87,10 +85,6 @@ begin
   FEscape  := DEFAULT_ESCAPE;
   FEscaped := DEFAULT_ESCAPED;
   FForceColon := False;
-  FCommands := TStringList.Create;
-  FCommands.Sorted := True;
-  FInstructions := TStringList.Create;
-  FInstructions.Sorted := True;
 {$IFDEF DEBUG_LOG}
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Leaving function TPreparser.Create']);
 {$ENDIF}
@@ -101,8 +95,6 @@ begin
 {$IFDEF DEBUG_LOG}
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Entering function TPreparser.Destroy']);
 {$ENDIF}
-  FreeAndNil(FCommands);
-  FreeAndNil(FInstructions);
   inherited Destroy;
 {$IFDEF DEBUG_LOG}
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Leaving function TPreparser.Destroy']);
@@ -131,22 +123,27 @@ begin
     end;
 end;
 
-procedure TPreparser.AllocateKeywords(_replacewith: TParserState; _list: TStringList);
+procedure TPreparser.AllocateKeywords;
 var i,j: integer;
     rec: TParserProp;
     cmd: string;
+    token: TNFAToken;
 begin
   for i := 0 to Count-1 do
-    begin
-      rec := Items[i];
-      cmd := UpperCase(rec.Payload);
-      if (rec.State in [psGlob]) and _list.Find(cmd,j) then
-        begin
-          rec.State := _replacewith;
-          rec.Index := -1;
-          Items[i] := rec;
-        end;
-    end;
+    if Items[i].State = psGlob then
+      begin
+        rec := Items[i];
+        cmd := rec.Payload;
+        token := FDFA.Tokenise(cmd);
+        if token >= FDFA.OffsetOpcode then
+          begin
+            if token >= FDFA.OffsetCommand then
+              rec.State := ppCommand
+            else
+              rec.State := ppInstruction;
+            Items[i] := rec;
+          end;
+      end;
 end;
 
 procedure TPreparser.AllocateOperands;
@@ -408,22 +405,23 @@ begin
     ErrorObj.Show(ltError,E2002_UNTERMINATED_STRING,[payload]);
   NewState(psDone);
 {$IFDEF DEBUG_LOG}
-  WriteLn(_input);
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[_input]);
   for iter in Self do
     begin
-      WriteLn(Format('    %d: %s [%s] Idx=%d, Lev=%d  ',
-                       [iter.Column,
-                        GetEnumName(TypeInfo(TParserState),Ord(iter.State)),
-                        iter.Payload,
-                        iter.Index,
-                        iter.Level]));
+      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[
+            Format('    %d: %s [%s] Idx=%d, Lev=%d  ',
+                  [iter.Column,
+                   GetEnumName(TypeInfo(TParserState),Ord(iter.State)),
+                   iter.Payload,
+                   iter.Index,
+                   iter.Level]
+                   )]);
     end;
-  WriteLn('    ' + StringOfChar('-',80-4));
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['    ' + StringOfChar('-',80-4)]);
 {$ENDIF}
   AdjustComments;
   RemoveComments;
-  AllocateKeywords(ppInstruction, FInstructions);
-  AllocateKeywords(ppCommand,     FCommands);
+  AllocateKeywords;
   CombineBrackets;
   CombineGlobs;
   AllocateLabels;
@@ -433,14 +431,16 @@ begin
 {$IFDEF DEBUG_LOG}
   for iter in Self do
     begin
-      WriteLn(Format('    %d: %s [%s] Idx=%d, Lev=%d  ',
-                       [iter.Column,
-                        GetEnumName(TypeInfo(TParserState),Ord(iter.State)),
-                        iter.Payload,
-                        iter.Index,
-                        iter.Level]));
+      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[
+            Format('    %d: %s [%s] Idx=%d, Lev=%d  ',
+                  [iter.Column,
+                   GetEnumName(TypeInfo(TParserState),Ord(iter.State)),
+                   iter.Payload,
+                   iter.Index,
+                   iter.Level]
+                   )]);
     end;
-  WriteLn(StringOfChar('=',80));
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[StringOfChar('=',80)]);
 {$ENDIF}
   // Check for unresolved globs etc.
   for iter in Self do
