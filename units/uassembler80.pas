@@ -30,7 +30,7 @@ interface
 
 uses
   Classes, SysUtils, umonitor, deployment_parser_types_12,
-  deployment_parser_module_12, umessages;
+  deployment_parser_module_12, umessages, uinstruction, usymboltable;
 
 type
   TCompareMode = (cmEqual,cmNotEqual,cmLessThan,cmLessEqual,cmGreaterThan,cmGreaterEqual);
@@ -41,6 +41,7 @@ type
       FInputCol:    integer;
       FPass:        integer;
       FProcArray:      array of TLCGParserProc;
+      FSymbolTable:    TSymbolTable;
       procedure RegisterProc(const _procname: string; _proc: TLCGParserProc; _procs: TStringArray);
       procedure RegisterProcs;
       function  ActBinLiteral(_parser: TLCGParser): TLCGParserStackEntry;
@@ -54,35 +55,6 @@ type
       function  ActCompNE(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActCopy1(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActDecLiteral(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirByte(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirDB(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirDD(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirDefine(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirDefineExpr(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirDefineString(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirDefMacro(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirDS(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirDSH(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirDSZ(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirDW(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirElse(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirEndif(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirEndm(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirError(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirIf(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirIfdef(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirIfndef(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirInclude(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirIncludeList(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirList(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirMacro(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirMacroNoexpr(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirMessage(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirNolist(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirOrg(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirSet(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirUndefine(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActDirWarning(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprAdd(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprAnd(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprBracket(_parser: TLCGParser): TLCGParserStackEntry;
@@ -107,20 +79,21 @@ type
       function  ActFuncValue(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActHexLiteral(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActIgnore(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActInstruction(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActLabel(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActLabelC(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActLabelLocal(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActLabelLocalC(_parser: TLCGParser): TLCGParserStackEntry;
+//    function  ActInstruction(_parser: TLCGParser): TLCGParserStackEntry;
+//    function  ActLabel(_parser: TLCGParser): TLCGParserStackEntry;
+//    function  ActLabelC(_parser: TLCGParser): TLCGParserStackEntry;
+//    function  ActLabelLocal(_parser: TLCGParser): TLCGParserStackEntry;
+//    function  ActLabelLocalC(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLogAnd(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLogNot(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLogOr(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActMacroPlaceholder(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActMandateInt(_parser: TLCGParser): TLCGParserStackEntry;
+//    function  ActMacroPlaceholder(_parser: TLCGParser): TLCGParserStackEntry;
+//    function  ActMandateInt(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActOctLiteral(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActParamList(_parser: TLCGParser): TLCGParserStackEntry;
+//    function  ActParamList(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpInd(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActSetOpIndOff(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActSetOpIndOffIX(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActSetOpIndOffIY(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpLiteral(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrChr(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrDate(_parser: TLCGParser): TLCGParserStackEntry;
@@ -134,7 +107,7 @@ type
       function  ActStrRight(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrTime(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrUpper(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActValueLocal(_parser: TLCGParser): TLCGParserStackEntry;
+//    function  ActValueLocal(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
       function  CompareGeneric(_comparer: TCompareMode): TLCGParserStackEntry;
@@ -151,6 +124,7 @@ type
       function  Reduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
     public
       FinalVal: TLCGParserStackEntry;
+      ParsedOperandOption: TOperandOption;
       constructor Create;
       destructor Destroy; override;
       procedure Assemble(const filename: string);
@@ -176,14 +150,20 @@ uses
 constructor TAssembler80.Create;
 begin
   inherited Create;
+  FSymbolTable := TSymbolTable.Create;
   LoadFromResource('XA80OPER');
   SetLength(FProcArray,Rules);
   RegisterProcs;
   OnReduce := @Reduce;
+  // Test stuff
+  FSymbolTable.AddPlaceholder('PlaceHold');
+  FSymbolTable.AddWord('cassette_buf',$033A);
+  FSymbolTable.AddString('myname','Duncan Munro');
 end;
 
 destructor TAssembler80.Destroy;
 begin
+  FreeAndNil(FSymbolTable);
   inherited Destroy;
 end;
 
@@ -208,7 +188,6 @@ function TAssembler80.ActCompEQ(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result := CompareGeneric(cmEqual);
 end;
-
 
 function TAssembler80.ActCompGE(_parser: TLCGParser): TLCGParserStackEntry;
 begin
@@ -245,151 +224,6 @@ begin
   Result.BufInt  := StrToInt(ParserM1.Buf);
   Result.Buf     := IntToStr(Result.BufInt);
   Result.BufType := pstINT32;
-end;
-
-function TAssembler80.ActDirByte(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirDB(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirDD(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirDefine(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirDefineExpr(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirDefineString(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirDefMacro(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirDS(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirDSH(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirDSZ(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirDW(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirElse(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirEndif(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirEndm(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirError(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirIf(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirIfdef(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirIfndef(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirInclude(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirIncludeList(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirList(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirMacro(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirMacroNoexpr(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirMessage(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirNolist(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirOrg(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirSet(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirUndefine(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActDirWarning(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
 end;
 
 function TAssembler80.ActExprAdd(_parser: TLCGParser): TLCGParserStackEntry;
@@ -613,6 +447,7 @@ begin
   Result := ParserM1;
 end;
 
+{
 function TAssembler80.ActInstruction(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result := ParserM1;
@@ -637,6 +472,7 @@ function TAssembler80.ActLabelLocalC(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result := ParserM1;
 end;
+}
 
 function TAssembler80.ActLogAnd(_parser: TLCGParser): TLCGParserStackEntry;
 begin
@@ -670,6 +506,7 @@ begin
   Result.BufType := pstINT32;
 end;
 
+{
 function TAssembler80.ActMacroPlaceholder(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result := ParserM1;
@@ -679,6 +516,7 @@ function TAssembler80.ActMandateInt(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result := ParserM1;
 end;
+}
 
 function TAssembler80.ActOctLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 begin
@@ -686,24 +524,38 @@ begin
   Result.BufType := pstINT32;
 end;
 
+{
 function TAssembler80.ActParamList(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result := ParserM1;
 end;
+}
 
 function TAssembler80.ActSetOpInd(_parser: TLCGParser): TLCGParserStackEntry;
 begin
-  Result := ParserM1;
+  FinalVal := ParserM2;
+  ParsedOperandOption := OPER_U16_IND;
+  Result := ParserM2;
 end;
 
-function TAssembler80.ActSetOpIndOff(_parser: TLCGParser): TLCGParserStackEntry;
+function TAssembler80.ActSetOpIndOffIX(_parser: TLCGParser): TLCGParserStackEntry;
 begin
-  Result := ParserM1;
+  FinalVal := ParserM2;
+  ParsedOperandOption := OPER_IXPD_IND;
+  Result := ParserM2;
+end;
+
+function TAssembler80.ActSetOpIndOffIY(_parser: TLCGParser): TLCGParserStackEntry;
+begin
+  FinalVal := ParserM2;
+  ParsedOperandOption := OPER_IYPD_IND;
+  Result := ParserM2;
 end;
 
 function TAssembler80.ActSetOpLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   FinalVal := ParserM1;
+  ParsedOperandOption := OPER_U16;
   Result := ParserM1;
 end;
 
@@ -792,10 +644,12 @@ begin
   Result.BufType := pstString;
 end;
 
+{
 function TAssembler80.ActValueLocal(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result := ParserM1;
 end;
+}
 
 function TAssembler80.ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
 begin
@@ -803,8 +657,44 @@ begin
 end;
 
 function TAssembler80.ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
+var name: string;
+    idx:  integer;
+    sym:  TSymbol;
 begin
-  Result := ParserM1;
+  name := ParserM1.Buf;
+  idx := FSymbolTable.IndexOf(name);
+  if idx < 0 then
+    // Symbol not found, we should add a placeholder for it
+    begin
+      FSymbolTable.AddPlaceholder(name);
+      Result.BufInt  := 0; // Assume an integer for now
+      Result.BufType := pstINT32;
+    end
+  else
+    begin
+      sym := FSymbolTable[idx];
+      sym.Referenced := True;
+      FSymbolTable[idx] := sym;
+      case sym.SymType of
+        stUnknown:  begin
+                      Result.BufType := pstINT32;
+                      Result.BufInt  := 0;
+                    end;
+        stAddress:  begin
+                      Result.BufType := pstINT32;
+                      Result.BufInt  := sym.IValue;
+                    end;
+        stWord:     begin
+                      Result.BufType := pstINT32;
+                      Result.BufInt  := sym.IValue;
+                    end;
+        stString:   begin
+                      Result.BufType := pstString;
+                      Result.Buf     := sym.SValue;
+                    end;
+      end;
+    end;
+
 end;
 
 procedure TAssembler80.Assemble(const filename: string);
@@ -882,6 +772,15 @@ end;
 procedure TAssembler80.Parse(_strm: TStream; _firstcol: integer);
 begin
   FInputCol := _firstcol;
+  ParsedOperandOption := OPER_NULL;
+  FinalVal.Buf := '';
+  FinalVal.BufInt := 0;
+  FinalVal.BufType := pstNone;
+  FinalVal.State := 0;
+  FinalVal.Token.Buf := '';
+  FinalVal.Token.Col := 0;
+  FinalVal.Token.ID  := 0;
+  FinalVal.Token.Row := 0;
   inherited Parse(_strm);
 end;
 
@@ -980,7 +879,8 @@ begin
   RegisterProc('ActLogOr',		@ActLogOr, _procs);
   RegisterProc('ActOctLiteral',		@ActOctLiteral, _procs);
   RegisterProc('ActSetOpInd',           @ActSetOpInd, _procs);
-  RegisterProc('ActSetOpIndOff',	@ActSetOpIndOff, _procs);
+  RegisterProc('ActSetOpIndOffIX',      @ActSetOpIndOffIX, _procs);
+  RegisterProc('ActSetOpIndOffIY',      @ActSetOpIndOffIY, _procs);
   RegisterProc('ActSetOpLiteral',	@ActSetOpLiteral, _procs);
   RegisterProc('ActStrChr',		@ActStrChr, _procs);
   RegisterProc('ActStrDate',		@ActStrDate, _procs);
@@ -994,7 +894,7 @@ begin
   RegisterProc('ActStrUpper',		@ActStrUpper, _procs);
   RegisterProc('ActStringConstant',     @ActStringConstant, _procs);
 //RegisterProc('ActValueOrg',		@ActValueOrg, _procs);
-//RegisterProc('ActValueSymbol',	@ActValueSymbol, _procs);
+  RegisterProc('ActValueSymbol',	@ActValueSymbol, _procs);
 end;
 
 procedure TAssembler80.ShowError(_colno: integer; _logtype: TLCGLogType; _msgno: TMessageNumbers);

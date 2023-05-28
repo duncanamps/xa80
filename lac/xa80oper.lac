@@ -88,7 +88,7 @@ T_NOTEQUAL         = "!="    symbol ;
 
 T_BINLITERAL       = "0" MIXED("B") {DigitBin}+ | "%"{DigitBin}+ | {DigitBin}+MIXED("B");
 T_DECLITERAL       = {DigitZero} | {DigitNonZero}{Digit}* | {DigitNonZero}{Digit}*d | {DigitNonZero}{Digit}*D;
-T_HEXLITERAL       = ( "0" MIXED("H") {DigitHex}+ | "$"{DigitHex}+ | "#"{DigitHex}+ | {Digit}{DigitHex}*MIXED("H") )  ;
+T_HEXLITERAL       = ( "0" MIXED("X") {DigitHex}+ | "$"{DigitHex}+ | "#"{DigitHex}+ | {Digit}{DigitHex}*MIXED("H") )  ;
 T_OCTLITERAL       = {DigitOct}+(MIXED("O")|MIXED("Q"));
 
 // Labels etc.
@@ -126,8 +126,8 @@ F_VALUE				= MIXED("VALUE(")		keyword;
 //
 //==============================================================================
 
-<operand> : "[" T_OPERAND_IX "+" <expression> "]"				# ActSetOpIndOff
-		  | "[" T_OPERAND_IY "+" <expression> "]"				# ActSetOpIndOff
+<operand> : "[" T_OPERAND_IX "+" <expression> "]"				# ActSetOpIndOffIX
+		  | "[" T_OPERAND_IY "+" <expression> "]"				# ActSetOpIndOffIY
 		  | "[" <expression> "]"								# ActSetOpInd
 		  | <expression>										# ActSetOpLiteral
 		  ;

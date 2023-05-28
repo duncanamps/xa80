@@ -8,18 +8,17 @@
       <Unit>
         <Filename Value="oc_comp.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <TopLine Value="136"/>
-        <CursorPos Y="152"/>
+        <TopLine Value="10"/>
         <UsageCount Value="36"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\units\uinstruction.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
-        <TopLine Value="226"/>
-        <CursorPos X="38" Y="233"/>
+        <TopLine Value="139"/>
+        <CursorPos X="14" Y="161"/>
         <UsageCount Value="33"/>
         <Loaded Value="True"/>
       </Unit>
@@ -87,14 +86,6 @@
       </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="oc_comp.lpr"/>
-        <Caret Line="251" TopLine="228"/>
-      </Position>
-      <Position>
-        <Filename Value="oc_comp.lpr"/>
-        <Caret Line="242" TopLine="228"/>
-      </Position>
       <Position>
         <Filename Value="oc_comp.lpr"/>
         <Caret Line="243" TopLine="228"/>
@@ -203,6 +194,14 @@
       <Position>
         <Filename Value="oc_comp.lpr"/>
         <Caret Line="176" TopLine="160"/>
+      </Position>
+      <Position>
+        <Filename Value="oc_comp.lpr"/>
+        <Caret Line="152" TopLine="136"/>
+      </Position>
+      <Position>
+        <Filename Value="oc_comp.lpr"/>
+        <Caret TopLine="10"/>
       </Position>
     </JumpHistory>
     <RunParams>

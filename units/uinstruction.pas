@@ -35,14 +35,6 @@ uses
 
 type
   TOperandOption = (OPER_NULL,
-                    OPER_0,
-                    OPER_1,
-                    OPER_2,
-                    OPER_3,
-                    OPER_4,
-                    OPER_5,
-                    OPER_6,
-                    OPER_7,
   	            OPER_A,
   	            OPER_AF,
   	            OPER_AF_,
@@ -94,14 +86,6 @@ const
   OPCODE_MAP_MAGIC = $4D43504F;
 
   OperandStrings: array[TOperandOption] of string =  ('',
-                                                '0',
-                                                '1',
-                                                '2',
-                                                '3',
-                                                '4',
-                                                '5',
-                                                '6',
-                                                '7',
   	                                        'A',
   	                                        'AF',
   	                                        'AF_',
@@ -143,14 +127,6 @@ const
   	                                        'Z');
 
   OperandActual: array[TOperandOption] of string =  ('',
-                                                '0',
-                                                '1',
-                                                '2',
-                                                '3',
-                                                '4',
-                                                '5',
-                                                '6',
-                                                '7',
                                                 'A',
   	                                        'AF',
   	                                        'AF''',
@@ -192,14 +168,6 @@ const
   	                                        'Z');
 
   OperandSanitised: array[TOperandOption] of string =  ('',
-                                                'B',
-                                                'C',
-                                                'D',
-                                                'E',
-                                                'H',
-                                                'L',
-                                                'M',
-                                                'A',
                                                 'A',
   	                                        'AF',
   	                                        'AF''',

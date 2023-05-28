@@ -518,6 +518,8 @@ begin
   //       or #033A
   //       or 033Ah
   //       or 033AH
+  //       or 0x033A
+  //       or 0X033A
   decval := 0;
   if Length(_s) < 2 then
     ErrorObj.Show(ltError,E2008_HEX_LITERAL_TOO_SHORT,[_s])
@@ -529,6 +531,8 @@ begin
         buf := '$' + RightStr(_s,Length(_s)-1)
       else if UpperCase(RightStr(_s,1)) = 'H' then
         buf := '$' + LeftStr(_s,Length(_s)-1)
+      else if (Length(_s) > 3) and (UpperCase(LeftStr(_s,2)) = '0X') then
+        buf := '$' + RightStr(_s,Length(_s)-2)
       else
         ErrorObj.Show(ltError,E2008_HEX_LITERAL_TOO_SHORT,[_s]);
       Val(buf,decval,code);
