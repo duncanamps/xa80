@@ -25,7 +25,7 @@ unit udfa_preparser;
 interface
 
 uses
-  Classes, SysUtils, udmnfa, udmdfa, uinstruction;
+  Classes, SysUtils, udmnfa, udmdfa, uinstruction, ucommand;
 
 type
   TPreparserDFA = class(TDFA)
@@ -33,22 +33,24 @@ type
       FNFA:           TNFA;
       FOffsetOpcode:  integer;
       FOffsetCommand: integer;
+      FOffsetOperand: integer;
     public
       constructor Create;
       destructor Destroy; override;
-      procedure AddOpcodesCommands(_inst: TInstructionList; _cmdlist: TStringList);
+      procedure AddOpcodesCommands(_inst: TInstructionList; _cmdlist: TCommandList);
       procedure DumpNFAList(_strm: TStream);
       procedure DumpNFATable(_strm: TStream);
       procedure DumpDFATable(_strm: TStream);
       function  Tokenise(const _s: string): TNFAtoken;
       property OffsetOpcode:  integer read FOffsetOpcode;
       property OffsetCommand: integer read FOffsetCommand;
+      property OffsetOperand: integer read FOffsetOperand;
   end;
 
 implementation
 
 uses
-  umessages;
+  umessages, deployment_parser_types_12;
 
 constructor TPreparserDFA.Create;
 begin
@@ -62,12 +64,13 @@ begin
   inherited Destroy;
 end;
 
-procedure TPreparserDFA.AddOpcodesCommands(_inst: TInstructionList; _cmdlist: TStringList);
+procedure TPreparserDFA.AddOpcodesCommands(_inst: TInstructionList; _cmdlist: TCommandList);
 var index: integer;
     i:     integer;
     nodezero: TNFArecord;
     opcode:   string;
     frag1:    TNFAfragment;
+    opt:      TOperandOption;
 begin
   index := TOKEN_WHITESPACE + 1;
   FOffsetOpcode := index;
@@ -87,10 +90,23 @@ begin
   FOffsetCommand := index;
   for i := 0 to _cmdlist.Count-1 do
     begin
-      frag1 := FNFA.MakeFragText(_cmdlist[i]);
+      frag1 := FNFA.MakeFragText(_cmdlist.Items[i].CommandName);
       FNFA[frag1.LastNode].Accepting  := index;
       FNFA[frag1.LastNode].AcceptType := atKeyword;
       nodezero.Epsilons.Add(frag1.FirstNode);
+      Inc(index);
+    end;
+  // Finally add the operands
+  FOffsetOperand := index;
+  for opt in TOperandOption do
+    begin
+      if OperandActual[opt] <> '' then
+        begin
+          frag1 := FNFA.MakeFragText(OperandActual[opt]);
+          FNFA[frag1.LastNode].Accepting  := index;
+          FNFA[frag1.LastNode].AcceptType := atKeyword;
+          nodezero.Epsilons.Add(frag1.FirstNode);
+        end;
       Inc(index);
     end;
   // Construct the DFA from the NFA

@@ -104,12 +104,15 @@ type
 
   TLCGParserStackType = (pstNone,pstINT32,pstString);
 
+  TParserStackSource = (pssUndefined,pssVariable,pssConstant);
+
   TLCGParserStackEntry = record
       State:     TLCGStateIdentifier;
       Token:	 TToken;
       BufType:   TLCGParserStackType;
       Buf:       TString;
       BufInt:    int32;
+      Source:    TParserStackSource;
     end;
 
   TLCGParserStack = array of TLCGParserStackEntry;

@@ -300,7 +300,12 @@ begin
 end;
 
 procedure TCommandList.RegisterCommand(const _cmdname: string; _cmdexec: TCommandExec);
+var obj: TCommandObj;
 begin
+  obj := TCommandObj.Create;
+  obj.CommandName := _cmdname;
+  obj.CommandExec := _cmdexec;
+  Add(obj);
 end;
 
 end.

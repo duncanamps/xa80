@@ -25,7 +25,7 @@ unit uassembler80;
 //
 
 {$mode ObjFPC}{$H+}
-
+{$WARN 5024 off : Parameter "$1" not used}
 interface
 
 uses
@@ -39,6 +39,7 @@ type
     private
       FCurrentFile: string;
       FInputCol:    integer;
+      FOrg:         integer;
       FPass:        integer;
       FProcArray:      array of TLCGParserProc;
       FSymbolTable:    TSymbolTable;
@@ -59,8 +60,6 @@ type
       function  ActExprAnd(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprBracket(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprDiv(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActExprList(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActExprMinus(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprMod(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprMul(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActExprNot(_parser: TLCGParser): TLCGParserStackEntry;
@@ -87,10 +86,7 @@ type
       function  ActLogAnd(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLogNot(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActLogOr(_parser: TLCGParser): TLCGParserStackEntry;
-//    function  ActMacroPlaceholder(_parser: TLCGParser): TLCGParserStackEntry;
-//    function  ActMandateInt(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActOctLiteral(_parser: TLCGParser): TLCGParserStackEntry;
-//    function  ActParamList(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpInd(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpIndOffIX(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpIndOffIY(_parser: TLCGParser): TLCGParserStackEntry;
@@ -100,14 +96,13 @@ type
       function  ActStrHex1(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrHex2(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStringConstant(_parser: TLCGParser): TLCGParserStackEntry;
-      function  ActStringSymbol(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrLeft(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrLower(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrMid(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrRight(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActStrString(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrTime(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrUpper(_parser: TLCGParser): TLCGParserStackEntry;
-//    function  ActValueLocal(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
       function  CompareGeneric(_comparer: TCompareMode): TLCGParserStackEntry;
@@ -121,7 +116,11 @@ type
       function  ParserM4: TLCGParserStackEntry;
       function  ParserM5: TLCGParserStackEntry;
       function  ParserM6: TLCGParserStackEntry;
+      procedure PostReduce(Parser: TLCGParser);
       function  Reduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
+      function  SourceCombine1(_a: integer): TParserStackSource;
+      function  SourceCombine2(_a,_b: integer): TParserStackSource;
+      function  SourceCombine3(_a,_b,_c: integer): TParserStackSource;
     public
       FinalVal: TLCGParserStackEntry;
       ParsedOperandOption: TOperandOption;
@@ -145,7 +144,7 @@ var
 implementation
 
 uses
-  uutility;
+  uutility, typinfo;
 
 constructor TAssembler80.Create;
 begin
@@ -154,11 +153,15 @@ begin
   LoadFromResource('XA80OPER');
   SetLength(FProcArray,Rules);
   RegisterProcs;
-  OnReduce := @Reduce;
+  FOrg := 0;
+  FPass := 0;
+  OnPostReduce := @PostReduce;
+  OnReduce     := @Reduce;
   // Test stuff
   FSymbolTable.AddPlaceholder('PlaceHold');
   FSymbolTable.AddWord('cassette_buf',$033A);
   FSymbolTable.AddString('myname','Duncan Munro');
+  FOrg := $200;
 end;
 
 destructor TAssembler80.Destroy;
@@ -171,12 +174,14 @@ function TAssembler80.ActBinLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.BufInt := VariableFromBinLiteral(ParserM1.Buf);
   Result.BufType := pstINT32;
+  Result.Source  := pssConstant;
 end;
 
 function TAssembler80.ActCharConstant(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.BufInt := Ord(ParserM1.Buf[2]);
   Result.BufType := pstINT32;
+  Result.Source  := pssConstant;
 end;
 
 function TAssembler80.ActCharLiteral(_parser: TLCGParser): TLCGParserStackEntry;
@@ -224,6 +229,7 @@ begin
   Result.BufInt  := StrToInt(ParserM1.Buf);
   Result.Buf     := IntToStr(Result.BufInt);
   Result.BufType := pstINT32;
+  Result.Source  := pssConstant;
 end;
 
 function TAssembler80.ActExprAdd(_parser: TLCGParser): TLCGParserStackEntry;
@@ -247,6 +253,7 @@ begin
         ShowErrorToken(ParserM1.Token,ltError,E2005_INTEGER_OVERFLOW);
       Result.BufType := pstINT32;
     end;
+  Result.Source := SourceCombine2(-3,-1);
 end;
 
 function TAssembler80.ActExprAnd(_parser: TLCGParser): TLCGParserStackEntry;
@@ -256,6 +263,7 @@ begin
   Result.BufInt := (ParserM3.BufInt and $FFFF) and
                    (ParserM1.BufInt and $FFFF);
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine2(-3,-1);
 end;
 
 function TAssembler80.ActExprBracket(_parser: TLCGParser): TLCGParserStackEntry;
@@ -274,16 +282,7 @@ begin
   if (Result.BufInt > 65535) or (Result.BufInt < -32767) then
     ShowErrorToken(ParserM1.Token,ltError,E2005_INTEGER_OVERFLOW);
   Result.BufType := pstINT32;
-end;
-
-function TAssembler80.ActExprList(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
-end;
-
-function TAssembler80.ActExprMinus(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
+  Result.Source := SourceCombine2(-3,-1);
 end;
 
 function TAssembler80.ActExprMod(_parser: TLCGParser): TLCGParserStackEntry;
@@ -295,6 +294,7 @@ begin
   if (Result.BufInt > 65535) or (Result.BufInt < -32767) then
     ShowErrorToken(ParserM1.Token,ltError,E2005_INTEGER_OVERFLOW);
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine2(-3,-1);
 end;
 
 function TAssembler80.ActExprMul(_parser: TLCGParser): TLCGParserStackEntry;
@@ -306,6 +306,7 @@ begin
   if (Result.BufInt > 65535) or (Result.BufInt < -32767) then
     ShowErrorToken(ParserM1.Token,ltError,E2005_INTEGER_OVERFLOW);
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine2(-3,-1);
 end;
 
 function TAssembler80.ActExprNot(_parser: TLCGParser): TLCGParserStackEntry;
@@ -313,6 +314,7 @@ begin
   NeedNumber(-1,'for unary not');
   Result.BufInt := (ParserM1.BufInt and $FFFF) xor $FFFF;
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine1(-1);
 end;
 
 function TAssembler80.ActExprOr(_parser: TLCGParser): TLCGParserStackEntry;
@@ -322,6 +324,7 @@ begin
   Result.BufInt := (ParserM3.BufInt and $FFFF) or
                    (ParserM1.BufInt and $FFFF);
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine2(-3,-1);
 end;
 
 function TAssembler80.ActExprShl(_parser: TLCGParser): TLCGParserStackEntry;
@@ -332,6 +335,7 @@ begin
                    ParserM1.BufInt;
   Result.BufInt := Result.BufInt and $FFFF;
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine2(-3,-1);
 end;
 
 function TAssembler80.ActExprShr(_parser: TLCGParser): TLCGParserStackEntry;
@@ -342,6 +346,7 @@ begin
                    ParserM1.BufInt;
   Result.BufInt := Result.BufInt and $FFFF;
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine2(-3,-1);
 end;
 
 function TAssembler80.ActExprSub(_parser: TLCGParser): TLCGParserStackEntry;
@@ -353,6 +358,7 @@ begin
   if (Result.BufInt > 65535) or (Result.BufInt < -32767) then
     ShowErrorToken(ParserM1.Token,ltError,E2005_INTEGER_OVERFLOW);
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine2(-3,-1);
 end;
 
 function TAssembler80.ActExprUnaryMinus(_parser: TLCGParser): TLCGParserStackEntry;
@@ -362,6 +368,7 @@ begin
   if (Result.BufInt > 65535) or (Result.BufInt < -32767) then
     ShowErrorToken(ParserM1.Token,ltError,E2005_INTEGER_OVERFLOW);
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine1(-1);
 end;
 
 function TAssembler80.ActExprUnaryPlus(_parser: TLCGParser): TLCGParserStackEntry;
@@ -371,6 +378,7 @@ begin
   if (Result.BufInt > 65535) or (Result.BufInt < -32767) then
     ShowErrorToken(ParserM1.Token,ltError,E2005_INTEGER_OVERFLOW);
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine1(-1);
 end;
 
 function TAssembler80.ActExprXor(_parser: TLCGParser): TLCGParserStackEntry;
@@ -380,6 +388,7 @@ begin
   Result.BufInt := (ParserM3.BufInt and $FFFF) xor
                    (ParserM1.BufInt and $FFFF);
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine2(-3,-1);
 end;
 
 function TAssembler80.ActFuncAsc(_parser: TLCGParser): TLCGParserStackEntry;
@@ -392,6 +401,7 @@ begin
   Result.BufInt := ascval;
   Result.BufType := pstINT32;
   Result.Buf     := IntToStr(Result.BufInt);
+  Result.Source := SourceCombine1(-2);
 end;
 
 function TAssembler80.ActFuncHigh(_parser: TLCGParser): TLCGParserStackEntry;
@@ -399,15 +409,22 @@ begin
   NeedNumber(-2,'for HIGH() function');
   Result.BufInt := (ParserM2.BufInt and $FFFF) shr 8;
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine1(-2);
 end;
 
 function TAssembler80.ActFuncIif(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   NeedNumber(-6,'for IIF() function conditional expression');
   if ParserM6.BufInt <> 0 then
-    Result := ParserM4
+    begin
+      Result := ParserM4;
+      Result.Source := SourceCombine2(-6,-4);
+    end
   else
-    Result := ParserM2
+    begin
+      Result := ParserM2;
+      Result.Source := SourceCombine2(-6,-2);
+    end;
 end;
 
 function TAssembler80.ActFuncLow(_parser: TLCGParser): TLCGParserStackEntry;
@@ -415,6 +432,7 @@ begin
   NeedNumber(-2,'for LOW() function');
   Result.BufInt := ParserM2.BufInt and $00FF;
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine1(-2);
 end;
 
 function TAssembler80.ActFuncPos(_parser: TLCGParser): TLCGParserStackEntry;
@@ -424,6 +442,7 @@ begin
   Result.BufInt := Pos(ParserM4.Buf,
                        ParserM2.Buf);
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine2(-4,-2);
 end;
 
 function TAssembler80.ActFuncValue(_parser: TLCGParser): TLCGParserStackEntry;
@@ -434,12 +453,14 @@ begin
   if code <> 0 then
     ShowErrorToken(ParserM2.Token,ltError,E2012_CONVERSION_ERROR,[ParserM2.Buf]);
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine1(-2);
 end;
 
 function TAssembler80.ActHexLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.BufInt := VariableFromHexLiteral(ParserM1.Buf);
   Result.BufType := pstINT32;
+  Result.Source  := pssConstant;
 end;
 
 function TAssembler80.ActIgnore(_parser: TLCGParser): TLCGParserStackEntry;
@@ -483,6 +504,7 @@ begin
   else
     Result.BufInt := 0;
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine2(-3,-1);
 end;
 
 function TAssembler80.ActLogNot(_parser: TLCGParser): TLCGParserStackEntry;
@@ -493,6 +515,7 @@ begin
   else
     Result.BufInt := 0;
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine1(-1);
 end;
 
 function TAssembler80.ActLogOr(_parser: TLCGParser): TLCGParserStackEntry;
@@ -504,6 +527,7 @@ begin
   else
     Result.BufInt := 0;
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine2(-3,-1);
 end;
 
 {
@@ -522,6 +546,7 @@ function TAssembler80.ActOctLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.BufInt := VariableFromOctLiteral(ParserM1.Buf);
   Result.BufType := pstINT32;
+  Result.Source  := pssConstant;
 end;
 
 {
@@ -564,12 +589,14 @@ begin
   NeedPosNumber(-2,'for CHR() function');
   Result.Buf := Chr(ParserM2.BufInt);
   Result.BufType := pstString;
+  Result.Source := SourceCombine1(-2);
 end;
 
 function TAssembler80.ActStrDate(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := FormatDateTime('yyyy-mm-dd',StartTime);
   Result.BufType := pstString;
+  Result.Source := pssConstant;
 end;
 
 function TAssembler80.ActStrHex1(_parser: TLCGParser): TLCGParserStackEntry;
@@ -577,6 +604,7 @@ begin
   NeedNumber(-2,'for HEX() function');
   Result.Buf := IntToHex(ParserM2.BufInt and $FFFF,1);
   Result.BufType := pstString;
+  Result.Source := SourceCombine1(-2);
 end;
 
 function TAssembler80.ActStrHex2(_parser: TLCGParser): TLCGParserStackEntry;
@@ -585,17 +613,14 @@ begin
   NeedPosNumber(-4,'for HEX() function digits',1);
   Result.Buf := IntToHex(ParserM4.BufInt and $FFFF,ParserM2.BufInt);
   Result.BufType := pstString;
+  Result.Source := SourceCombine2(-4,-2);
 end;
 
 function TAssembler80.ActStringConstant(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := StripQuotesAndEscaped(ParserM1.Buf);
   Result.BufType := pstString;
-end;
-
-function TAssembler80.ActStringSymbol(_parser: TLCGParser): TLCGParserStackEntry;
-begin
-  Result := ParserM1;
+  Result.Source := pssConstant;
 end;
 
 function TAssembler80.ActStrLeft(_parser: TLCGParser): TLCGParserStackEntry;
@@ -604,6 +629,7 @@ begin
   NeedPosNumber(-2,'for LEFT() count');
   Result.Buf := LeftStr(ParserM4.Buf,ParserM2.BufInt);
   Result.BufType := pstString;
+  Result.Source := SourceCombine2(-4,-2);
 end;
 
 function TAssembler80.ActStrLower(_parser: TLCGParser): TLCGParserStackEntry;
@@ -612,6 +638,7 @@ begin
   Result.Buf := LowerCase(ParserM2.Buf);
   Result.BufInt := 0;
   Result.BufType := pstString;
+  Result.Source := SourceCombine1(-2);
 end;
 
 function TAssembler80.ActStrMid(_parser: TLCGParser): TLCGParserStackEntry;
@@ -621,6 +648,7 @@ begin
   NeedPosNumber(-2,'for MID() count');
   Result.Buf := Copy(ParserM6.Buf,ParserM4.BufInt,ParserM2.BufInt);
   Result.BufType := pstString;
+  Result.Source := SourceCombine3(-6,-4,-2);
 end;
 
 function TAssembler80.ActStrRight(_parser: TLCGParser): TLCGParserStackEntry;
@@ -629,12 +657,22 @@ begin
   NeedPosNumber(-2,'for RIGHT() count');
   Result.Buf := RightStr(ParserM4.Buf,ParserM2.BufInt);
   Result.BufType := pstString;
+  Result.Source := SourceCombine2(-4,-2);
+end;
+
+function TAssembler80.ActStrString(_parser: TLCGParser): TLCGParserStackEntry;
+begin
+  NeedNumber(-2,'for STRING() function');
+  Result.Buf := IntToStr(ParserM2.BufInt);
+  Result.BufType := pstString;
+  Result.Source := SourceCombine1(-2);
 end;
 
 function TAssembler80.ActStrTime(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := FormatDateTime('hh:nn:ss',StartTime);
   Result.BufType := pstString;
+  Result.Source  := pssConstant;
 end;
 
 function TAssembler80.ActStrUpper(_parser: TLCGParser): TLCGParserStackEntry;
@@ -642,6 +680,7 @@ begin
   NeedString(-2,'for UPPER() function');
   Result.Buf := UpperCase(ParserM2.Buf);
   Result.BufType := pstString;
+  Result.Source := SourceCombine1(-2);
 end;
 
 {
@@ -654,12 +693,24 @@ end;
 function TAssembler80.ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result := ParserM1;
+  Result.BufInt  := FOrg;
+  Result.Source  := pssConstant;
+  Result.BufType := pstINT32;
 end;
 
 function TAssembler80.ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
 var name: string;
     idx:  integer;
     sym:  TSymbol;
+
+  function SetSource: TParserStackSource;
+  begin
+    if sym.Defined then
+      SetSource := pssConstant
+    else
+      SetSource := pssVariable;
+  end;
+
 begin
   name := ParserM1.Buf;
   idx := FSymbolTable.IndexOf(name);
@@ -669,32 +720,37 @@ begin
       FSymbolTable.AddPlaceholder(name);
       Result.BufInt  := 0; // Assume an integer for now
       Result.BufType := pstINT32;
+      Result.Source  := pssVariable;
     end
   else
     begin
       sym := FSymbolTable[idx];
       sym.Referenced := True;
       FSymbolTable[idx] := sym;
+      // @@@@@ Set up the variable/constant thing from the symbol table
       case sym.SymType of
         stUnknown:  begin
                       Result.BufType := pstINT32;
                       Result.BufInt  := 0;
+                      Result.Source  := pssUndefined;
                     end;
         stAddress:  begin
                       Result.BufType := pstINT32;
                       Result.BufInt  := sym.IValue;
+                      Result.Source  := SetSource;
                     end;
         stWord:     begin
                       Result.BufType := pstINT32;
                       Result.BufInt  := sym.IValue;
+                      Result.Source  := SetSource;
                     end;
         stString:   begin
                       Result.BufType := pstString;
                       Result.Buf     := sym.SValue;
+                      Result.Source  := SetSource;
                     end;
       end;
     end;
-
 end;
 
 procedure TAssembler80.Assemble(const filename: string);
@@ -742,6 +798,7 @@ begin
   else
     Result.BufInt := 0;
   Result.BufType := pstINT32;
+  Result.Source := SourceCombine2(-3,-1);
 end;
 
 procedure TAssembler80.NeedNumber(_index: integer; const _msg: string);
@@ -814,6 +871,30 @@ begin
   Result := ParserStack[ParserSP-6];
 end;
 
+procedure TAssembler80.PostReduce(Parser: TLCGParser);
+{$IFDEF DEBUG_LOG}
+var i: integer;
+    s: string;
+
+  function M1: TLCGParserStackEntry;
+  begin
+    Result := Parser.ParserStack[Parser.ParserSP-1];
+  end;
+
+{$ENDIF}
+begin
+{$IFDEF DEBUG_LOG}
+      Monitor(ltDebug,'    Buffer type: %s',[GetEnumName(TypeInfo(TLCGParserStackType),Ord(M1.BufType))]);
+      Monitor(ltDebug,'    Buffer str:  %s',[M1.Buf]);
+      Monitor(ltDebug,'    Buffer int:  %d',[M1.BufInt]);
+      Monitor(ltDebug,'    Source:      %s',[GetEnumName(TypeInfo(TParserStackSource),Ord(M1.Source))]);
+      s := '';
+      for i := 0 to Parser.ParserSP-1 do
+        s := s + Parser.ParserStack[i].Buf + ' ';
+      Monitor(ltDebug,'    Stack:       %s',[s]);
+{$ENDIF}
+end;
+
 procedure TAssembler80.RegisterProc(const _procname: string; _proc: TLCGParserProc; _procs: TStringArray);
 var i: integer;
     done_one: boolean;
@@ -834,7 +915,12 @@ begin
   Result.Buf := '';
   Result.BufType := pstNone;
   if Assigned(FProcArray[RuleIndex]) then
-    Result := FProcArray[RuleIndex](Parser)
+    begin
+{$IFDEF DEBUG_LOG}
+      Monitor(ltDebug,'Performing reduction on rule %d: %s',[RuleIndex,RuleProcs[RuleIndex]]);
+{$ENDIF}
+      Result := FProcArray[RuleIndex](Parser);
+    end
   else
     ErrorObj.Show(ltInternal,X3004_REDUCTION_NOT_DEFINED,[RuleIndex,RuleProcs[RuleIndex]]);
 end;
@@ -890,10 +976,11 @@ begin
   RegisterProc('ActStrLower',		@ActStrLower, _procs);
   RegisterProc('ActStrMid',		@ActStrMid, _procs);
   RegisterProc('ActStrRight',		@ActStrRight, _procs);
+  RegisterProc('ActStrString',		@ActStrString, _procs);
   RegisterProc('ActStrTime',		@ActStrTime, _procs);
   RegisterProc('ActStrUpper',		@ActStrUpper, _procs);
   RegisterProc('ActStringConstant',     @ActStringConstant, _procs);
-//RegisterProc('ActValueOrg',		@ActValueOrg, _procs);
+  RegisterProc('ActValueOrg',		@ActValueOrg, _procs);
   RegisterProc('ActValueSymbol',	@ActValueSymbol, _procs);
 end;
 
@@ -916,6 +1003,28 @@ end;
 procedure TAssembler80.ShowErrorToken(_token: TToken; _logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
 begin
   ShowError(_token.Col,_logtype,_msgno,_args);
+end;
+
+function TAssembler80.SourceCombine1(_a: integer): TParserStackSource;
+begin
+  // Simple copy
+  Result := ParserStack[ParserSP+_a].Source;
+end;
+
+function TAssembler80.SourceCombine2(_a,_b: integer): TParserStackSource;
+begin
+  if ParserStack[ParserSP+_a].Source < ParserStack[ParserSP+_b].Source then
+    Result := ParserStack[ParserSP+_a].Source
+  else
+    Result := ParserStack[ParserSP+_b].Source
+end;
+
+function TAssembler80.SourceCombine3(_a,_b,_c: integer): TParserStackSource;
+begin
+  if SourceCombine2(_a,_b) < SourceCombine1(_c) then
+    result := SourceCombine2(_a,_b)
+  else
+    result := SourceCombine1(_c);
 end;
 
 end.

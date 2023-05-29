@@ -37,6 +37,8 @@ type
   TLCGParser = class; // Preliminary declaration
 
   TLCGMonitorProc = procedure (Parser: TLCGParser; LogType: TLCGLogType; const Message: string) of object;
+  TLCGPostReduceProc = procedure (Parser: TLCGParser) of object;
+  TLCGPushProc = procedure (Parser: TLCGParser; Entry: TLCGParserStackEntry) of object;
   TLCGReduceProc = function (Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry of object;
   TLCGParserProc = function (Parser: TLCGParser): TLCGParserStackEntry of object;
   TLCGTokenProc = procedure (Parser: TLCGParser; Token: TToken) of object;
@@ -172,6 +174,8 @@ type
       FInputLineSave:   integer;
       FLogLevel:        TLCGLogType;
       FOnMonitor:       TLCGMonitorProc;
+      FOnPostReduce:    TLCGPostReduceProc;
+      FOnPush:          TLCGPushProc;
       FOnReduce:        TLCGReduceProc;
       FOnToken:         TLCGTokenProc;
     public
@@ -185,21 +189,23 @@ type
       procedure Monitor(LogType: TLCGLogType; const Message: string); virtual;
       procedure Monitor(LogType: TLCGLogType; const Message: string; const Args: array of const); virtual;
       procedure Parse(Stream: TStream);
-      property InputColumn:  integer           read FInputColumnSave;
-      property InputLine:    integer           read FInputLineSave;
-      property LexBufBlock:  integer           read FLexBufBlock write SetLexBufBlock;
-      property LogLevel:     TLCGLogType       read FLogLevel    write FLogLevel;
-      property OnMonitor:    TLCGMonitorProc   read FOnMonitor   write FOnMonitor;
-      property OnToken:      TLCGTokenProc     read FOnToken     write FOnToken;
-      property OnReduce:     TLCGReduceProc    read FOnReduce    write FOnReduce;
-      property Parameters:   TLCGParameterList read FParameterList;
-      property ParserStack:  TLCGParserStack   read FParserStack;
-      property ParserSP:     integer           read FParserSP;
-      property RuleProcs:    TStringArray      read GetRuleProcs;
-      property Rules:        integer           read GetRules;
-      property StartTime:    TDateTime         read FStartTime;
-      property TokenBufSize: integer           read FTokenBufSize write SetTokenBufSize;
-      property Tokens:       TLCGTokenItems    read FTokens;
+      property InputColumn:  integer            read FInputColumnSave;
+      property InputLine:    integer            read FInputLineSave;
+      property LexBufBlock:  integer            read FLexBufBlock  write SetLexBufBlock;
+      property LogLevel:     TLCGLogType        read FLogLevel     write FLogLevel;
+      property OnMonitor:    TLCGMonitorProc    read FOnMonitor    write FOnMonitor;
+      property OnPostReduce: TLCGPostReduceProc read FOnPostReduce write FOnPostReduce;
+      property OnPush:       TLCGPushProc       read FOnPush       write FOnPush;
+      property OnReduce:     TLCGReduceProc     read FOnReduce     write FOnReduce;
+      property OnToken:      TLCGTokenProc      read FOnToken      write FOnToken;
+      property Parameters:   TLCGParameterList  read FParameterList;
+      property ParserStack:  TLCGParserStack    read FParserStack;
+      property ParserSP:     integer            read FParserSP;
+      property RuleProcs:    TStringArray       read GetRuleProcs;
+      property Rules:        integer            read GetRules;
+      property StartTime:    TDateTime          read FStartTime;
+      property TokenBufSize: integer            read FTokenBufSize write SetTokenBufSize;
+      property Tokens:       TLCGTokenItems     read FTokens;
   end;
 
 function CharAsText(c32: TChar): TString;
@@ -512,10 +518,12 @@ begin
   FDFA           := TLCGDFA.Create;
   FRules         := TLCGRules.Create;
   FLALR          := TLCGLALR.Create;
-  FLogLevel  := ltInfo; // Maximum log level
-  FOnMonitor := nil;
-  FOnReduce  := nil;
-  FOnToken   := nil;
+  FLogLevel     := ltInfo; // Maximum log level
+  FOnMonitor    := nil;
+  FOnPostReduce := nil;
+  FOnPush       := nil;
+  FOnReduce     := nil;
+  FOnToken      := nil;
   InitStart;
 end;
 
@@ -596,10 +604,6 @@ var pk:        TChar;             // Peek character
     tokendone: boolean;
     bptr:      integer;
   	valid: 	   boolean;
-{$IFDEF DEBUG_PARSER}
-       s:         string;
-        i:         integer;
-{$ENDIF}
 begin
   valid := False;
   while not valid do
@@ -648,16 +652,6 @@ begin
         end;
       // End of token loop
       FTokenBuf[bptr] := #0;
-{$IFDEF DEBUG_PARSER}
-      i := 0;
-      s := '';
-      while i < bptr do
-        begin
-          s := s + FTokenBuf[i];
-          Inc(i);
-        end;
-      WriteLn('Lexer accept token for state ',FLexerState,' = ',FDFA.Items[FLexerState].AcceptToken,' token is ',s);
-{$ENDIF}
       if FDFA.Items[FLexerState].AcceptToken <> PREDEFINED_EMPTY_TOKEN then
         begin
   	  Result.ID := FDFA.Items[FLexerState].AcceptToken;
@@ -843,23 +837,12 @@ begin
   pk.ID  := FTokenCount-1;  // TERMINAL_COUNT-1 will always be the <$accept> token
   Push(0,pk,empty);
   // Main parsing routine
-{$IFDEF DEBUG_PARSER}
-  WriteLn('------------------------------------------------------------------------');
-  WriteLn('P A R S E R   E N T R Y');
-  WriteLn('------------------------------------------------------------------------');
-{$ENDIF}
   done := false;
   while not done do
     begin
       pk := ParserPeek;
-{$IFDEF DEBUG_PARSER}
-      WriteLn('Parser TosState = ', TosState, ' peek = ',pk);
-{$ENDIF}
       if pk.ID = PREDEFINED_TOKEN_ERROR then
         Monitor(ltError,'Unexpected character %s in input',[CharAsText(FWrongCharacter)]);
-{$IFDEF DEBUG_PARSER}
-      WriteLn('OutputType = ',FLALR.Items[TosState][pk].OutputType);
-{$ENDIF}
       toss := TosState;
       case FLALR.Items[TosState][pk.ID].OutputType of
         potUndefined:
@@ -914,9 +897,6 @@ end;
 
 procedure TLCGParser.Push(_entry: TLCGParserStackEntry);
 begin
-{$IFDEF DEBUG_PARSER}
-  WriteLn('  Shifting Buf = ',_entry.Buf, ' State = ',_entry.State, ' Token = ',FTokens[_entry.Token].Name);
-{$ENDIF}
   if FParserSP >= PARSER_STACK_SIZE_MAX then
     Monitor(ltError,'PARSER_STACK_SIZE_MAX (%d) exceeded',[PARSER_STACK_SIZE_MAX]);
   CheckStackSize;
@@ -927,10 +907,15 @@ end;
 procedure TLCGParser.Push(_state: TLCGStateIdentifier; _token: TToken; _buf: array of char);
 var _entry: TLCGParserStackEntry;
 begin
-  _entry.State  := _state;
-  _entry.Token  := _token;
-  _entry.Buf    := _buf;
+  _entry.State   := _state;
+  _entry.Token   := _token;
+  _entry.Buf     := _buf;
+  _entry.Source  := pssUndefined;
+  _entry.BufType := pstNone;
+  _entry.BufInt  := 0;
   Push(_entry);
+  if Assigned(FOnPush) then
+    FOnPush(Self,_entry);
 end;
 
 procedure TLCGParser.Reduce(ruleindex: TLCGStateIdentifier);
@@ -942,9 +927,6 @@ var reduction: TLCGParserStackEntry;
 begin
   rcount := FRules.Items[ruleindex].RuleCount;
   try
-{$IFDEF DEBUG_PARSER}
-  WriteLn('Reducing Rule #',ruleindex,' ',FRules.Items[ruleindex].RuleText,' to routine ',FRules.Items[ruleindex].ProcName);
-{$ENDIF}
     if Assigned(FOnReduce) then
       reduction := FOnReduce(Self,ruleindex);
   except
@@ -972,6 +954,8 @@ begin
   reduction.Token.Col := savedcol;
   // And push the reduction onto the stack
   Push(reduction);
+  if Assigned(FOnPostReduce) then
+    FOnPostReduce(Self);
 end;
 
 procedure TLCGParser.SetLexBufBlock(_size: integer);

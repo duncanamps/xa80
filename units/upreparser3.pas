@@ -14,7 +14,8 @@ unit upreparser3;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, uasmglobals, udfa_preparser;
+  Classes, SysUtils, Generics.Collections, uasmglobals, udfa_preparser,
+  deployment_parser_types_12, ucommand, uinstruction;
 
 type
   TParserState = (psNone,
@@ -36,6 +37,7 @@ type
   TParserProp = record
     State:    TParserState;  // Parser object type
     Payload:  string;        // Payload, the string that caused this
+    Token:    integer;       // Token index
     Column:   integer;       // Column number in the line 1..n
     Index:    integer;       // Index of the opcode or directive
     Level:    integer;       // Bracket level at end of object, e.g LOW(( -> 2
@@ -43,11 +45,16 @@ type
 
   TPreparser = class(specialize TList<TParserProp>)
     private
-      FDFA:           TPreparserDFA;
-      FErrorMsg:      string;
-      FEscape:        char;
-      FEscaped:       TSetOfChar;
-      FForceColon:    boolean;
+      FCommandIndex:      integer;
+      FCommandList:       TCommandList;
+      FDFA:               TPreparserDFA;
+      FErrorMsg:          string;
+      FEscape:            char;
+      FEscaped:           TSetOfChar;
+      FForceColon:        boolean;
+      FOpcodeIndex:       integer;
+      FOpcodeList:        TInstructionList;
+      FLabelX:        string;
       procedure AdjustComments;
       procedure AllocateKeywords;
       procedure AllocateLabels;
@@ -55,6 +62,9 @@ type
       procedure AllocateMacros;
       procedure CombineBrackets;
       procedure CombineGlobs;
+      procedure ExtractCommand;
+      procedure ExtractLabel;
+      procedure ExtractOpcode;
       procedure RemoveComments;
       procedure RemoveWhitespace;
     public
@@ -62,11 +72,16 @@ type
       destructor Destroy; override;
       procedure Init;
       function  Parse(_input: string): boolean;
-      property DFA:           TPreparserDFA read FDFA            write FDFA;
-      property ErrorMsg:      string        read FErrorMsg;
-      property Escape:        char          read FEscape         write FEscape;
-      property Escaped:       TSetOfChar    read FEscaped        write FEscaped;
-      property ForceColon:    boolean       read FForceColon     write FForceColon;
+      property CommandIndex:     integer          read FCommandIndex;
+      property CommandList:      TCommandList     read FCommandList    write FCommandList;
+      property DFA:              TPreparserDFA    read FDFA            write FDFA;
+      property ErrorMsg:         string           read FErrorMsg;
+      property Escape:           char             read FEscape         write FEscape;
+      property Escaped:          TSetOfChar       read FEscaped        write FEscaped;
+      property ForceColon:       boolean          read FForceColon     write FForceColon;
+      property LabelX:           string           read FLabelX;
+      property OpcodeIndex:      integer          read FOpcodeIndex;
+      property OpcodeList:       TInstructionList read FOpcodeList     write FOpcodeList;
   end;
 
 
@@ -138,9 +153,18 @@ begin
         if token >= FDFA.OffsetOpcode then
           begin
             if token >= FDFA.OffsetCommand then
-              rec.State := ppCommand
+              begin
+                if token >= FDFA.OffsetOperand then
+                  begin
+                    rec.State := ppOperand;
+                    rec.Index := token - FDFA.OffsetOperand;
+                  end
+                else
+                  rec.State := ppCommand
+              end
             else
               rec.State := ppInstruction;
+            rec.Token := token;
             Items[i] := rec;
           end;
       end;
@@ -149,7 +173,7 @@ end;
 procedure TPreparser.AllocateOperands;
 var i: integer;
     rec: TParserProp;
-    valid_op: set of TParserState = [psGlob,psSQChr,psDQStr];
+    valid_op: set of TParserState = [psGlob,ppOperand,psSQChr,psDQStr];
 begin
   // Find first glob / char / string
   i := 0;
@@ -268,9 +292,51 @@ begin
     end;
 end;
 
+procedure TPreparser.ExtractCommand;
+var i: integer;
+begin
+  i := 0;
+  while (i < Count) and (Items[i].State <> ppCommand) do
+    Inc(i);
+  if (i < Count) then
+    begin
+      FCommandIndex := Items[i].Token - FDFA.OffsetCommand;
+      Delete(i);
+    end;
+end;
+
+procedure TPreparser.ExtractOpcode;
+var i: integer;
+begin
+  i := 0;
+  while (i < Count) and (Items[i].State <> ppInstruction) do
+    Inc(i);
+  if (i < Count) then
+    begin
+      FOpcodeIndex := Items[i].Token - FDFA.OffsetOpcode;
+      Delete(i);
+    end;
+end;
+
+procedure TPreparser.ExtractLabel;
+var i: integer;
+begin
+  i := 0;
+  while (i < Count) and (Items[i].State <> ppLabel) do
+    Inc(i);
+  if (i < Count) then
+    begin
+      FLabelX := Items[i].Payload;
+      Delete(i);
+    end;
+end;
+
 procedure TPreparser.Init;
 begin
   FErrorMsg      := '';
+  FLabelX        := '';
+  FCommandIndex  := -1;
+  FOpcodeIndex   := -1;
   Clear;
 end;
 
@@ -297,6 +363,7 @@ var i: integer;
             prop.State    := state;
             prop.Column   := column;
             prop.Payload  := payload;
+            prop.Token    := -1;
             prop.Level    := level;
             prop.Index    := -1;
             Add(prop);
@@ -428,7 +495,19 @@ begin
   AllocateMacros;
   RemoveWhitespace;
   AllocateOperands;
+  ExtractLabel;
+  ExtractCommand;
+  ExtractOpcode;
 {$IFDEF DEBUG_LOG}
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Label   = ' + FLabelX]);
+  if FCommandIndex >= 0 then
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Command = ' + IntToStr(FCommandIndex) + ' (' + FCommandList[FCommandIndex].CommandName + ')'])
+  else
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Command = ' + IntToStr(FCommandIndex)]);
+  if FOpcodeIndex >= 0 then
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Opcode  = ' + IntToStr(FOpcodeIndex) + ' (' + FOpcodeList.OpcodeAtIndex(FOpcodeIndex) + ')'])
+  else
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Opcode  = ' + IntToStr(FOpcodeIndex)]);
   for iter in Self do
     begin
       ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[

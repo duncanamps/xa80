@@ -49,6 +49,7 @@ type
 
   TSymbolTable = class(specialize TList<TSymbol>)
     private
+      FPass:    integer;
       HashSize:  integer;
       HashTable: array of integer;
       procedure AddHash(const _txt: string; _rec: integer);
@@ -67,6 +68,7 @@ type
       procedure DumpByAddress(_strm: TFileStream);
       procedure DumpByName(_strm: TFileStream);
       function  IndexOf(_name: string): integer; reintroduce;
+      property  Pass: integer read FPass write FPass;
   end;
 
 
@@ -106,6 +108,7 @@ begin
   inherited Create;
   MixedCase := False;
   SetHashSize(NextPrime(INITIAL_HASH_BASE * HASH_RATIO));
+  FPass := 0;
 end;
 
 destructor TSymbolTable.Destroy;
