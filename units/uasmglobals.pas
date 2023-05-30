@@ -52,10 +52,11 @@ const
   FILETYPE_OBJECT                   = '.obj80';
   INCLUDE_FILE_DELIMITER            = ',';
   HEX_FILE_BYTES_PER_LINE           = 16;
-  MAX_BYTES_PER_CODE_RECORD         = 256;
+  MAX_BYTES_PER_CODE_RECORD         = 8192;
   MAX_DIGITS_LINENUMBER             = 5;
   MAX_DIGITS_PAGENUMBER             = 4;
-  MAX_HEX_BYTES_IN_LISTING          = 8;
+  MAX_HEX_BYTES_IN_LISTING          = 6;
+  MAX_INDENT_DISPLAY                = 5; // Number of >>> to show for include and macro
   MAX_LINE_LENGTH                   = 4096;
   MAX_NESTED_FILES                  = 16;
   MAX_OPERANDS                      = 2;
@@ -63,7 +64,8 @@ const
   TEMP_FILE_DIVIDER                 = '?END?';
   VERSION_STRING                    = '0.2';
   // Derived constants
-  HEXBUF_LENGTH                     = ((3*MAX_HEX_BYTES_IN_LISTING) + 7);
+  MAX_HEX_WIDTH                     = (MAX_HEX_BYTES_IN_LISTING*2+MAX_HEX_BYTES_IN_LISTING-1);
+//  HEXBUF_LENGTH                     = ((3*MAX_HEX_BYTES_IN_LISTING) + 7);
 
 
 const DIGITS:  set of char = ['0'..'9'];

@@ -104,7 +104,7 @@ type
 
   TLCGParserStackType = (pstNone,pstINT32,pstString);
 
-  TParserStackSource = (pssUndefined,pssVariable,pssConstant);
+  TParserStackSource = (pssUndefined,pssConstant);
 
   TLCGParserStackEntry = record
       State:     TLCGStateIdentifier;

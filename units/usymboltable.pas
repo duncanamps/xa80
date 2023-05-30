@@ -37,14 +37,15 @@ type
   TSymbolSeg  = (ssCSEG,ssDSEG,ssBSS);
 
   TSymbol = record
-    Name:       string;
-    SymType:    TSymbolType;
-    Area:       TSymbolArea;
-    Seg:        TSymbolSeg;
-    IValue:     Word;
-    SValue:     string;
-    Referenced: boolean;
-    Defined:    boolean;
+    Name:         string;
+    SymType:      TSymbolType;
+    Area:         TSymbolArea;
+    Seg:          TSymbolSeg;
+    IValue:       Word;
+    SValue:       string;
+    CreationPass: integer;
+    Referenced:   boolean;
+    Defined:      boolean;
   end;
 
   TSymbolTable = class(specialize TList<TSymbol>)
@@ -59,14 +60,13 @@ type
       MixedCase: boolean;
       constructor Create;
       destructor Destroy; override;
-      function  Add(_name: string; _datatype: TSymbolType; _ival: Word; const _sval: string): integer; reintroduce;
-      function  AddPlaceholder(_name: string): integer;
-      function  AddString(_name: string; const _sval: string): integer;
-      function  AddWord(_name: string; _ival: Word): integer;
+      function  Add(_name: string; _datatype: TSymbolType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean): integer; reintroduce;
       function  CalcHash(const _txt:string): integer;
       procedure Dump(_strm: TFileStream; const _title: string);
       procedure DumpByAddress(_strm: TFileStream);
+      procedure DumpByAddress(const filename: string);
       procedure DumpByName(_strm: TFileStream);
+      procedure DumpByName(const filename: string);
       function  IndexOf(_name: string): integer; reintroduce;
       property  Pass: integer read FPass write FPass;
   end;
@@ -133,7 +133,7 @@ begin
     SetHashSize(NextPrime(HashSize * HASH_EXPANSION));
 end;
 
-function TSymbolTable.Add(_name: string; _datatype: TSymbolType; _ival: Word; const _sval: string): integer;
+function TSymbolTable.Add(_name: string; _datatype: TSymbolType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean): integer;
 var idx: integer;
     sym: TSymbol;
 begin
@@ -145,29 +145,15 @@ begin
   if idx >= 0 then
     Exit;
   // Finally use the base Add() procedure
-  sym.Name       := _name;
-  sym.SymType    := _datatype;
-  sym.IValue     := _ival;
-  sym.SValue     := _sval;
-  sym.Defined    := (_datatype <> stUnknown);
-  sym.Referenced := (_datatype = stUnknown);
+  sym.Name         := _name;
+  sym.IValue       := _ival;
+  sym.SValue       := _sval;
+  sym.Defined      := _defined;
+  sym.Referenced   := _referenced;
+  sym.SymType      := _datatype;
+  sym.CreationPass := FPass;
   Add := inherited Add(sym);
   AddHash(sym.Name,Count-1);
-end;
-
-function TSymbolTable.AddPlaceholder(_name: string): integer;
-begin
-  AddPlaceholder := Add(_name,stUnknown,0,'');
-end;
-
-function TSymbolTable.AddString(_name: string; const _sval: string): integer;
-begin
-  AddString := Add(_name,stString,0,_sval);
-end;
-
-function TSymbolTable.AddWord(_name: string; _ival: Word): integer;
-begin
-  AddWord := Add(_name,stWord,_ival,'');
 end;
 
 function TSymbolTable.CalcHash(const _txt:string): integer;
@@ -249,12 +235,34 @@ begin
   Dump(_strm,'SYMBOL DUMP BY ADDRESS');
 end;
 
+procedure TSymbolTable.DumpByAddress(const filename: string);
+var strm: TFileStream;
+begin
+  strm := TFileStream.Create(filename,fmCreate);
+  try
+    DumpByAddress(strm);
+  finally
+    FreeAndNil(strm);
+  end;
+end;
+
 procedure TSymbolTable.DumpByName(_strm: TFileStream);
 begin
   // This destroys the hashing but we can assume it will only be called
   // after all the assembly is complete
   Sort(specialize TComparer<TSymbol>.Construct(@CompareName));
   Dump(_strm,'SYMBOL DUMP BY NAME');
+end;
+
+procedure TSymbolTable.DumpByName(const filename: string);
+var strm: TFileStream;
+begin
+  strm := TFileStream.Create(filename,fmCreate);
+  try
+    DumpByName(strm);
+  finally
+    FreeAndNil(strm);
+  end;
 end;
 
 function TSymbolTable.IndexOf(_name: string): integer;

@@ -36,6 +36,7 @@ function  CharAsReadable(_c: char): string;
 function  CharSetToStr(_s: TSetOfChar): string;
 procedure CmdOptionToList(app: TCustomApplication; shortopt: char; longopt: string; list: TStringList; delim: boolean = False);
 function  ExpandTabs(const _s: string; tabsize: integer): string;
+function  HasColon(const _s: string): boolean;
 function  Indirected(_str: string; _escape: char; _escaped: TSetOfChar): boolean;
 function  InQuotes(const _s: string): boolean;
 function  IntToBinaryStr(_v: integer; _digits: integer): string;
@@ -47,6 +48,7 @@ function  NextPrime(_value: integer): integer;
 function  OctalStrToInt(_str: string): integer;
 function  OctToDecStr(_s: string): string;
 function  ProgramData: string;
+function  StripColon(const _s: string): string;
 function  StripQuotes(const _s: string): string;
 function  StripQuotesAndEscaped(const _s: string): string;
 procedure UnderlinedText(_sl: TStringList; _text: string; _blank_after: boolean = True; _underline_char: char = '-');
@@ -184,6 +186,11 @@ begin
           Result := Result + Space(amt);
         end;
     end;
+end;
+
+function HasColon(const _s: string): boolean;
+begin
+  Result := (_s <> '') and (_s[Length(_s)] = ':');
 end;
 
 procedure IdentifyStringPos(const _src: string; var _start,_length: integer; _escape: char; _escaped: TSetOfChar);
@@ -405,6 +412,13 @@ begin
   folder := IncludeTrailingPathDelimiter(folder + 'XA80');
   ForceDirectories(folder); // Ensure directory exists!
   Result := folder;
+end;
+
+function StripColon(const _s: string): string;
+begin
+  Result := _s;
+  if HasColon(_s) then
+    Delete(Result,Length(_s),1);
 end;
 
 function StripQuotes(const _s: string): string;

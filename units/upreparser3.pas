@@ -14,36 +14,11 @@ unit upreparser3;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, uasmglobals, udfa_preparser,
-  deployment_parser_types_12, ucommand, uinstruction;
+  Classes, SysUtils, uasmglobals, udfa_preparser,
+  deployment_parser_types_12, ucommand, uinstruction, upreparser3_defs;
 
 type
-  TParserState = (psNone,
-                  ppLabel,
-                  ppCommand,
-                  ppInstruction,
-                  ppMacro,
-                  ppOperand,
-                  psComment,
-                  psUnknown,
-                  psGlob,
-                  psComma,
-                  psWhitespace,
-                  psDQStr,
-                  psDQEsc,
-                  psSQChr,
-                  psDone);
-
-  TParserProp = record
-    State:    TParserState;  // Parser object type
-    Payload:  string;        // Payload, the string that caused this
-    Token:    integer;       // Token index
-    Column:   integer;       // Column number in the line 1..n
-    Index:    integer;       // Index of the opcode or directive
-    Level:    integer;       // Bracket level at end of object, e.g LOW(( -> 2
-  end;
-
-  TPreparser = class(specialize TList<TParserProp>)
+  TPreparser = class(TPreparserBase)
     private
       FCommandIndex:      integer;
       FCommandList:       TCommandList;
@@ -65,10 +40,11 @@ type
       procedure ExtractCommand;
       procedure ExtractLabel;
       procedure ExtractOpcode;
+      procedure PopulateDFA;
       procedure RemoveComments;
       procedure RemoveWhitespace;
     public
-      constructor Create;
+      constructor Create(_cmd_list: TCommandList; _opcode_list: TInstructionList);
       destructor Destroy; override;
       procedure Init;
       function  Parse(_input: string): boolean;
@@ -91,15 +67,19 @@ uses
   uutility, typinfo, umessages, udmnfa;
 
 
-constructor TPreparser.Create;
+constructor TPreparser.Create(_cmd_list: TCommandList; _opcode_list: TInstructionList);
 begin
 {$IFDEF DEBUG_LOG}
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Entering function TPreparser.Create']);
 {$ENDIF}
   inherited Create;
+  FCommandList := _cmd_list;
+  FOpcodeList  := _opcode_list;
   FEscape  := DEFAULT_ESCAPE;
   FEscaped := DEFAULT_ESCAPED;
   FForceColon := False;
+  FDFA := TPreparserDFA.Create;
+  PopulateDFA;
 {$IFDEF DEBUG_LOG}
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Leaving function TPreparser.Create']);
 {$ENDIF}
@@ -110,6 +90,7 @@ begin
 {$IFDEF DEBUG_LOG}
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Entering function TPreparser.Destroy']);
 {$ENDIF}
+  FreeAndNil(FDFA);
   inherited Destroy;
 {$IFDEF DEBUG_LOG}
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Leaving function TPreparser.Destroy']);
@@ -139,7 +120,7 @@ begin
 end;
 
 procedure TPreparser.AllocateKeywords;
-var i,j: integer;
+var i: integer;
     rec: TParserProp;
     cmd: string;
     token: TNFAToken;
@@ -498,7 +479,7 @@ begin
   ExtractLabel;
   ExtractCommand;
   ExtractOpcode;
-{$IFDEF DEBUG_LOG}
+{$IFDEF DEBUG_LOGX}
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Label   = ' + FLabelX]);
   if FCommandIndex >= 0 then
     ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Command = ' + IntToStr(FCommandIndex) + ' (' + FCommandList[FCommandIndex].CommandName + ')'])
@@ -510,14 +491,25 @@ begin
     ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Opcode  = ' + IntToStr(FOpcodeIndex)]);
   for iter in Self do
     begin
-      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[
-            Format('    %d: %s [%s] Idx=%d, Lev=%d  ',
-                  [iter.Column,
-                   GetEnumName(TypeInfo(TParserState),Ord(iter.State)),
-                   iter.Payload,
-                   iter.Index,
-                   iter.Level]
-                   )]);
+      if iter.index >= 0 then
+        ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[
+              Format('    %d: %s [%s] Idx=%d %s, Lev=%d  ',
+                    [iter.Column,
+                     GetEnumName(TypeInfo(TParserState),Ord(iter.State)),
+                     iter.Payload,
+                     iter.Index,
+                     OperandSanitised[TOperandOption(iter.Index)],
+                     iter.Level]
+                     )])
+      else
+        ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[
+              Format('    %d: %s [%s] Idx=%d, Lev=%d  ',
+                    [iter.Column,
+                     GetEnumName(TypeInfo(TParserState),Ord(iter.State)),
+                     iter.Payload,
+                     iter.Index,
+                     iter.Level]
+                     )]);
     end;
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[StringOfChar('=',80)]);
 {$ENDIF}
@@ -529,9 +521,27 @@ begin
           ErrorObj.ColNumber := iter.Column;
           ErrorObj.Show(ltError,E2003_UNRECOGNISED_CONTENT,[iter.Payload]);
         end;
-      // @@@@@ Other checks here
     end;
   Parse := True;
+end;
+
+procedure TPreparser.PopulateDFA;
+var _strm:    TStringStream;
+begin
+  // Add all the commands and instructions
+  FDFA.AddOpcodesCommands(FOpcodeList,FCommandList);
+  // Dumps
+{$IFDEF DEBUG_LOG}
+  _strm := TStringStream.Create;
+  try
+    FDFA.DumpNFAList(_strm);
+    FDFA.DumpNFATable(_strm);
+    FDFA.DumpDFATable(_strm);
+    WriteLn(_strm.DataString);
+  finally
+    FreeAndNil(_strm);
+  end;
+{$ENDIF}
 end;
 
 procedure TPreparser.RemoveComments;

@@ -33,8 +33,8 @@
 
 BDOS        EQU     0005H   		; BDOS entry address
 C_WRITESTR  EQU     9       		; BDOS command to write $ terminated string
-MAX_PRIMES	EQU		65269  			; Maximum number of primes to check (max 65269)
-SQRT_PRIMES	EQU		255				; Square root of MAX_PRIMES
+MAX_PRIMES	EQU		62751  			; Maximum number of primes to check (max 62751)
+SQRT_PRIMES	EQU		250				; Square root of MAX_PRIMES
 BITBUF_SIZE	EQU		(MAX_PRIMES+7) / 8
 			
 ; Some error checking to ensure that SQRT_PRIMES has been set correctly!
@@ -57,19 +57,19 @@ ENDIF
 
 ; Rotate right HL by 1 bit
 		
-RRHL		MACRO
-			OR		A,A				; Cheap trick to clear carry with 1 byte
-			RR		H				; Rotate H
-			RR		L				; into L
-			ENDM
+;RRHL		MACRO
+;			OR		A,A				; Cheap trick to clear carry with 1 byte
+;			RR		H				; Rotate H
+;			RR		L				; into L
+;			ENDM
 
 ; Rotate right HL by 3 bits
 
-RRHL3		MACRO
-			RRHL
-			RRHL
-			RRHL
-			ENDM			
+;RRHL3		MACRO
+;			RRHL
+;			RRHL
+;			RRHL
+;			ENDM			
 
 ;==============================================================================
 ;
@@ -128,7 +128,7 @@ PRINT_LOOP:
 			POP		BC
 PRINT_NEXT:			
 			INC		HL				; Increment by 2
-;			INC		HL	
+			INC		HL	
 			PUSH	HL				; Save HL temporarily
 			PUSH	DE				; also DE
 			LD		DE,MAX_PRIMES+1	; Get the max primes limit
@@ -177,7 +177,18 @@ ISBIT:
 
 CALCBIT:
 			PUSH	HL				; Save HL for now
-			RRHL3					; HL <- HL / 8
+;			RRHL3					; HL <- HL / 8
+
+			OR		A,A				; Cheap trick to clear carry with 1 byte
+			RR		H				; Rotate H
+			RR		L				; into L
+			OR		A,A				; Cheap trick to clear carry with 1 byte
+			RR		H				; Rotate H
+			RR		L				; into L
+			OR		A,A				; Cheap trick to clear carry with 1 byte
+			RR		H				; Rotate H
+			RR		L				; into L
+
 			PUSH	HL				; Copy HL
 			POP		DE				; into DE
 			LD		IX,BITBUF		; Point IX to BITBUF

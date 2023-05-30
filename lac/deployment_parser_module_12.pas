@@ -562,7 +562,6 @@ procedure TLCGParser.InitRun;
 begin
   // Set up lexer variables
   FFetched         := False;
-  FInputLine       := 1;
   FInputColumn     := 1;
   FInputLineSave   := 1;
   FInputColumnSave := 1;

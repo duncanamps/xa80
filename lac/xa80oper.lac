@@ -1,3 +1,4 @@
+		LD	[HL],[HL]
 //======================================================================
 //
 //  XA80OPER.LAC - Duncan's Cross Assembler for x80 processors

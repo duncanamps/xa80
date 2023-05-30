@@ -78,12 +78,30 @@ type
                      E2011_EXPECTED_POS_NUMBER,
                      E2012_CONVERSION_ERROR,
                      E2013_PARSER_ERROR,
+                     E2014_UNABLE_TO_PARSE,
+                     E2015_CODE_SYMBOL_DEFINED,
+                     E2016_COLON_NOT_PRESENT,
+                     E2017_INCORRECT_OPERAND_COUNT,
+                     E2018_OPERAND_NO_DATA_TYPE,
+                     E2019_EXPECTED_INTEGER,
+                     E2020_UNEXPECTED_LABEL,
+                     E2021_INSTRUCTION_UNAVAILABLE,
+                     E2022_OPERANDS_EXPECTED,
+                     E2023_BYTE_RANGE_ERROR,
+                     E2024_CODE_BUFFER_OVERFLOW,
+                     E2025_EMPTY_STRING_NOT_ALLOWED,
+                     E2026_INTEGER_RANGE_ERROR,
+                     E2027_RELATIVE_DISTANCE,
+                     E2028_BIT_NUMBER,
+                     E2029_IM_NUMBER,
+
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
                      X3003_PROCEDURE_NOT_IN_GRAMMAR,
                      X3004_REDUCTION_NOT_DEFINED,
                      X3005_BINARY_CONVERSION_FAILURE,
                      X3006_HEX_CONVERSION_FAILURE,
+                     X3007_INVALID_ELEMENT_TYPE,
                      X3999_UNHANDLED_EXCEPTION
                     );
 
@@ -100,6 +118,7 @@ type
       InfoLimit:  TLCGLogType;
       LineNumber: integer;
       Silent:     boolean;
+      SourceLine: string;
       constructor Create;
       destructor  Destroy; override;
       procedure SetFilename(_fn: string);
@@ -138,12 +157,30 @@ var
     'Expected positive number %s',
     'String %s failed to convert',
     'Parser error %s',
+    'Unable to parse input %s',
+    'Code symbol %s has already been defined',
+    'Mandatory colon not present in code symbol %s',
+    'Incorrect number of operands for command',
+    'Operand no. %d is of indeterminate data type',
+    'Expected integer',
+    'Unexpected label %s, ignored',
+    'Instruction not available for %s',
+    'Operands expected',
+    'Byte must be in range -127..255',
+    'Code buffer limit of %d bytes exceeded',
+    'Empty string is not allowed',
+    'Integer must be in the range %d to %d',
+    'Illegal distance of %d for relative branch, should be -128..+127',
+    'Bit number for SET/RES must be in the range 0..7',
+    'Operand for IM instruction must be in the range 0..2',
+
     'Unhandled case option at %s',
     'Preparser peeek error',
     'Could not find procedure %s in grammar',
     'Reduction code not defined for rule no. %d (%s)',
     'Binary constant %s failed to convert',
     'Hex constant %s failed to convert',
+    'Invalid element type',
     'Unhandled exception %s'
   );
 
@@ -155,6 +192,7 @@ begin
   Filename    := '';
   InfoLimit   := ltInfo;
   LineNumber  := 0;
+  SourceLine  := '';
   Silent      := False;
   FStartTime  := Now;
 end;
@@ -186,6 +224,10 @@ begin
         begin
           s := s + LINE_TERMINATOR;
           s := s + Format('          at %d,%d in %s',[LineNumber,ColNumber,Filename]);
+          s := s + LINE_TERMINATOR;
+          s := s + Space(10) + SourceLine;
+          s := s + LINE_TERMINATOR;
+          s := s + Space(10+ColNumber-2) + '_^_';
         end;
     end;
   MonitorString := s;

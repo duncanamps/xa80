@@ -30,19 +30,28 @@ interface
 
 uses
   Classes, SysUtils, umonitor, deployment_parser_types_12,
-  deployment_parser_module_12, umessages, uinstruction, usymboltable;
+  deployment_parser_module_12, umessages, uinstruction, usymboltable,
+  upreparser3, ucommand, upreparser3_defs, ucodebuffer;
 
 type
   TCompareMode = (cmEqual,cmNotEqual,cmLessThan,cmLessEqual,cmGreaterThan,cmGreaterEqual);
 
   TAssembler80 = class(TLCGParser)
     private
-      FCurrentFile: string;
-      FInputCol:    integer;
-      FOrg:         integer;
-      FPass:        integer;
-      FProcArray:      array of TLCGParserProc;
-      FSymbolTable:    TSymbolTable;
+      FCmdList:         TCommandList;
+      FCodeBuffer:      TCodeBuffer;
+      FCurrentFile:     string;
+      FInputCol:        integer;
+      FInstructionList: TInstructionList;
+      FFilenameListing: string;
+      FMemory:          array[Word] of byte;
+      FMemoryUsed:      array[Word] of boolean;
+      FOrg:             integer;
+      FPass:            integer;
+      FPreparser:       TPreparser;
+      FProcArray:       array of TLCGParserProc;
+      FStreamListing:   TFileStream;
+      FSymbolTable:     TSymbolTable;
       procedure RegisterProc(const _procname: string; _proc: TLCGParserProc; _procs: TStringArray);
       procedure RegisterProcs;
       function  ActBinLiteral(_parser: TLCGParser): TLCGParserStackEntry;
@@ -105,11 +114,58 @@ type
       function  ActStrUpper(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
+      procedure AsmProcessLabel(const _label: string; _command_index: integer);
+      procedure CheckNoLabel(const _label: string);
+      procedure CheckByte(_i: integer);
+      procedure CheckInteger(_i, _min, _max: integer);
+      procedure CheckOperandByte(_index: integer);
+      procedure CheckOperandInteger(_index, _min, _max: integer);
+      procedure CheckStringNotEmpty(const _s: string);
+      procedure CmdASMERROR(const _label: string; _preparser: TPreparserBase);
+      procedure CmdASMWARNING(const _label: string; _preparser: TPreparserBase);
+      procedure CmdCODE(const _label: string; _preparser: TPreparserBase);
+      procedure CmdCSEG(const _label: string; _preparser: TPreparserBase);
+      procedure CmdDATA(const _label: string; _preparser: TPreparserBase);
+      procedure CmdDB(const _label: string; _preparser: TPreparserBase);
+      procedure CmdDC(const _label: string; _preparser: TPreparserBase);
+      procedure CmdDD(const _label: string; _preparser: TPreparserBase);
+      procedure CmdDF(const _label: string; _preparser: TPreparserBase);
+      procedure CmdDM(const _label: string; _preparser: TPreparserBase);
+      procedure CmdDS(const _label: string; _preparser: TPreparserBase);
+      procedure CmdDSEG(const _label: string; _preparser: TPreparserBase);
+      procedure CmdDW(const _label: string; _preparser: TPreparserBase);
+      procedure CmdDZ(const _label: string; _preparser: TPreparserBase);
+      procedure CmdELSE(const _label: string; _preparser: TPreparserBase);
+      procedure CmdEND(const _label: string; _preparser: TPreparserBase);
+      procedure CmdENDIF(const _label: string; _preparser: TPreparserBase);
+      procedure CmdENDM(const _label: string; _preparser: TPreparserBase);
+      procedure CmdENDR(const _label: string; _preparser: TPreparserBase);
+      procedure CmdENDW(const _label: string; _preparser: TPreparserBase);
+      procedure CmdEQU(const _label: string; _preparser: TPreparserBase);
+      procedure CmdEXTERN(const _label: string; _preparser: TPreparserBase);
+      procedure CmdEXTERNAL(const _label: string; _preparser: TPreparserBase);
+      procedure CmdGLOBAL(const _label: string; _preparser: TPreparserBase);
+      procedure CmdIF(const _label: string; _preparser: TPreparserBase);
+      procedure CmdIFDEF(const _label: string; _preparser: TPreparserBase);
+      procedure CmdIFNDEF(const _label: string; _preparser: TPreparserBase);
+      procedure CmdINCLUDE(const _label: string; _preparser: TPreparserBase);
+      procedure CmdMACRO(const _label: string; _preparser: TPreparserBase);
+      procedure CmdMESSAGE(const _label: string; _preparser: TPreparserBase);
+      procedure CmdORG(const _label: string; _preparser: TPreparserBase);
+      procedure CmdREPEAT(const _label: string; _preparser: TPreparserBase);
+      procedure CmdRPT(const _label: string; _preparser: TPreparserBase);
+      procedure CmdTITLE(const _label: string; _preparser: TPreparserBase);
+      procedure CmdUDATA(const _label: string; _preparser: TPreparserBase);
+      procedure CmdUSEG(const _label: string; _preparser: TPreparserBase);
+      procedure CmdWHILE(const _label: string; _preparser: TPreparserBase);
       function  CompareGeneric(_comparer: TCompareMode): TLCGParserStackEntry;
       procedure NeedNumber(_index: integer; const _msg: string);
       procedure NeedNumberCompare;
       procedure NeedPosNumber(_index: integer; const _msg: string; _min: integer = 0);
       procedure NeedString(_index: integer; const _msg: string);
+      procedure OutputMemoryToCom(_filename: string);
+      procedure Parse(const _s: string);
+      procedure Parse(_strm: TStream; _firstcol: integer);
       function  ParserM1: TLCGParserStackEntry;
       function  ParserM2: TLCGParserStackEntry;
       function  ParserM3: TLCGParserStackEntry;
@@ -117,7 +173,11 @@ type
       function  ParserM5: TLCGParserStackEntry;
       function  ParserM6: TLCGParserStackEntry;
       procedure PostReduce(Parser: TLCGParser);
+      procedure Preparse(const _s: string);
+      procedure ProcessFile(const filename: string);
       function  Reduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
+      procedure RegisterCommands;
+      procedure SetOrg(_neworg: integer);
       function  SourceCombine1(_a: integer): TParserStackSource;
       function  SourceCombine2(_a,_b: integer): TParserStackSource;
       function  SourceCombine3(_a,_b,_c: integer): TParserStackSource;
@@ -127,15 +187,18 @@ type
       constructor Create;
       destructor Destroy; override;
       procedure Assemble(const filename: string);
-      procedure Parse(_strm: TStream; _firstcol: integer);
+      procedure AssembleLine(const _s: string);
+      procedure AssemblePass(_pass: integer; const filename: string);
       procedure ShowError(_colno: integer; _logtype: TLCGLogType; _msgno: TMessageNumbers);
       procedure ShowError(_colno: integer; _logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
       procedure ShowErrorToken(_token: TToken; _logtype: TLCGLogType; _msgno: TMessageNumbers);
       procedure ShowErrorToken(_token: TToken; _logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
-      property CurrentFile: string  read FCurrentFile;
-      property InputLine:   integer read FInputLine;
-      property InputCol:    integer read FInputCol;
-      property Pass:        integer read FPass;
+      property CurrentFile:     string  read FCurrentFile;
+      property FilenameListing: string  read FFilenameListing write FFilenameListing;
+      property InputLine:       integer read FInputLine;
+      property InputCol:        integer read FInputCol;
+      property Org:             integer read FOrg             write SetOrg;
+      property Pass:            integer read FPass;
   end;
 
 var
@@ -144,12 +207,22 @@ var
 implementation
 
 uses
-  uutility, typinfo;
+  uutility, typinfo, uasmglobals;
 
 constructor TAssembler80.Create;
+var w: Word;
 begin
   inherited Create;
+  for w in Word do FMemory[w] := 0;
+  for w in Word do FMemoryUsed[w] := False;
+  FCodeBuffer := TCodeBuffer.Create;
+  FInstructionList := TInstructionList.Create(DEFAULT_PROCESSOR_VALUE);
+  FCmdList := TCommandList.Create;
+  RegisterCommands;
+  FPreparser := TPreparser.Create(FCmdList,FInstructionList);
+  FPreparser.ForceColon := True;
   FSymbolTable := TSymbolTable.Create;
+  FCmdList.SymbolTable := FSymbolTable;
   LoadFromResource('XA80OPER');
   SetLength(FProcArray,Rules);
   RegisterProcs;
@@ -157,16 +230,15 @@ begin
   FPass := 0;
   OnPostReduce := @PostReduce;
   OnReduce     := @Reduce;
-  // Test stuff
-  FSymbolTable.AddPlaceholder('PlaceHold');
-  FSymbolTable.AddWord('cassette_buf',$033A);
-  FSymbolTable.AddString('myname','Duncan Munro');
-  FOrg := $200;
 end;
 
 destructor TAssembler80.Destroy;
 begin
   FreeAndNil(FSymbolTable);
+  FreeAndNil(FPreparser);
+  FreeAndNil(FCmdList);
+  FreeAndNil(FInstructionList);
+  FreeAndNil(FCodeBuffer);
   inherited Destroy;
 end;
 
@@ -708,19 +780,20 @@ var name: string;
     if sym.Defined then
       SetSource := pssConstant
     else
-      SetSource := pssVariable;
+      SetSource := pssUndefined;
   end;
 
 begin
+  Result := ParserM1;
   name := ParserM1.Buf;
   idx := FSymbolTable.IndexOf(name);
   if idx < 0 then
     // Symbol not found, we should add a placeholder for it
     begin
-      FSymbolTable.AddPlaceholder(name);
-      Result.BufInt  := 0; // Assume an integer for now
+      Result.BufInt  := 0; // Assume a forward address for now
       Result.BufType := pstINT32;
-      Result.Source  := pssVariable;
+      Result.Source  := pssUndefined;
+      FSymbolTable.Add(name,stAddress,0,'',False,True);
     end
   else
     begin
@@ -753,9 +826,509 @@ begin
     end;
 end;
 
+procedure TAssembler80.AsmProcessLabel(const _label: string; _command_index: integer);
+var equate_or_macro:   boolean;
+    _index:            integer;
+    _symbol:           TSymbol;
+begin
+  equate_or_macro := (_command_index >= 0) and
+                     ((FCmdList[_command_index].CommandName = '=') or
+                      (FCmdList[_command_index].CommandName = 'EQU') or
+                      (FCmdList[_command_index].CommandName = 'MACRO')
+                     );
+  if (_label <> '') and not equate_or_macro then
+    begin // Must be an ordinary program label, cannot already be assigned
+      if FPreparser.ForceColon and (not HasColon(_label)) then
+        ErrorObj.Show(ltError,E2016_COLON_NOT_PRESENT,[_label]);
+      _index := FSymbolTable.IndexOf(StripColon(_label));
+      if (_index >= 0) then
+        begin
+          if (FPass = 1) then
+            // Check for forward reference already defined
+            if (FSymbolTable[_index].SymType = stAddress) and
+               (FSymbolTable[_index].Defined = False) then
+              begin
+                _symbol := FSymbolTable[_index];
+                _symbol.IValue  := FOrg;
+                _symbol.Defined := True;;
+                FSymbolTable[_index] := _symbol;
+              end
+            else
+              ErrorObj.Show(ltError,E2015_CODE_SYMBOL_DEFINED,[_label]);
+        end
+      else
+        // Add the symbol at the current address
+        FSymbolTable.Add(StripColon(_label),stAddress,FOrg,'',True,False);
+    end;
+end;
+
+// Key routine - assemble a whole file
+
 procedure TAssembler80.Assemble(const filename: string);
 begin
-  umonitor.Monitor(mtInfo,'Assembling %s',[filename]);
+  ErrorObj.SetFilename('error_obj_log.txt');
+  ErrorObj.Show(ltInfo,I0001_ASSEMBLY_STARTED);
+  AssemblePass(1,filename);
+  AssemblePass(2,filename);
+  OutputMemoryToCom('sieve.com');
+  FSymbolTable.DumpByAddress('symbols.map');
+  ErrorObj.Show(ltInfo,I0002_ASSEMBLY_ENDED);
+end;
+
+// Key routine - assemble a single line of text from the input
+
+procedure TAssembler80.AssembleLine(const _s: string);
+var labelx: string;
+    command_index:     integer;
+    opcode_index:      integer;
+    inst_rec:          TInstructionRec;
+    oper1,oper2:       TOperandOption;
+    s:                 string;
+    indent_str:        string;
+    elem:              TCodeElement;
+    i:                 integer;
+    opval:             integer;
+    newaddr:           integer;
+
+  function GetOpVal(_idx: integer): integer;
+  begin
+    CheckOperandInteger(_idx,-32768,65535);
+    GetOpVal := FPreparser[_idx].IntValue;
+  end;
+
+begin
+  ErrorObj.SourceLine := _s;
+  FCodeBuffer.Init;
+  Parse(_s); // Do the pre-parsing and main parsing
+  labelx := FPreparser.LabelX;
+  command_index := FPreparser.CommandIndex;
+  opcode_index  := FPreparser.OpcodeIndex;
+  AsmProcessLabel(labelx,command_index);
+  // Process commands if available
+  if command_index >= 0 then
+    begin
+      FCmdList[command_index].CommandExec(labelx,FPreparser);
+    end;
+  // Assemble opcodes if available
+  if opcode_index >= 0 then
+    begin
+      oper1 := OPER_NULL;
+      oper2 := OPER_NULL;
+      inst_rec.CodeElementCount := 0;
+      if FPreparser.Count > 0 then
+        oper1 := TOperandOption(FPreparser[0].Index);
+      if FPreparser.Count > 1 then
+        oper2 := TOperandOption(FPreparser[1].Index);
+      if not FInstructionList.FindInstruction(opcode_index,oper1,oper2,inst_rec) then
+        begin // Instruction not found
+          s := FInstructionList.OpcodeAtIndex(opcode_index);
+          if oper1 <> OPER_NULL then
+            s := s + ' ' + OperandSanitised[oper1];
+          if oper2 <> OPER_NULL then
+            s := s + ',' + OperandSanitised[oper2];
+          ErrorObj.Show(ltError,E2021_INSTRUCTION_UNAVAILABLE,[s]);
+        end;
+      // Add the code to populate the output buffer using inst_rec
+      for i := 0 to inst_rec.CodeElementCount-1 do
+        begin
+          elem := inst_rec.CodeElements[i];
+          opval := 0;
+          case elem.OperandNo of
+            1:
+              begin
+                ErrorObj.ColNumber := FPreparser[0].Column;
+                opval := GetOpVal(0);
+              end;
+            2:
+              begin
+                ErrorObj.ColNumber := FPreparser[1].Column;
+                opval := GetOpVal(1);
+              end;
+          end;
+          case elem.ElementType of
+            cetNull:
+              ErrorObj.Show(ltInternal,X3007_INVALID_ELEMENT_TYPE);
+            cetB3:
+              begin
+                if (opval < 0) or (opval > 7) then
+                  ErrorObj.Show(ltError,E2028_BIT_NUMBER);
+                FCodeBuffer.Push(elem.Value or (opval shl elem.Offset));
+              end;
+            cetHex:
+              FCodeBuffer.Push(elem.Value);
+            cetIM:
+              begin
+                if (opval < 0) or (opval > 2) then
+                  ErrorObj.Show(ltError,E2029_IM_NUMBER);
+                case opval of
+                  0: FCodeBuffer.Push($46);
+                  1: FCodeBuffer.Push($56);
+                  2: FCodeBuffer.Push($5E);
+                end;
+              end;
+            cetR8:
+              if FPass = 1 then
+                FCodeBuffer.Push(0)
+              else
+                begin
+                  newaddr := opval - (FOrg+2);
+                  if (newaddr < -128) or (newaddr > 127) then
+                    ErrorObj.Show(ltError,E2027_RELATIVE_DISTANCE,[newaddr]);
+                  FCodeBuffer.Push(newaddr and $FF);
+                end;
+            cetS8:
+              FCodeBuffer.Push(opval and $FF);
+            cetRST:
+                begin
+                  if (opval > 7) and ((opval mod 8) = 0) then
+                    opval := opval div 8;
+                  if (opval < 0) or (opval > 7) then
+                    ErrorObj.Show(ltError,E2028_BIT_NUMBER);
+                  FCodeBuffer.Push(elem.Value or (opval shl elem.Offset));
+                end;
+            cetU8:
+              begin
+                CheckByte(opval);
+                FCodeBuffer.Push(opval and $FF);
+              end;
+            cetU16:
+              begin
+                FCodeBuffer.Push(opval and $FF);
+                FCodeBuffer.Push((opval shr 8) and $FF);
+              end;
+          end;
+        end;
+    end;
+  // Do the listing and increase FOrg
+  if (FPass = 2) and Assigned(FStreamListing) then
+    begin
+      // @@@@@ Set macro indent here if required
+      indent_str := Format('%5d',[FInputLine]);
+      if FCodeBuffer.Contains > 0 then
+        s := Format('%4.4X: %s %s %s',[FOrg,FCodeBuffer.AsString, indent_str, _s])
+      else
+        s := Format('%s %s %s',[Space(6+MAX_HEX_WIDTH), indent_str, _s]);
+      s := s + LINE_TERMINATOR;
+      FStreamListing.Write(s[1],Length(s));
+    end;
+  if (FPass = 2) then
+    for i := 0 to FCodeBuffer.Contains-1 do
+      begin
+        FMemory[Org]     := FCodeBuffer.Buffer[i];
+        FMemoryUsed[Org] := True;
+        Org := Org + 1;
+      end
+  else
+    Org := Org + FCodeBuffer.Contains;
+end;
+
+procedure TAssembler80.AssemblePass(_pass: integer; const filename: string);
+begin
+  FPass := _pass;
+  FSymbolTable.Pass := _pass;
+  FOrg := 0;
+  if _pass = 2 then
+    begin
+      FStreamListing := TFileStream.Create(FFilenameListing,fmCreate);
+      try
+        ProcessFile(filename)
+      finally
+        FreeAndNil(FStreamListing);
+      end;
+    end
+  else
+    ProcessFile(filename);
+end;
+
+procedure TAssembler80.CheckByte(_i: integer);
+begin
+  if (_i < -128) or (_i > 255) then
+    ErrorObj.Show(ltError,E2023_BYTE_RANGE_ERROR);
+end;
+
+procedure TAssembler80.CheckNoLabel(const _label: string);
+begin
+  if _label <> '' then
+    ErrorObj.Show(ltWarning,E2020_UNEXPECTED_LABEL,[_label]);
+end;
+
+procedure TAssembler80.CheckInteger(_i, _min, _max: integer);
+begin
+  if (_i < _min) or (_i > _max) then
+    ErrorObj.Show(ltError,E2026_INTEGER_RANGE_ERROR,[_min,_max]);
+end;
+
+procedure TAssembler80.CheckOperandByte(_index: integer);
+begin
+  CheckOperandInteger(_index,-128,255);
+end;
+
+procedure TAssembler80.CheckOperandInteger(_index, _min, _max: integer);
+begin
+  if _index >= FPreparser.Count then
+    ErrorObj.Show(ltError,E2022_OPERANDS_EXPECTED);
+  if FPreparser[_index].DataType <> pstINT32 then
+    ErrorObj.Show(ltError,E2019_EXPECTED_INTEGER);
+  CheckInteger(FPreparser[_index].IntValue,_min,_max);
+end;
+
+procedure TAssembler80.CheckStringNotEmpty(const _s: string);
+begin
+  if _s = '' then
+    ErrorObj.Show(ltError,E2025_EMPTY_STRING_NOT_ALLOWED);
+end;
+
+procedure TAssembler80.CmdASMERROR(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdASMWARNING(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdCODE(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdCSEG(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdDATA(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdDB(const _label: string; _preparser: TPreparserBase);
+var itm: TParserProp;
+    i:   integer;
+    j:   integer;
+    s:   string;
+begin
+  // Define bytes
+  // There should be one or more operands
+  if _preparser.Count < 1 then
+    ErrorObj.Show(ltError,E2022_OPERANDS_EXPECTED);
+  // Go through the operands populating the code buffer
+  for i := 0 to _preparser.Count-1 do
+    begin
+      itm := _preparser[i];
+      ErrorObj.ColNumber := itm.Column;
+      case itm.DataType of
+        pstNone:   ErrorObj.Show(ltError,E2018_OPERAND_NO_DATA_TYPE,[i+1]);
+        pstINT32:  begin
+                     CheckByte(itm.IntValue);
+                     FCodeBuffer.Push((itm.IntValue and $FF));
+                   end;
+        pstString: begin
+                     s:= _preparser[i].StrValue;
+                     CheckStringNotEmpty(s);
+                     for j := 1 to Length(s) do
+                       FCodeBuffer.Push(Ord(s[j]));
+                     end;
+      end;
+    end;
+end;
+
+procedure TAssembler80.CmdDC(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdDD(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdDF(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdDM(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdDS(const _label: string; _preparser: TPreparserBase);
+var bcount: integer;
+    bval:   integer;
+begin
+  // Define storage
+  // Two forms of this command:
+  //    DS <storagesize>
+  //    DS <storagesize>,<bytetofill>
+  case _preparser.Count of
+    1:  begin
+          CheckOperandInteger(0,0,MAX_BYTES_PER_CODE_RECORD-1);
+          bcount := _preparser[0].IntValue;
+          bval   := 0;
+        end;
+    2:  begin
+          CheckOperandInteger(0,0,MAX_BYTES_PER_CODE_RECORD-1);
+          CheckOperandByte(1);
+          bcount := _preparser[0].IntValue;
+          bval   := _preparser[1].IntValue;
+        end;
+    otherwise
+      ErrorObj.Show(ltError,E2017_INCORRECT_OPERAND_COUNT);
+
+  end;
+  // Go through the operands populating the code buffer
+  FCodeBuffer.PushMany(bcount,(bval and $FF),(_preparser.Count = 2));
+end;
+
+procedure TAssembler80.CmdDSEG(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdDW(const _label: string; _preparser: TPreparserBase);
+var itm: TParserProp;
+    i:   integer;
+    j:   integer;
+    s:   string;
+begin
+  // Define words
+  // There should be one or more operands
+  if _preparser.Count < 1 then
+    ErrorObj.Show(ltError,E2022_OPERANDS_EXPECTED);
+  // Go through the operands populating the code buffer
+  for i := 0 to _preparser.Count-1 do
+    begin
+      itm := _preparser[i];
+      ErrorObj.ColNumber := itm.Column;
+      case itm.DataType of
+        pstNone:   ErrorObj.Show(ltError,E2018_OPERAND_NO_DATA_TYPE,[i+1]);
+        pstINT32:  begin
+                     CheckOperandInteger(i,-32768,65535);
+                     FCodeBuffer.Push((itm.IntValue and $FF));
+                     FCodeBuffer.Push((itm.IntValue shr 8) and $FF);
+                   end;
+        pstString: ErrorObj.Show(ltError,E2019_EXPECTED_INTEGER);
+      end;
+    end; end;
+
+procedure TAssembler80.CmdDZ(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdELSE(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdEND(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdENDIF(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdENDM(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdENDR(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdENDW(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdEQU(const _label: string; _preparser: TPreparserBase);
+var _index: integer;
+begin
+  // Make an assignment to the label
+  // EQU is allowed to change value during assembly but is not allowed to
+  // change type. e.g. cannot define as integer then re-define as string
+
+  // There should be one and only one operand
+  if _preparser.Count <> 1 then
+    ErrorObj.Show(ltError,E2017_INCORRECT_OPERAND_COUNT);
+  // If label exists get it, if not create it
+  ErrorObj.ColNumber := _preparser[0].Column;
+  _index := FSymbolTable.IndexOf(_label);
+  if _index < 0 then
+    begin  // Label doesn't exist, create it
+      case _preparser[0].DataType of
+        pstNone:   ErrorObj.Show(ltError,E2018_OPERAND_NO_DATA_TYPE,[1]);
+        pstINT32:  FSymbolTable.Add(_label,stWord,_preparser[0].IntValue,'',True,False);
+        pstString: FSymbolTable.Add(_label,stString,0,_preparser[0].StrValue,True,False);
+      end; // case
+    end;
+end;
+
+procedure TAssembler80.CmdEXTERN(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdEXTERNAL(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdGLOBAL(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdIF(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdIFDEF(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdIFNDEF(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdINCLUDE(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdMACRO(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdMESSAGE(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdORG(const _label: string; _preparser: TPreparserBase);
+begin
+  // Set the origin for the assembly
+  // There should be one and only one operand and no label
+  if _preparser.Count <> 1 then
+    ErrorObj.Show(ltError,E2017_INCORRECT_OPERAND_COUNT);
+  CheckNoLabel(_label);
+  case _preparser[0].DataType of
+        pstNone,
+        pstString: ErrorObj.Show(ltError,E2019_EXPECTED_INTEGER);
+        pstINT32:  begin
+                     CheckOperandInteger(0,0,$FFFF);
+                     FOrg := _preparser[0].IntValue;
+                   end;
+  end; // case
+end;
+
+procedure TAssembler80.CmdREPEAT(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdRPT(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdTITLE(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdUDATA(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdUSEG(const _label: string; _preparser: TPreparserBase);
+begin
+end;
+
+procedure TAssembler80.CmdWHILE(const _label: string; _preparser: TPreparserBase);
+begin
 end;
 
 function TAssembler80.CompareGeneric(_comparer: TCompareMode): TLCGParserStackEntry;
@@ -763,6 +1336,7 @@ var compare: boolean;
     s1,s2:   string;
     i1,i2:   integer;
 begin
+  compare := False;
   if (ParserM3.BufType = pstString) and
      (ParserM1.BufType = pstString) then
     begin
@@ -824,6 +1398,120 @@ procedure TAssembler80.NeedString(_index: integer; const _msg: string);
 begin
   if ParserStack[ParserSP+_index].BufType <> pstString then
     ShowErrorToken(ParserStack[ParserSP+_index].Token,ltError,E2010_EXPECTED_STRING,[_msg])
+end;
+
+procedure TAssembler80.OutputMemoryToCom(_filename: string);
+var lowest, highest: integer;
+    bcount: integer;
+    strm: TFileStream;
+begin
+  lowest := $0000;
+  highest := $FFFF;
+  while (highest > 0) and (not FMemoryUsed[highest]) do
+    Dec(highest);
+  while (lowest < 65536) and (not FMemoryUsed[lowest]) do
+    Inc(lowest);
+  strm := TFileStream.Create(_filename,fmCreate);
+  try
+    bcount := highest - lowest + 1;
+    if bcount > 0 then
+      strm.Write(FMemory[lowest],bcount);
+  finally
+    FreeAndNil(strm);
+  end;
+end;
+
+// Key routine - parse a single line of text from the input
+
+procedure TAssembler80.Parse(const _s: string);
+var i: integer;
+    itm: TParserProp;
+    strm: TStringStream;
+    s:    string;
+begin
+  FPreparser.Parse(_s);
+  // Now parse all the operands where needed
+  for i := 0 to FPreparser.Count-1 do
+    begin
+      itm := FPreparser.Items[i];
+      if itm.Index < 0 then
+        begin // We need to use the main parser to sort this out
+          s := itm.Payload;
+          if (s <> '') and (Indirected(s,DEFAULT_ESCAPE,DEFAULT_ESCAPED)) then
+            begin
+              s[1] := '[';
+              s[Length(s)] := ']';
+            end;
+          strm := TStringStream.Create(s);
+          try
+            Parse(strm,itm.Column);
+            case ParsedOperandOption of
+              OPER_U16,
+              OPER_U16_IND,
+              OPER_IXPD_IND,
+              OPER_IYPD_IND: begin
+                               itm.Index    := Ord(ParsedOperandOption);
+                               itm.DataType := FinalVal.BufType;
+                               itm.IntValue := (FinalVal.BufInt and $FFFF);
+                               itm.StrValue := FinalVal.Buf;
+                               itm.Source   := FinalVal.Source;
+                               FPreparser.Items[i] := itm;
+                             end;
+              otherwise
+                ErrorObj.Show(ltError,E2014_UNABLE_TO_PARSE,[itm.Payload]);
+            end;  // case
+          finally
+            FreeAndNil(strm);
+          end;
+        end
+      else
+        begin
+          itm.DataType := pstNone;
+          itm.IntValue := 0;
+          itm.StrValue := '';
+          itm.Source   := pssUndefined;
+          FPreparser.Items[i] := itm;
+        end;
+    end;
+{$IFDEF DEBUG_LOG}
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Label   = ' + FPreparser.LabelX]);
+  if FPreparser.CommandIndex >= 0 then
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Command = ' + IntToStr(FPreparser.CommandIndex) + ' (' + FPreparser.CommandList[FPreparser.CommandIndex].CommandName + ')'])
+  else
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Command = ' + IntToStr(FPreparser.CommandIndex)]);
+  if FPreparser.OpcodeIndex >= 0 then
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Opcode  = ' + IntToStr(FPreparser.OpcodeIndex) + ' (' + FPreparser.OpcodeList.OpcodeAtIndex(FPreparser.OpcodeIndex) + ')'])
+  else
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Opcode  = ' + IntToStr(FPreparser.OpcodeIndex)]);
+  for i := 0 to FPreparser.Count-1 do
+    begin
+      itm := FPreparser.Items[i];
+      if itm.index >= 0 then
+        ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[
+              Format('    %d: %s [%s] Idx=%d %s, Lev=%d DataType=%s StrVal=%s IntVal=%d Src=%s',
+                    [itm.Column,
+                     GetEnumName(TypeInfo(TParserState),Ord(itm.State)),
+                     itm.Payload,
+                     itm.Index,
+                     OperandSanitised[TOperandOption(itm.Index)],
+                     itm.Level,
+                     GetEnumName(TypeInfo(TLCGParserStackType),Ord(itm.DataType)),
+                     itm.StrValue,
+                     itm.IntValue,
+                     GetEnumName(TypeInfo(TParserStackSource),Ord(itm.Source))]
+                     )])
+      else
+        ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[
+              Format('    %d: %s [%s] Idx=%d, Lev=%d  ',
+                    [itm.Column,
+                     GetEnumName(TypeInfo(TParserState),Ord(itm.State)),
+                     itm.Payload,
+                     itm.Index,
+                     itm.Level]
+                     )]);
+    end;
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[StringOfChar('=',80)]);
+{$ENDIF}
 end;
 
 procedure TAssembler80.Parse(_strm: TStream; _firstcol: integer);
@@ -895,6 +1583,35 @@ begin
 {$ENDIF}
 end;
 
+procedure TAssembler80.Preparse(const _s: string);
+begin
+  FPreparser.Parse(_s);
+end;
+
+procedure TAssembler80.ProcessFile(const filename: string);
+var sl: TStringList;
+    i:  integer;
+    s:  string;
+begin
+  FCurrentFile := filename;
+  sl := TStringList.Create;
+  sl.LoadFromFile('test_basic2.z80');
+  ErrorObj.Filename := 'test_basic2.z80';
+  try
+    for i := 0 to sl.Count-1 do
+      begin
+        FInputLine := i + 1;
+        ErrorObj.LineNumber := i+1;
+        ErrorObj.ColNumber := 0;
+        s := sl[i];
+        s := ExpandTabs(s,DEFAULT_TAB_SIZE);
+        AssembleLine(s);
+      end;
+  finally
+    FreeAndNil(sl);
+  end;
+end;
+
 procedure TAssembler80.RegisterProc(const _procname: string; _proc: TLCGParserProc; _procs: TStringArray);
 var i: integer;
     done_one: boolean;
@@ -923,6 +1640,53 @@ begin
     end
   else
     ErrorObj.Show(ltInternal,X3004_REDUCTION_NOT_DEFINED,[RuleIndex,RuleProcs[RuleIndex]]);
+end;
+
+procedure TAssembler80.RegisterCommands;
+begin
+  FCmdList.RegisterCommand('=',		@CmdEQU);
+  FCmdList.RegisterCommand('ASMERROR',	@CmdASMERROR);
+  FCmdList.RegisterCommand('ASMWARNING',@CmdASMWARNING);
+  FCmdList.RegisterCommand('CODE',	@CmdCODE);
+  FCmdList.RegisterCommand('CSEG',	@CmdCSEG);
+  FCmdList.RegisterCommand('DATA',	@CmdDATA);
+  FCmdList.RegisterCommand('DB',	@CmdDB);
+  FCmdList.RegisterCommand('DC',	@CmdDC);
+  FCmdList.RegisterCommand('DEFB',	@CmdDB);
+  FCmdList.RegisterCommand('DEFC',	@CmdDC);
+  FCmdList.RegisterCommand('DEFM',	@CmdDM);
+  FCmdList.RegisterCommand('DEFS',	@CmdDS);
+  FCmdList.RegisterCommand('DEFW',	@CmdDW);
+  FCmdList.RegisterCommand('DEFZ',	@CmdDZ);
+  FCmdList.RegisterCommand('DM',	@CmdDM);
+  FCmdList.RegisterCommand('DS',	@CmdDS);
+  FCmdList.RegisterCommand('DSEG',	@CmdDSEG);
+  FCmdList.RegisterCommand('DW',	@CmdDW);
+  FCmdList.RegisterCommand('DZ',	@CmdDZ);
+  FCmdList.RegisterCommand('ELSE',	@CmdELSE);
+  FCmdList.RegisterCommand('END',	@CmdEND);
+  FCmdList.RegisterCommand('ENDIF',	@CmdENDIF);
+  FCmdList.RegisterCommand('ENDM',	@CmdENDM);
+  FCmdList.RegisterCommand('ENDR',	@CmdENDR);
+  FCmdList.RegisterCommand('ENDW',	@CmdENDW);
+  FCmdList.RegisterCommand('EQU',	@CmdEQU);
+  FCmdList.RegisterCommand('EXTERN',	@CmdEXTERN);
+  FCmdList.RegisterCommand('EXTERNAL',	@CmdEXTERNAL);
+  FCmdList.RegisterCommand('GLOBAL',	@CmdGLOBAL);
+  FCmdList.RegisterCommand('IF',	@CmdIF);
+  FCmdList.RegisterCommand('IFDEF',	@CmdIFDEF);
+  FCmdList.RegisterCommand('IFNDEF',	@CmdIFNDEF);
+  FCmdList.RegisterCommand('INCLUDE',	@CmdINCLUDE);
+  FCmdList.RegisterCommand('MACRO',	@CmdMACRO);
+  FCmdList.RegisterCommand('MESSAGE',	@CmdMESSAGE);
+  FCmdList.RegisterCommand('ORG',	@CmdORG);
+  FCmdList.RegisterCommand('ORIGIN',	@CmdORG);
+  FCmdList.RegisterCommand('REPEAT',	@CmdREPEAT);
+  FCmdList.RegisterCommand('RPT',	@CmdRPT);
+  FCmdList.RegisterCommand('TITLE',	@CmdTITLE);
+  FCmdList.RegisterCommand('UDATA',	@CmdUDATA);
+  FCmdList.RegisterCommand('USEG',	@CmdUSEG);
+  FCmdList.RegisterCommand('WHILE',	@CmdWHILE);
 end;
 
 procedure TAssembler80.RegisterProcs;
@@ -982,6 +1746,16 @@ begin
   RegisterProc('ActStringConstant',     @ActStringConstant, _procs);
   RegisterProc('ActValueOrg',		@ActValueOrg, _procs);
   RegisterProc('ActValueSymbol',	@ActValueSymbol, _procs);
+end;
+
+procedure TAssembler80.SetOrg(_neworg: integer);
+begin
+  if (_neworg > $FFFF) or (_neworg < 0) then
+    begin
+      ErrorObj.Show(ltWarning,W1001_CODE_WRAPPED_ROUND);
+      _neworg := _neworg and $FFFF;
+    end;
+  FOrg := _neworg;
 end;
 
 procedure TAssembler80.ShowError(_colno: integer; _logtype: TLCGLogType; _msgno: TMessageNumbers);
