@@ -1783,6 +1783,7 @@ begin
   FCmdList.RegisterCommand('LIST_OFF',  @CmdLISTOFF);
   FCmdList.RegisterCommand('WARN_OFF',  @CmdWARNOFF);
   FCmdList.RegisterCommand('ORG',	@CmdORG);
+  FCmdList.RegisterCommand('ORIGIN',	@CmdORG);
   FCmdList.RegisterCommand('REPEAT',	@CmdREPEAT);
   FCmdList.RegisterCommand('TITLE',	@CmdTITLE);
   FCmdList.RegisterCommand('UDATA',	@CmdUDATA);
