@@ -1,4 +1,4 @@
-unit deployment_parser_types_12;
+unit lacogen_types;
 
 {
     LaCoGen - LAzarus COmpiler GENerator
@@ -122,7 +122,8 @@ const
                                            Token:   (Row: 0; Col: 0; Buf: ''; ID: 0);
                                            BufType: pstString;
                                            Buf:     '';
-                                           BufInt:  0);
+                                           BufInt:  0;
+                                           Source:  pssUndefined);
 
 implementation
 

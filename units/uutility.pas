@@ -26,7 +26,7 @@ unit uutility;
 interface
 
 uses
-  Classes, SysUtils, CustApp, uasmglobals, deployment_parser_types_12;
+  Classes, SysUtils, CustApp, uasmglobals, lacogen_types;
 
 procedure AugmentIncludes(s: string; list: TStringList);
 function  BinaryStrToInt(_str: string): integer;
@@ -41,6 +41,7 @@ function  Indirected(_str: string; _escape: char; _escaped: TSetOfChar): boolean
 function  InQuotes(const _s: string): boolean;
 function  IntToBinaryStr(_v: integer; _digits: integer): string;
 function  IntToOctalStr(_v: integer; _digits: integer): string;
+procedure InvalidLabelCharacters(const _s: string; var _pos: integer);
 function  IsPrime(_value: integer): boolean;
 function  LineTerminator: string;
 function  NCSPos(_a, _b: string): integer;
@@ -48,6 +49,7 @@ function  NextPrime(_value: integer): integer;
 function  OctalStrToInt(_str: string): integer;
 function  OctToDecStr(_s: string): string;
 function  ProgramData: string;
+function  RevPos(_ch: char; const _s: string): integer;
 function  StripColon(const _s: string): string;
 function  StripQuotes(const _s: string): string;
 function  StripQuotesAndEscaped(const _s: string): string;
@@ -414,6 +416,15 @@ begin
   Result := folder;
 end;
 
+function RevPos(_ch: char; const _s: string): integer;
+var i: integer;
+begin
+  i := Length(_s);
+  while (i > 0) and (_s[i] <> _ch) do
+    Dec(i);
+  RevPos := i;
+end;
+
 function StripColon(const _s: string): string;
 begin
   Result := _s;
@@ -490,6 +501,28 @@ begin
         Result := Result + ch;
       Inc(i);
     end;
+end;
+
+procedure InvalidLabelCharacters(const _s: string; var _pos: integer);
+var valid1,validn: set of char;
+    i:             integer;
+begin
+  _pos := -1;
+  if _s = '' then
+    Exit;
+  valid1 := ALPHA + LABELX;
+  if not (_s[1] in valid1) then
+    begin
+      _pos := 1;
+      Exit;
+    end;
+  validn := valid1 + DIGITS;
+  for i := 2 to Length(_s) do
+    if (not ((i = Length(_s)) and (_s[i] = ':'))) and (not (_s[i] in validn)) then
+      begin
+        _pos := i;
+        Exit;
+      end;
 end;
 
 function VariableFromBinLiteral(const _s: string): integer;

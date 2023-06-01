@@ -50,9 +50,11 @@ type
 
   TSymbolTable = class(specialize TList<TSymbol>)
     private
-      FPass:    integer;
-      HashSize:  integer;
-      HashTable: array of integer;
+      FPass:      integer;
+      FPrintPage: integer;
+      FTitle:     string;
+      HashSize:   integer;
+      HashTable:  array of integer;
       procedure AddHash(const _txt: string; _rec: integer);
       procedure ReHash;
       procedure SetHashSize(_sz: integer);
@@ -61,14 +63,18 @@ type
       constructor Create;
       destructor Destroy; override;
       function  Add(_name: string; _datatype: TSymbolType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean): integer; reintroduce;
+      procedure Clear;
       function  CalcHash(const _txt:string): integer;
-      procedure Dump(_strm: TFileStream; const _title: string);
+      procedure Dump(_strm: TFileStream; const _caption: string);
       procedure DumpByAddress(_strm: TFileStream);
       procedure DumpByAddress(const filename: string);
+      procedure DumpByBoth(_strm: TFileStream);
+      procedure DumpByBoth(const filename: string);
       procedure DumpByName(_strm: TFileStream);
       procedure DumpByName(const filename: string);
       function  IndexOf(_name: string): integer; reintroduce;
       property  Pass: integer read FPass write FPass;
+      property  Title: string read FTitle write FTitle;
   end;
 
 
@@ -118,7 +124,6 @@ end;
 
 procedure TSymbolTable.AddHash(const _txt: string; _rec: integer);
 var hashval: uint32;
-    divval:  integer;
 begin
   // Check for empty slot
   hashval := CalcHash(_txt);
@@ -140,6 +145,8 @@ begin
   Add := -1;
   if not MixedCase then
     _name := UpperCase(_name);
+  // Remove colon if present
+  _name := StripColon(_name);
   // Check for duplicates
   idx := IndexOf(_name);
   if idx >= 0 then
@@ -169,15 +176,21 @@ begin
   CalcHash := hashval mod HashSize;
 end;
 
-procedure TSymbolTable.Dump(_strm: TFileStream; const _title: string);
+procedure TSymbolTable.Clear;
+begin
+  inherited Clear;
+  ReHash;
+end;
+
+procedure TSymbolTable.Dump(_strm: TFileStream; const _caption: string);
 const PAGE_WIDTH = 78;
       PAGE_DEPTH = 60;
 var i: integer;
     s: string;
     t_ch: char;
-    page: integer;
     line: integer;
     pagestr: string;
+    spc:     integer;
 
   procedure MyWrite(const _buf: string);
   begin
@@ -186,9 +199,11 @@ var i: integer;
 
   procedure Header;
   begin
+    Inc(FPrintPage);
+    pagestr := 'Page: ' + IntToStr(FPrintPage);
+    spc := PAGE_WIDTH - Length(_caption) - Length(Title) - Length(pagestr);
     MyWrite(LINE_TERMINATOR);
-    pagestr := 'Page: ' + IntToStr(page);
-    MyWrite(_title + StringOfChar(' ',PAGE_WIDTH-Length(_title)-Length(pagestr)) + pagestr + LINE_TERMINATOR);
+    MyWrite(_caption + Space(spc div 2) + Title + Space(spc - spc div 2) + pagestr + LINE_TERMINATOR);
     MyWrite(StringOfChar('-',PAGE_WIDTH) + LINE_TERMINATOR);
     MyWrite(LINE_TERMINATOR);
     MyWrite('  HEX   DEC T NAME' + LINE_TERMINATOR);
@@ -199,11 +214,9 @@ var i: integer;
   procedure FormFeed;
   begin
     MyWrite(FF);
-    page := page + 1;
   end;
 
 begin
-  page := 1;
   line := 0;
   Header;
   for i := 0 to Count-1 do
@@ -220,6 +233,8 @@ begin
         otherwise
           t_ch := '?';
       end;
+      if not Items[i].Defined then
+        t_ch := '?';
       s := Format('$%4.4X %5d %s %s',[Items[i].IValue,Items[i].IValue,t_ch,Items[i].Name]);
       MyWrite(s + LINE_TERMINATOR);
       Inc(line);
@@ -231,8 +246,9 @@ procedure TSymbolTable.DumpByAddress(_strm: TFileStream);
 begin
   // This destroys the hashing but we can assume it will only be called
   // after all the assembly is complete
+  FPrintPage := 0;
   Sort(specialize TComparer<TSymbol>.Construct(@CompareAddress));
-  Dump(_strm,'SYMBOL DUMP BY ADDRESS');
+  Dump(_strm,'SYMBOL ADDR');
 end;
 
 procedure TSymbolTable.DumpByAddress(const filename: string);
@@ -246,12 +262,35 @@ begin
   end;
 end;
 
+procedure TSymbolTable.DumpByBoth(_strm: TFileSTream);
+begin
+  // This destroys the hashing but we can assume it will only be called
+  // after all the assembly is complete
+  FPrintPage := 0;
+  Sort(specialize TComparer<TSymbol>.Construct(@CompareName));
+  Dump(_strm,'SYMBOL NAME');
+  Sort(specialize TComparer<TSymbol>.Construct(@CompareAddress));
+  Dump(_strm,'SYMBOL ADDR');
+end;
+
+procedure TSymbolTable.DumpByBoth(const filename: string);
+var strm: TFileStream;
+begin
+  strm := TFileStream.Create(filename,fmCreate);
+  try
+    DumpByBoth(strm);
+  finally
+    FreeAndNil(strm);
+  end;
+end;
+
 procedure TSymbolTable.DumpByName(_strm: TFileStream);
 begin
   // This destroys the hashing but we can assume it will only be called
   // after all the assembly is complete
+  FPrintPage := 0;
   Sort(specialize TComparer<TSymbol>.Construct(@CompareName));
-  Dump(_strm,'SYMBOL DUMP BY NAME');
+  Dump(_strm,'SYMBOL NAME');
 end;
 
 procedure TSymbolTable.DumpByName(const filename: string);

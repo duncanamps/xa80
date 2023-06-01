@@ -64,7 +64,7 @@ uses
 
 type
 
-  TEnvironmentSource = (esDefault,esGrammar,esEnvironment,esCommandline);
+  TEnvironmentSource = (esDefault,esEnvironment,esCommandline);
 
   TEnvironmentElement = class(TObject)
     public
@@ -96,6 +96,7 @@ type
       procedure ApplyDefaults;
       procedure Dump;
       procedure ExpandIncludes(_src: TEnvironmentSource);
+      function  GetSource(_key: string): TEnvironmentSource;
       function  GetValue(_key: string): string;
       procedure ProcessCommandLine;
       procedure ProcessCommandList(_elements: TCommandElementList; _src: TEnvironmentSource);
@@ -112,18 +113,17 @@ var
 implementation
 
 uses
-  typinfo, umonitor;
+  typinfo, umessages, lacogen_types;
 
 
 function EnvironmentSourceAsString(_es: TEnvironmentSource): string;
 begin
   case _es of
     esDefault:     Result := 'Default';
-    esGrammar:     Result := 'Grammar';
     esEnvironment: Result := 'EnvironmentVar';
     esCommandline: Result := 'CommandLine';
     otherwise
-      Monitor(mtInternal,'Internal error - Environment source %s not catered for',[GetEnumName(TypeInfo(TEnvironmentSource),Ord(_es))]);
+      ErrorObj.Show(ltInternal,X3999_UNHANDLED_EXCEPTION,[Format('Internal error - Environment source %s not catered for',[GetEnumName(TypeInfo(TEnvironmentSource),Ord(_es))])]);
   end;
 end;
 
@@ -266,6 +266,25 @@ begin
   end;
 end;
 
+function TEnvironment.GetSource(_key: string): TEnvironmentSource;
+var _rec: TEnvironmentElement;
+    _index: SizeInt;
+begin
+  Result := esDefault;
+  // Check if key exists, if not flag as an error
+  _rec := TEnvironmentElement.Create;
+  try
+    _rec.Key  := _key;
+    _rec.Data := '';
+    if (Count = 0) or (not BinarySearch(_rec,_index,EnvComparer)) then
+      ErrorObj.Show(ltInternal,X3999_UNHANDLED_EXCEPTION,[Format('Environment value %s not found',[_key])])
+    else
+      Result := Items[_index].Source;
+  finally
+    FreeAndNil(_rec);
+  end;
+end;
+
 function TEnvironment.GetValue(_key: string): string;
 var _rec: TEnvironmentElement;
     _index: SizeInt;
@@ -277,7 +296,7 @@ begin
     _rec.Key  := _key;
     _rec.Data := '';
     if (Count = 0) or (not BinarySearch(_rec,_index,EnvComparer)) then
-      Monitor(mtError,'Environment value %s not found',[_key])
+      ErrorObj.Show(ltInternal,X3999_UNHANDLED_EXCEPTION,[Format('Environment value %s not found',[_key])])
     else
       Result := Items[_index].Data;
   finally
@@ -301,12 +320,13 @@ procedure TEnvironment.ProcessCommandList(_elements: TCommandElementList; _src: 
 var cmd_list: TCommandList;
     option:   TCommandRec;
     hasdata:  boolean;
+
+    {
   procedure MyMonitor(_mt: TMonitorType; const _msg: string);
   var suffix: string;
   begin
     case _src of
       esDefault:     suffix := 'default';
-      esGrammar:     suffix := 'grammar';
       esEnvironment: suffix := 'environment variable';
       esCommandline: suffix := 'command line';
     end;
@@ -316,6 +336,8 @@ var cmd_list: TCommandList;
   begin
     MyMonitor(_mt,Format(_fmt,_args));
   end;
+  }
+
   procedure ProcessOption(const _name: string; const _data: string; _src: TEnvironmentSource);
   begin
     if option.Terminal then
@@ -335,7 +357,7 @@ var cmd_list: TCommandList;
           'VERSION':      ShowAndQuit := saqVersion;
           'WARRANTY':     ShowAndQuit := saqWarranty;
           otherwise
-            MyMonitor(mtError,'Invalid option for -s/--show switch %s',[_data]);
+            ErrorObj.Show(ltError,E2038_INVALID_SHOW_OPTION,[_data]);
         end;
       end
     else
@@ -356,7 +378,7 @@ begin
             option := cmd_list.CommandRecFromSwitch(_elements[0].ElementData);
             hasdata := (_elements.Count > 1) and (_elements[1].ElementType = cetData);
             if (option.Parameter = paMandatory) and (not hasdata) then
-              MyMonitor(mtError,'Mandatory value missing after switch %s',[_elements[0].ElementData]);
+              ErrorObj.Show(ltError,E2039_SWITCH_MISSING_VALUE,[_elements[0].ElementData]);
             if (option.Parameter in [paOptional,paMandatory]) and hasdata then
               begin
                 ProcessOption(option.EnvName,_elements[1].ElementData,_src);
@@ -371,7 +393,7 @@ begin
             option := cmd_list.CommandRecFromSwitch(_elements[0].ElementData);
             hasdata := (_elements.Count > 2) and (_elements[1].ElementType = cetEquals) and (_elements[2].ElementType = cetData);
             if (option.Parameter = paMandatory) and (not hasdata) then
-              MyMonitor(mtError,'Mandatory value missing after switch %s',[_elements[0].ElementData]);
+              ErrorObj.Show(ltError,E2039_SWITCH_MISSING_VALUE,[_elements[0].ElementData]);
             if (option.Parameter in [paOptional,paMandatory]) and hasdata then
               begin
                 ProcessOption(option.EnvName,_elements[2].ElementData,_src);
@@ -383,7 +405,7 @@ begin
             _elements.Delete(0); // Get rid of -switch
           end
         else
-          MyMonitor(mtError,'Unexpected token %s',[_elements[0].ElementData]);
+          ErrorObj.Show(ltError,E2034_UNEXPECTED_TOKEN,[_elements[0].ElementData]);
       end;
   finally
     FreeAndNil(cmd_list);

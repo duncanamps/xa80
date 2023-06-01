@@ -16,12 +16,13 @@
 ;  Bit masks which are _not_ set are assumed to be prime.
 ;
 ;  Bit masks in the byte, bit 0 = 0, 1 = 1, 2 = 2, etc.
-;  In the next byte, bit 0 = 9, 1 = 9, 2 = 10, etc.
+;  In the next byte, bit 0 = 8, 1 = 9, 2 = 10, etc.
 ; 
 ;  Duncan Munro
 ;  24/07/2022
 ;
 
+				TITLE	"SIEVE.Z80 - Print prime numbers under CP/M"
 
 ;==============================================================================
 ;
@@ -29,23 +30,27 @@
 ;
 ;==============================================================================
 
-        ORG     0100H
+				ORG     0100H
 
-BDOS        EQU     0005H   		; BDOS entry address
-C_WRITESTR  EQU     9       		; BDOS command to write $ terminated string
-MAX_PRIMES	EQU		62751  			; Maximum number of primes to check (max 62751)
-SQRT_PRIMES	EQU		250				; Square root of MAX_PRIMES
-BITBUF_SIZE	EQU		(MAX_PRIMES+7) / 8
+BDOS        	EQU     0005H   		; BDOS entry address
+C_WRITESTR  	EQU     9       		; BDOS command to write $ terminated string
+MAX_PRIMES		EQU		62751  			; Maximum number of primes to check (max 62751)
+SQRT_PRIMES		EQU		250				; Square root of MAX_PRIMES
+BITBUF_SIZE		EQU		(MAX_PRIMES+7) / 8
+
+SCREEN_WIDTH 	EQU		80				; Width of the display screen
+NUM_WIDTH		EQU		6				; Width of a 5 digit number followed by a space
+NUM_PER_LINE	EQU		SCREEN_WIDTH / NUM_WIDTH  ; 5 digit numbers per line
 			
 ; Some error checking to ensure that SQRT_PRIMES has been set correctly!
 
-IF SQRT_PRIMES*SQRT_PRIMES > MAX_PRIMES
-	ASMERROR "SQRT_PRIMES is too high"
-ENDIF
+;			IF SQRT_PRIMES*SQRT_PRIMES > MAX_PRIMES
+;				ASMERROR "SQRT_PRIMES is too high"
+;			ENDIF
 
-IF (SQRT_PRIMES+1)*(SQRT_PRIMES+1) <= MAX_PRIMES
-	ASMERROR "SQRT_PRIMES is too low"
-ENDIF
+;			IF (SQRT_PRIMES+1)*(SQRT_PRIMES+1) <= MAX_PRIMES
+;				ASMERROR "SQRT_PRIMES is too low"
+;			ENDIF
 
 
 
@@ -115,6 +120,7 @@ INNER_LOOP2:
 ; Print them out to the screen
 
 			LD		HL,1			; Start off at 1
+			LD		B,NUM_PER_LINE	; Results per line
 PRINT_LOOP:
 			CALL	ISBIT			; Is bit set ?
 			JR		NZ,PRINT_NEXT	; Yes, we skip
@@ -122,10 +128,19 @@ PRINT_LOOP:
 			PUSH	DE
 			PUSH	HL
 			CALL	PRINTDEC		; Print out the number
-			CALL	WRITECRLF		; and a CRLF combo
+			CALL	WRITESPACE		; and a space
 			POP		HL				; Get all reg back
 			POP		DE
 			POP		BC
+			DJNZ	PRINT_NEXT		; Skip if still output 
+			PUSH	BC				; Save all
+			PUSH	DE
+			PUSH	HL
+			CALL	WRITECRLF		; Move to new line
+			POP		HL				; Get all reg back
+			POP		DE
+			POP		BC
+			LD		B,NUM_PER_LINE	; Results per line
 PRINT_NEXT:			
 			INC		HL				; Increment by 2
 			INC		HL	
@@ -258,6 +273,9 @@ WRITESTR:
 WRITECRLF:
 			LD		DE,CRLF			; Point to string
 			JR		WRITESTR		; and output
+WRITESPACE:
+			LD		DE,SPACE		; Point to string
+			JR		WRITESTR		; and output
 
 
 
@@ -283,8 +301,9 @@ BITMASKS:	DB		%00000001
 ; Text strings
 
 MSG: 		DB      "Sieve",13,10
-			DB		"Created with XA80 cross assembler",13,10,10
+			DB		"Created with XA80 cross assembler",13,10
+			DB		DATE() + " " + TIME(),13,10,10
 			DB		'$'
 CRLF:		DB		13,10,'$'
-
+SPACE:		DB		" $"
 			END

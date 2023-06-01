@@ -59,10 +59,11 @@ type
 implementation
 
 uses
-  umessages, deployment_parser_types_12;
+  umessages, lacogen_types;
 
 constructor TCommandList.Create;
 begin
+  inherited Create;
 end;
 
 

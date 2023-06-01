@@ -28,7 +28,7 @@ type
 implementation
 
 uses
-  strutils, umessages, deployment_parser_types_12;
+  strutils, umessages, lacogen_types;
 
 function TCodeBuffer.AsString: string;
 var i: integer;

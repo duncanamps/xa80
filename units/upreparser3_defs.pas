@@ -5,7 +5,7 @@ unit upreparser3_defs;
 interface
 
 uses
-  Classes, SysUtils, deployment_parser_types_12, Generics.Collections;
+  Classes, SysUtils, lacogen_types, Generics.Collections;
 
 type
   TParserState = (psNone,

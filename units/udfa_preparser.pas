@@ -41,6 +41,7 @@ type
       procedure DumpNFAList(_strm: TStream);
       procedure DumpNFATable(_strm: TStream);
       procedure DumpDFATable(_strm: TStream);
+      function  IsReserved(const _s: string): boolean;
       function  Tokenise(const _s: string): TNFAtoken;
       property OffsetOpcode:  integer read FOffsetOpcode;
       property OffsetCommand: integer read FOffsetCommand;
@@ -50,7 +51,7 @@ type
 implementation
 
 uses
-  umessages, deployment_parser_types_12;
+  umessages, lacogen_types;
 
 constructor TPreparserDFA.Create;
 begin
@@ -126,6 +127,11 @@ end;
 procedure TPreparserDFA.DumpDFATable(_strm: TStream);
 begin
   DumpTable(_strm);
+end;
+
+function TPreparserDFA.IsReserved(const _s: string): boolean;
+begin
+  IsReserved := (Tokenise(_s) <> TOKEN_ERROR);
 end;
 
 function TPreparserDFA.Tokenise(const _s: string): TNFAtoken;

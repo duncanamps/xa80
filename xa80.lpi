@@ -13,11 +13,12 @@
       <Title Value="XA80"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
-      <Resources Count="4">
+      <Resources Count="5">
         <Resource_0 FileName="opcodes\source\8080.opcode.bin" Type="RCDATA" ResourceName="8080.OPCODE"/>
         <Resource_1 FileName="opcodes\source\8085.opcode.bin" Type="RCDATA" ResourceName="8085.OPCODE"/>
         <Resource_2 FileName="opcodes\source\z80.opcode.bin" Type="RCDATA" ResourceName="Z80.OPCODE"/>
         <Resource_3 FileName="opcodes\source\z180.opcode.bin" Type="RCDATA" ResourceName="Z180.OPCODE"/>
+        <Resource_4 FileName="lac\xa80oper.lacobj" Type="RCDATA" ResourceName="XA80OPER"/>
       </Resources>
     </General>
     <VersionInfo>
@@ -38,7 +39,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="units;lexer_parser\units"/>
+            <OtherUnitFiles Value="units;lexer_parser\units;lac"/>
             <UnitOutputDirectory Value="lib\release\$(TargetOS)-$(TargetCPU)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -53,6 +54,12 @@
             </Debugging>
             <LinkSmart Value="True"/>
           </Linking>
+          <Other>
+            <CustomOptions Value="-dCONSOLE_APP"/>
+            <OtherDefines Count="1">
+              <Define0 Value="CONSOLE_APP"/>
+            </OtherDefines>
+          </Other>
         </CompilerOptions>
       </Item>
       <Item Name="DebugLeak">
@@ -64,7 +71,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="units;lexer_parser\units"/>
+            <OtherUnitFiles Value="units;lexer_parser\units;lac"/>
             <UnitOutputDirectory Value="lib\debug\$(TargetOS)-$(TargetCPU)"/>
           </SearchPaths>
           <Parsing>
@@ -89,6 +96,12 @@
               <UseExternalDbgSyms Value="True"/>
             </Debugging>
           </Linking>
+          <Other>
+            <CustomOptions Value="-dCONSOLE_APP"/>
+            <OtherDefines Count="1">
+              <Define0 Value="CONSOLE_APP"/>
+            </OtherDefines>
+          </Other>
         </CompilerOptions>
       </Item>
     </BuildModes>
@@ -117,10 +130,6 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="units\umonitor.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
         <Filename Value="units\uassembler80.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
@@ -144,6 +153,58 @@
         <Filename Value="units\uprocessors.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="lac\lacogen_module.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="lac\lacogen_types.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\umessages.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\uutility.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\usymboltable.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\upreparser3.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\ucodebuffer.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\ucommand.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\udfa_preparser.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\uinclude.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\uinstruction.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\ulisting.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\upreparser3_defs.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -154,7 +215,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="units;lexer_parser\units"/>
+      <OtherUnitFiles Value="units;lexer_parser\units;lac"/>
       <UnitOutputDirectory Value="lib\debug\$(TargetOS)-$(TargetCPU)"/>
     </SearchPaths>
     <Parsing>
@@ -178,6 +239,15 @@
         <UseExternalDbgSyms Value="True"/>
       </Debugging>
     </Linking>
+    <Other>
+      <CompilerMessages>
+        <IgnoredMessages idx5024="True"/>
+      </CompilerMessages>
+      <CustomOptions Value="-dCONSOLE_APP"/>
+      <OtherDefines Count="1">
+        <Define0 Value="CONSOLE_APP"/>
+      </OtherDefines>
+    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions>

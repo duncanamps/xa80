@@ -50,7 +50,7 @@ interface
 //
 
 uses
-  Classes, SysUtils, deployment_parser_types_12;
+  Classes, SysUtils, lacogen_types;
 
 type
 //  TLogType = (ltDebug,ltWarAndPeace,ltVerbose,ltInfo,ltWarning,ltError,ltInternal);
@@ -60,11 +60,21 @@ type
                                            // which shouldn't happen...
 
 
-  TMessageNumbers = (I0001_ASSEMBLY_STARTED,
+  TMessageNumbers = (I0000_USER_INFO,
+                     I0001_ASSEMBLY_STARTED,
                      I0002_ASSEMBLY_ENDED,
+                     I0003_ASSEMBLING_FILE,
+                     I0004_FILENAME_ASSIGNMENT,
+                     I0005_PROCESSOR_IS,
                      I9999_DEBUG_MESSAGE,
+
+                     W1000_USER_WARNING,
                      W1001_CODE_WRAPPED_ROUND,
                      W1002_UNRECOGNISED_COMMAND_LINE_OPTION,
+                     W1003_LABEL_REDEFINED,
+                     W1004_END_OPERANDS_IGNORED,
+
+                     E2000_USER_ERROR,
                      E2001_ILLEGAL_ESCAPE_CHARACTER,
                      E2002_UNTERMINATED_STRING,
                      E2003_UNRECOGNISED_CONTENT,
@@ -81,7 +91,7 @@ type
                      E2014_UNABLE_TO_PARSE,
                      E2015_CODE_SYMBOL_DEFINED,
                      E2016_COLON_NOT_PRESENT,
-                     E2017_INCORRECT_OPERAND_COUNT,
+                     E2017_UNEXPECTED_OPERANDS,
                      E2018_OPERAND_NO_DATA_TYPE,
                      E2019_EXPECTED_INTEGER,
                      E2020_UNEXPECTED_LABEL,
@@ -94,6 +104,18 @@ type
                      E2027_RELATIVE_DISTANCE,
                      E2028_BIT_NUMBER,
                      E2029_IM_NUMBER,
+                     E2030_USING_RESERVED_AS_LABEL,
+                     E2031_FILE_NOT_FOUND,
+                     E2032_UNEXPECTED_CHARACTER,
+                     E2033_UNDEFINED_PARSER_TABLE_ACTION,
+                     E2034_UNEXPECTED_TOKEN,
+                     E2035_PARSER_STACK_EXCEEDED,
+                     E2036_INVALID_LABEL_CHARACTER,
+                     E2037_CODE_AFTER_END,
+                     E2038_INVALID_SHOW_OPTION,
+                     E2039_SWITCH_MISSING_VALUE,
+                     E2040_MISSING_EQUALS,
+                     E2041_PREMATURE_STRING_END,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -102,6 +124,13 @@ type
                      X3005_BINARY_CONVERSION_FAILURE,
                      X3006_HEX_CONVERSION_FAILURE,
                      X3007_INVALID_ELEMENT_TYPE,
+                     X3008_RESOURCE_NOT_FOUND,
+                     X3009_PARSER_TABLES_NOT_LOADED,
+                     X3010_UNEXPECTED_GOTO,
+                     X3011_STACK_EMPTY,
+                     X3012_PARSER_GOTO_ERROR,
+                     X3013_LEXER_SET_ERROR,
+
                      X3999_UNHANDLED_EXCEPTION
                     );
 
@@ -109,8 +138,10 @@ type
 
   TErrorObject = class(TObject)
     private
-      FLogStream: TFileStream;
-      FStartTime: TDateTime;
+      FLogFilename:   string;
+      FLogStream:     TFileStream;
+      FStartTime:     TDateTime;
+      FWarnings:      boolean;
       function  MonitorString(_logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const): string;
     public
       ColNumber:  integer;
@@ -121,9 +152,11 @@ type
       SourceLine: string;
       constructor Create;
       destructor  Destroy; override;
-      procedure SetFilename(_fn: string);
+      procedure SetLogFilename(_fn: string);
       procedure Show(_logtype: TLCGLogType; _msgno: TMessageNumbers);
       procedure Show(_logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
+      property LogFilename: string read FLogFilename write SetLogFilename;
+      property Warnings: boolean read FWarnings write FWarnings;
   end;
 
 var
@@ -137,13 +170,23 @@ uses
   uasmglobals, typinfo;
 
 var
-  ErrorMessages: array[I0001_ASSEMBLY_STARTED..X3999_UNHANDLED_EXCEPTION] of string =
+  ErrorMessages: array[I0000_USER_INFO..X3999_UNHANDLED_EXCEPTION] of string =
   (
+    '%s',
     'Assembly started',
     'Assembly completed',
+    'Assembling file %s',
+    'Filename for %s is %s',
+    'Processor is %s',
     'DEBUG: %s',
+
+    '%s',
     'Code wrapped around back to zero',
     'Unrecognised command line option',
+    'Label %s has been redefined',
+    'Operands after END directive ignored',
+
+    '%s',
     'Illegal escape character %s, valid are %s',
     'Unterminated string %s',
     'Unrecognised content %s',
@@ -159,8 +202,8 @@ var
     'Parser error %s',
     'Unable to parse input %s',
     'Code symbol %s has already been defined',
-    'Mandatory colon not present in code symbol %s',
-    'Incorrect number of operands for command',
+    'Mandatory colon not present in code label %s',
+    'Unexpected operands',
     'Operand no. %d is of indeterminate data type',
     'Expected integer',
     'Unexpected label %s, ignored',
@@ -173,6 +216,18 @@ var
     'Illegal distance of %d for relative branch, should be -128..+127',
     'Bit number for SET/RES must be in the range 0..7',
     'Operand for IM instruction must be in the range 0..2',
+    'Using reserved word for label %s',
+    'File not found %s',
+    'Unexpected character %s in input',
+    'Undefined parser table action for state %d and token %s',
+    'Unexpected token %s in input',
+    'PARSER_STACK_SIZE_MAX (%d) exceeded',
+    'Invalid character in label',
+    'Attempt to perform activities after END directive',
+    'Invalid option %s for -s/--show command line parameter',
+    'Mandatory value missing after switch %s',
+    'Equals expected but not found in command or environment',
+    'Premature end of string in command or environment %s',
 
     'Unhandled case option at %s',
     'Preparser peeek error',
@@ -181,6 +236,13 @@ var
     'Binary constant %s failed to convert',
     'Hex constant %s failed to convert',
     'Invalid element type',
+    'Resource not found %s',
+    'Parser tables not loaded',
+    'Unexpected goto from table',
+    'Stack empty',
+    'Goto expected for rule index #%d but not found in table',
+    'Attempt to set lexer buffer size while in the middle of an activity',
+
     'Unhandled exception %s'
   );
 
@@ -195,6 +257,7 @@ begin
   SourceLine  := '';
   Silent      := False;
   FStartTime  := Now;
+  FWarnings   := True;
 end;
 
 destructor TErrorObject.Destroy;
@@ -211,6 +274,16 @@ begin
   s := Format('[%7.3f] ',[(Now-FStartTime)*86400.0]);
   if _logtype <= ltWarning then
     begin
+      // Prepend the type of message
+      case _logtype of
+        ltInternal:     s := s + 'INTERNAL ';
+        ltError:        s := s + 'ERROR ';
+        ltWarning:      s := s + 'Warning ';
+        ltInfo,
+        ltVerbose,
+        ltWarAndPeace:  s := s + 'Info ';
+        ltDebug:        s := s + 'Debug ';
+      end;
       // Prepend the line number, column number and ANNNN message number
       enum := GetEnumName(TypeInfo(TMessageNumbers),Ord(_msgno));
       enum := LeftStr(enum,5);
@@ -233,11 +306,12 @@ begin
   MonitorString := s;
 end;
 
-procedure TErrorObject.SetFilename(_fn: string);
+procedure TErrorObject.SetLogFilename(_fn: string);
 begin
   if Assigned(FLogStream) then
     FreeAndNil(fLogStream);
   FLogStream := TFileStream.Create(_fn,fmCreate);
+  FLogFilename   := _fn;
 end;
 
 procedure TErrorObject.Show(_logtype: TLCGLogType; _msgno: TMessageNumbers);
@@ -248,6 +322,10 @@ end;
 procedure TErrorObject.Show(_logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
 var msg: string;
 begin
+  if (not FWarnings) and (_logtype = ltWarning) then
+    Exit;
+  if _logtype > InfoLimit then
+    Exit;
   msg := MonitorString(_logtype,_msgno,_args);
 {$IFDEF CONSOLE_APP}
   WriteLn(msg);

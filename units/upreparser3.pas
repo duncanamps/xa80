@@ -15,7 +15,7 @@ interface
 
 uses
   Classes, SysUtils, uasmglobals, udfa_preparser,
-  deployment_parser_types_12, ucommand, uinstruction, upreparser3_defs;
+  lacogen_types, ucommand, uinstruction, upreparser3_defs;
 
 type
   TPreparser = class(TPreparserBase)
@@ -27,9 +27,11 @@ type
       FEscape:            char;
       FEscaped:           TSetOfChar;
       FForceColon:        boolean;
+      FLabelX:            string;
+      FOpcodeCol:         integer;
       FOpcodeIndex:       integer;
       FOpcodeList:        TInstructionList;
-      FLabelX:        string;
+      FPass:              integer;
       procedure AdjustComments;
       procedure AllocateKeywords;
       procedure AllocateLabels;
@@ -41,6 +43,7 @@ type
       procedure ExtractLabel;
       procedure ExtractOpcode;
       procedure PopulateDFA;
+      procedure RemoveAfterEnd;
       procedure RemoveComments;
       procedure RemoveWhitespace;
     public
@@ -56,8 +59,10 @@ type
       property Escaped:          TSetOfChar       read FEscaped        write FEscaped;
       property ForceColon:       boolean          read FForceColon     write FForceColon;
       property LabelX:           string           read FLabelX;
+      property OpcodeCol:        integer          read FOpcodeCol;
       property OpcodeIndex:      integer          read FOpcodeIndex;
       property OpcodeList:       TInstructionList read FOpcodeList     write FOpcodeList;
+      property Pass:             integer          read FPass           write FPass;
   end;
 
 
@@ -75,6 +80,7 @@ begin
   inherited Create;
   FCommandList := _cmd_list;
   FOpcodeList  := _opcode_list;
+  FOpcodeCol   := 0;
   FEscape  := DEFAULT_ESCAPE;
   FEscaped := DEFAULT_ESCAPED;
   FForceColon := False;
@@ -144,7 +150,10 @@ begin
                   rec.State := ppCommand
               end
             else
-              rec.State := ppInstruction;
+              begin
+                rec.State := ppInstruction;
+                FOpcodeCol := Items[i].Column;
+              end;
             rec.Token := token;
             Items[i] := rec;
           end;
@@ -181,9 +190,17 @@ end;
 
 procedure TPreparser.AllocateLabels;
 var rec: TParserProp;
+    _pos: integer;
 begin
-  if (Count > 0) and (Items[0].State = psGlob) then
+  _pos := 0;
+  if (Count > 0) and (Items[0].State <> psWhitespace) then
     begin
+      InvalidLabelCharacters(Items[0].Payload,_pos);
+      if (_pos > 0) and (Items[0].Payload[_pos] <> ':') then
+        begin
+          ErrorObj.ColNumber := _pos;
+          ErrorObj.Show(ltError,E2036_INVALID_LABEL_CHARACTER);
+        end;
       rec := Items[0];
       rec.State := ppLabel;
       Items[0] := rec;
@@ -253,8 +270,8 @@ begin
         end;
       Inc(i);
     end;
-  // Glob Whitespace Glob -> Glob
-  i := 0;
+  // Glob Whitespace Glob -> Glob but skip slot 0 as it will be a label
+  i := 1;
   while i < Count-2 do
     begin
       while (i < Count-2) and
@@ -470,6 +487,7 @@ begin
   AdjustComments;
   RemoveComments;
   AllocateKeywords;
+  RemoveAfterEnd;
   CombineBrackets;
   CombineGlobs;
   AllocateLabels;
@@ -513,6 +531,12 @@ begin
     end;
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[StringOfChar('=',80)]);
 {$ENDIF}
+  // Check for reserved word in position 0 - using reserved word as a label
+  if (FLabelX <> '') and FDFA.IsReserved(FLabelX) then
+    begin
+      ErrorObj.ColNumber := 1;
+      ErrorObj.Show(ltError,E2030_USING_RESERVED_AS_LABEL,[FLabelX]);
+    end;
   // Check for unresolved globs etc.
   for iter in Self do
     begin
@@ -526,7 +550,9 @@ begin
 end;
 
 procedure TPreparser.PopulateDFA;
+{$IFDEF DEBUG_LOG}
 var _strm:    TStringStream;
+{$ENDIF}
 begin
   // Add all the commands and instructions
   FDFA.AddOpcodesCommands(FOpcodeList,FCommandList);
@@ -542,6 +568,24 @@ begin
     FreeAndNil(_strm);
   end;
 {$ENDIF}
+end;
+
+procedure TPreparser.RemoveAfterEnd;
+var i: integer;
+begin
+  i := 0;
+  while (i < Count) and ((FItems[i].State <> ppCommand) or (UpperCase(FItems[i].Payload) <> 'END')) do
+    Inc(i);
+  if (i+1 < Count) then
+    begin // Baggage after END command
+      if FPass = 1 then
+        begin
+          ErrorObj.ColNumber := FItems[i+1].Column;
+          ErrorObj.Show(ltWarning,W1004_END_OPERANDS_IGNORED);
+        end;
+      while (i+1 < Count) do
+        Delete(i+1); // Delete anything after the END command
+    end;
 end;
 
 procedure TPreparser.RemoveComments;

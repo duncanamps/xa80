@@ -28,8 +28,9 @@ uses
   {$ENDIF}
   Classes, SysUtils, CustApp,
   { you can add units after this }
-  uenvironment, ucommandline, umonitor, typinfo, uutility, uasmglobals,
-  uassembler80, uprocessors;
+  uenvironment, ucommandline, typinfo, uutility, uasmglobals,
+  uassembler80, uprocessors, umessages, upreparser3, usymboltable,
+  lacogen_types;
 
 const
   CRLF = #13 + #10;
@@ -69,10 +70,11 @@ const
               CRLF +
               '<n> can be one of:' + CRLF +
               '  0: Silent, only show fatal and internal software errors' + CRLF +
-              '  1: Normal level, the default' + CRLF +
-              '  2: Verbose, show more information' + CRLF +
-              '  3: War and Peace, show much more information' + CRLF +
-              '  4: Debug, only relevant with debug versions of the software' + CRLF +
+              '  1: Show only warnings and errors' + CRLF +
+              '  2: Normal level, the default' + CRLF +
+              '  3: Verbose, show more information' + CRLF +
+              '  4: War and Peace, show much more information' + CRLF +
+              '  5: Debug, only relevant with debug versions of the software' + CRLF +
               CRLF;
 
 type
@@ -101,7 +103,6 @@ type
 
 procedure TXA80.DoRun;
 begin
-  ShowTitle;
 
   try // Try block to catch initialisation exceptions
     // Initialisation stuff
@@ -109,10 +110,13 @@ begin
     try
       Initialisation;
       if EnvObject.ShowAndQuit <> saqNone then
-        ShowAndQuit
+        begin
+          ShowTitle;
+          ShowAndQuit;
+        end
       else
         begin // Normal file processing
-          Asm80 := TAssembler80.Create;
+          Asm80 := TAssembler80.Create(UpperCase(EnvObject.GetValue('Processor')));
           try
             Assemble;
           finally
@@ -123,9 +127,13 @@ begin
       FreeAndNil(EnvObject);
     end;
   except
-    On E:AsmException do ; // Silent handler, we've already caught this one
+    On E:LCGErrorException do    ; // Silent handler, we've already caught this one
+    On E:LCGInternalException do ; // Silent handler, we've already caught this one
     On E:Exception do
-      Monitor(mtInternal,E.Message);  // Unhandled exception
+      try
+        ErrorObj.Show(ltInternal,X3999_UNHANDLED_EXCEPTION,[E.Message]);  // Unhandled exception
+      except
+      end;
   end;
 
   // stop program loop
@@ -159,25 +167,60 @@ end;
 procedure TXA80.Assemble;
 var sl: TStringList;
     filename: string;
+    s: string;
+    listing: string;
+    map:     string;
+    verbose: integer;
 begin
-  // Set up Grammar, DFA, NFA etc. here
-
-  // Then loop through the list of files
   sl := TStringList.Create;
   try
     sl.Delimiter := ';';
     sl.StrictDelimiter := True;
     sl.DelimitedText := EnvObject.GetValue('SourceFiles');
+    s := sl.DelimitedText;
+
+    // Set up the environment
+    listing := EnvObject.GetValue('FilenameListing');
+    if (listing = '') and (EnvObject.GetSource('FilenameListing') = esCommandLine) then
+      listing := '*';
+    Asm80.OptionListing := listing;
+    map := EnvObject.GetValue('FilenameMap');
+    if (map = '') and (EnvObject.GetSource('FilenameMap') = esCommandLine) then
+      map := '*';
+    Asm80.OptionMap := map;
+    verbose := StrToInt(EnvObject.GetValue('Verbose'));
+    case verbose of
+      0: ErrorObj.InfoLimit := ltError;
+      1: ErrorObj.InfoLimit := ltWarning;
+      2: ErrorObj.InfoLimit := ltInfo;
+      3: ErrorObj.InfoLimit := ltVerbose;
+      4: ErrorObj.InfoLimit := ltWarAndPeace;
+      5: ErrorObj.InfoLimit := ltDebug;
+    end;
+
+    // DO the list of files
+    if ErrorObj.InfoLimit >= ltInfo then
+      ShowTitle;
+    ErrorObj.Show(ltInfo,I0001_ASSEMBLY_STARTED);
+    ErrorObj.Show(ltVerbose,I0005_PROCESSOR_IS,[Asm80.Processor]);
     for filename in sl do
       begin
         try
           Asm80.Assemble(filename);
         except
-          On E:AsmException do ; // Silent handler, we've already caught this one
+          On E:LCGErrorException do    ; // Silent handler, we've already caught this one
+          On E:LCGInternalException do ; // Silent handler, we've already caught this one
           On E:Exception do
-            Asm80.Monitor(mtInternal,E.Message);  // Unhandled exception
+            begin
+              try
+                ErrorObj.Show(ltInternal,X3999_UNHANDLED_EXCEPTION,[E.Message]);
+              except
+                // Do nothing
+              end;
+            end;
         end;
       end;
+    ErrorObj.Show(ltInfo,I0002_ASSEMBLY_ENDED);
   finally
     FreeAndNil(sl);
   end;
@@ -200,7 +243,7 @@ begin
     saqVersion:       ShowVersion;
     saqWarranty:      ;
     otherwise
-      Monitor(mtInternal,'No handler for ShowAndQuit option %s',[GetEnumName(TypeInfo(TShowAndQuit),Ord(EnvObject.ShowAndQuit))]);
+      raise Exception.Create(Format('No handler for ShowAndQuit option %s',[GetEnumName(TypeInfo(TShowAndQuit),Ord(EnvObject.ShowAndQuit))]));
   end;
 end;
 

@@ -1,4 +1,3 @@
-		LD	[HL],[HL]
 //======================================================================
 //
 //  XA80OPER.LAC - Duncan's Cross Assembler for x80 processors
@@ -46,7 +45,7 @@
 
 {DigitHex}		= {Digit} + [ABCDEFabcdef];
 {StringCharDQ}	= {Printable} - {DQuote} - {Backslash};
-{StringCharSQ}	= {Printable} - {SQuote};
+{StringCharSQ}	= {Printable} - {SQuote} - {Backslash};
 {Whitespace} 	= {Space} ;  // Tab has already been dealt with by pre-parser
 
 {SymbolExtra}	= [_?.@];
@@ -69,33 +68,33 @@ T_BINAND           = "&" 	symbol ;
 T_BINNOT           = "~" 	symbol ;                 
 T_BINOR            = "|"	symbol ;
 T_BINXOR           = "^"    symbol ;                                  
-T_LEFTSHIFT        = "<<"   symbol ;
-T_MODULO           = "%"  	symbol ;
-T_RIGHTSHIFT       = ">>" 	symbol ;
+T_LEFTSHIFT        = "<<" | MIDEX("SHL")   symbol ;
+T_MODULO           = "%"  | MIXED("MOD")   symbol ;
+T_RIGHTSHIFT       = ">>" | MIXED("SHR")   symbol ;
                                                    
 // Comparison operators
 
-T_EQUAL            = "=="	 symbol ;
-T_GREATERTHAN      = ">" 	 symbol ;
-T_GREATEREQUAL     = ">="	 symbol ;
-T_LESSEQUAL        = "<=" 	 symbol ;                                 
-T_LESSTHAN         = "<"     symbol ;                                  
-T_LOGICALAND       = "&&"    symbol ;                 
-T_LOGICALNOT       = "!"     symbol ;                 
-T_LOGICALOR        = "||"    symbol ;                 
-T_NOTEQUAL         = "!="    symbol ; 
+T_EQUAL            = "=="	     symbol ;
+T_GREATERTHAN      = ">" 	     symbol ;
+T_GREATEREQUAL     = ">="	     symbol ;
+T_LESSEQUAL        = "<=" 	     symbol ;                                 
+T_LESSTHAN         = "<"         symbol ;                                  
+T_LOGICALAND       = "&&"        symbol ;                 
+T_LOGICALNOT       = "!"         symbol ;                 
+T_LOGICALOR        = "||"        symbol ;                 
+T_NOTEQUAL         = "!=" | "<>" symbol ; 
 
 // Literals
 
 T_BINLITERAL       = "0" MIXED("B") {DigitBin}+ | "%"{DigitBin}+ | {DigitBin}+MIXED("B");
-T_DECLITERAL       = {DigitZero} | {DigitNonZero}{Digit}* | {DigitNonZero}{Digit}*d | {DigitNonZero}{Digit}*D;
+T_DECLITERAL       = {DigitZero} | {Digit}+ | {DigitNonZero}{Digit}*d | {DigitNonZero}{Digit}*D;
 T_HEXLITERAL       = ( "0" MIXED("X") {DigitHex}+ | "$"{DigitHex}+ | "#"{DigitHex}+ | {Digit}{DigitHex}*MIXED("H") )  ;
 T_OCTLITERAL       = {DigitOct}+(MIXED("O")|MIXED("Q"));
 
 // Labels etc.
 
 T_STRINGCONSTANT	= {DQuote} ({StringCharDQ} | {Backslash} {Escaped})* {DQuote};
-T_CHARCONSTANT		= {SQuote} {StringCharSQ}{SQuote} ;
+T_CHARCONSTANT		= {SQuote} ({StringCharSQ} | {Backslash} {Escaped})* {SQuote};
 					
 T_SYMBOLDEF 		= {SymbolStart} {SymbolMid}* ;					
 T_WHITESPACE		= {Whitespace}+ ignore;

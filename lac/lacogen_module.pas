@@ -18,7 +18,7 @@
     Contact: Duncan Munro  duncan@duncanamps.com
 }
 
-unit deployment_parser_module_12;
+unit lacogen_module;
 
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
@@ -30,13 +30,12 @@ unit deployment_parser_module_12;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, deployment_parser_types_12;
+  Classes, SysUtils, Generics.Collections, lacogen_types;
 
 type
 
   TLCGParser = class; // Preliminary declaration
 
-  TLCGMonitorProc = procedure (Parser: TLCGParser; LogType: TLCGLogType; const Message: string) of object;
   TLCGPostReduceProc = procedure (Parser: TLCGParser) of object;
   TLCGPushProc = procedure (Parser: TLCGParser; Entry: TLCGParserStackEntry) of object;
   TLCGReduceProc = function (Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry of object;
@@ -173,7 +172,7 @@ type
       FInputLine:       integer;
       FInputLineSave:   integer;
       FLogLevel:        TLCGLogType;
-      FOnMonitor:       TLCGMonitorProc;
+//    FOnMonitor:       TLCGMonitorProc;
       FOnPostReduce:    TLCGPostReduceProc;
       FOnPush:          TLCGPushProc;
       FOnReduce:        TLCGReduceProc;
@@ -186,14 +185,14 @@ type
       procedure LoadFromResource(const ResourceName: string);
       procedure LoadFromStream(Stream: TStream);
       procedure LoadTokensFromStream(Stream: TStream);
-      procedure Monitor(LogType: TLCGLogType; const Message: string); virtual;
-      procedure Monitor(LogType: TLCGLogType; const Message: string; const Args: array of const); virtual;
+//    procedure Monitor(LogType: TLCGLogType; const Message: string); virtual;
+//    procedure Monitor(LogType: TLCGLogType; const Message: string; const Args: array of const); virtual;
       procedure Parse(Stream: TStream);
       property InputColumn:  integer            read FInputColumnSave;
       property InputLine:    integer            read FInputLineSave;
       property LexBufBlock:  integer            read FLexBufBlock  write SetLexBufBlock;
       property LogLevel:     TLCGLogType        read FLogLevel     write FLogLevel;
-      property OnMonitor:    TLCGMonitorProc    read FOnMonitor    write FOnMonitor;
+//    property OnMonitor:    TLCGMonitorProc    read FOnMonitor    write FOnMonitor;
       property OnPostReduce: TLCGPostReduceProc read FOnPostReduce write FOnPostReduce;
       property OnPush:       TLCGPushProc       read FOnPush       write FOnPush;
       property OnReduce:     TLCGReduceProc     read FOnReduce     write FOnReduce;
@@ -213,11 +212,11 @@ function CharAsText(c32: TChar): TString;
 
 implementation
 
-{$IFDEF WINDOWS}
 uses
-  Windows; // For definition of RT_RCDATA
+{$IFDEF WINDOWS}
+  Windows, // For definition of RT_RCDATA
 {$ENDIF}
-
+  umessages;
 
 const
   LACOBJ_MAGIC_WORD = $0143414C;
@@ -519,7 +518,7 @@ begin
   FRules         := TLCGRules.Create;
   FLALR          := TLCGLALR.Create;
   FLogLevel     := ltInfo; // Maximum log level
-  FOnMonitor    := nil;
+//FOnMonitor    := nil;
   FOnPostReduce := nil;
   FOnPush       := nil;
   FOnReduce     := nil;
@@ -713,7 +712,8 @@ begin
     end;
   // Sanity check
   if FLexerBufRemain = 0 then
-    Monitor(ltInternal,'Attempt to call LexPeek() when buffer is empty');
+    ErrorObj.Show(ltInternal,X3002_PREPARSER_PEEK_ERROR);
+//  Monitor(ltInternal,'Attempt to call LexPeek() when buffer is empty');
   // We have characters in the buffer, do the peek
   FBufferIncrement := 1;
   Result := FLexerBuffer[FLexerBufIndex];
@@ -746,7 +746,8 @@ procedure TLCGParser.LoadFromFile(const Filename: string);
 var FileStream: TFileStream;
 begin
   if not FileExists(Filename) then
-    Monitor(ltError,'File ' + Filename + ' does not exist');
+    ErrorObj.Show(ltError,E2031_FILE_NOT_FOUND,[Filename]);
+//  Monitor(ltError,'File ' + Filename + ' does not exist');
   FileStream := TFileStream.Create(Filename,fmOpenRead,fmShareDenyWrite);
   try
     LoadFromStream(FileStream);
@@ -760,7 +761,8 @@ var Resource: TResourceStream;
 begin
   Resource := TResourceStream.Create(HInstance,ResourceName,RT_RCDATA);
   if Resource = nil then
-    Monitor(ltInternal,'Resource ' + ResourceName + ' does not exist');
+    ErrorObj.Show(ltInternal,X3008_RESOURCE_NOT_FOUND,[ResourceName]);
+//  Monitor(ltInternal,'Resource ' + ResourceName + ' does not exist');
   try
     LoadFromStream(Resource);
   finally
@@ -804,6 +806,7 @@ begin
     end;
 end;
 
+{
 procedure TLCGParser.Monitor(LogType: TLCGLogType; const Message: string);
 begin
   if Assigned(FOnMonitor) and (LogType <= FLogLevel) then
@@ -818,6 +821,7 @@ procedure TLCGParser.Monitor(LogType: TLCGLogType; const Message: string; const 
 begin
   Monitor(LogType,Format(Message,Args));
 end;
+}
 
 procedure TLCGParser.Parse(Stream: TStream);
 var done: boolean;
@@ -826,7 +830,8 @@ var done: boolean;
     toss:  TLCGStateIdentifier;
 begin
   if not FLoaded then
-    Monitor(ltInternal,'Parser tables not loaded');
+    ErrorObj.Show(ltInternal,X3009_PARSER_TABLES_NOT_LOADED);
+//  Monitor(ltInternal,'Parser tables not loaded');
   FStream := Stream;
   InitRun;
   SetLength(empty,0);
@@ -841,12 +846,14 @@ begin
     begin
       pk := ParserPeek;
       if pk.ID = PREDEFINED_TOKEN_ERROR then
-        Monitor(ltError,'Unexpected character %s in input',[CharAsText(FWrongCharacter)]);
+        ErrorObj.Show(ltError,E2032_UNEXPECTED_CHARACTER,[CharAsText(FWrongCharacter)]);
+//      Monitor(ltError,'Unexpected character %s in input',[CharAsText(FWrongCharacter)]);
       toss := TosState;
       case FLALR.Items[TosState][pk.ID].OutputType of
         potUndefined:
           begin
-    	    Monitor(ltError,'Undefined parser table action for state %d and token %s',[TosState,FTokens[pk.ID].Name]);
+    	    ErrorObj.Show(ltError,E2033_UNDEFINED_PARSER_TABLE_ACTION,[TosState,FTokens[pk.ID].Name]);
+//  	    Monitor(ltError,'Undefined parser table action for state %d and token %s',[TosState,FTokens[pk.ID].Name]);
   	    done := True;
   	  end;
         potError:
@@ -854,7 +861,8 @@ begin
             // Push the bad token on so we can see it
             Push(FLALR.Items[TosState][pk.ID].Destination,pk,FTokenbuf);
   	    done := True;
-  	    Monitor(ltError,'Unexpected token %s in input',[FTokens[pk.ID].Name]);
+  	    ErrorObj.Show(ltError,E2034_UNEXPECTED_TOKEN,[FTokens[pk.ID].Name]);
+//	    Monitor(ltError,'Unexpected token %s in input',[FTokens[pk.ID].Name]);
   	  end;
   	potShift:
           begin
@@ -863,7 +871,8 @@ begin
           end;
         potGoto:
           begin // Unexpected as this should follow a reduce
-  	    Monitor(ltError,'Unexpected goto from table');
+            ErrorObj.Show(ltInternal,X3010_UNEXPECTED_GOTO);
+//          Monitor(ltError,'Unexpected goto from table');
   	    done := True;
   	  end;
   	potReduce:
@@ -890,14 +899,16 @@ end;
 procedure TLCGParser.Pop;
 begin
   if FParserSP <= 0 then
-    Monitor(ltInternal,'Stack empty');
+    ErrorObj.Show(ltInternal,X3011_STACK_EMPTY);
+//  Monitor(ltInternal,'Stack empty');
   Dec(FParserSP);
 end;
 
 procedure TLCGParser.Push(_entry: TLCGParserStackEntry);
 begin
   if FParserSP >= PARSER_STACK_SIZE_MAX then
-    Monitor(ltError,'PARSER_STACK_SIZE_MAX (%d) exceeded',[PARSER_STACK_SIZE_MAX]);
+    ErrorObj.Show(ltError,E2035_PARSER_STACK_EXCEEDED,[PARSER_STACK_SIZE_MAX]);
+//  Monitor(ltError,'PARSER_STACK_SIZE_MAX (%d) exceeded',[PARSER_STACK_SIZE_MAX]);
   CheckStackSize;
   FParserStack[FParserSP] := _entry;
   Inc(FParserSP);
@@ -931,7 +942,7 @@ begin
   except
     on E:LCGErrorException    do raise ; // Nothing
     on E:LCGInternalException do raise ; // Nothing
-    on E:Exception do Monitor(ltError,E.Message);
+    on E:Exception do ErrorObj.Show(ltError,E2013_PARSER_ERROR,[E.Message]);
   end;
   // Tidy up the reduction
   case reduction.BufType of
@@ -947,7 +958,8 @@ begin
   // Now work out the next state
   headrule := FRules.Items[ruleindex].HeadToken;
   if FLALR.Items[TosState][headrule].OutputType <> potGoto then
-    Monitor(ltError,'Goto expected for rule index #%d but not found in table',[ruleindex]);
+    ErrorObj.Show(ltInternal,X3012_PARSER_GOTO_ERROR,[ruleindex]);
+//  Monitor(ltError,'Goto expected for rule index #%d but not found in table',[ruleindex]);
   reduction.State := FLALR.Items[TosState][headrule].Destination;
   reduction.Token.ID  := FRules.Items[ruleindex].HeadToken;
   reduction.Token.Col := savedcol;
@@ -961,7 +973,8 @@ procedure TLCGParser.SetLexBufBlock(_size: integer);
 begin
   // Check to ensure we're not in the middle of something
   if FLexerBufRemain > 0 then
-    Monitor(ltError,'Attempt to set lexer buffer size while in the middle of an activity');
+    ErrorObj.Show(ltInternal,X3013_LEXER_SET_ERROR);
+//  Monitor(ltError,'Attempt to set lexer buffer size while in the middle of an activity');
   FLexBufBlock := _size;
   FLexBufSize  := _size + LEXBUF_MIN;
   SetLength(FLexerBuffer,FLexBufSize);

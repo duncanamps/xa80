@@ -76,7 +76,7 @@ type
 implementation
 
 uses
-  Dos, uasmglobals, umonitor;
+  Dos, uasmglobals, umessages, lacogen_types;
 
 const
 
@@ -300,7 +300,7 @@ var filename: string;
     var r: TCommandElement;
   begin
     if Peek <> '=' then
-      Monitor(mtError,'Equals expected but not found in command or environment');
+      ErrorObj.Show(ltError,E2040_MISSING_EQUALS);
     r.ElementType := cetEquals;
     r.ElementData := '=';
     Fetch;
@@ -320,7 +320,7 @@ var filename: string;
         if quoting then
           begin // Quoting
             if Peek = #0 then
-              Monitor(mtError,'Premature end of string in command or environment %s',[src]);
+              ErrorObj.Show(ltError,E2041_PREMATURE_STRING_END,[src]);
             if Peek = #34 then
               quoting := False;
             dat := dat + Fetch;
@@ -433,7 +433,7 @@ begin
       Inc(i);
     end;
   if i = Count then
-    Monitor(mtError,'Switch %s not catered for',[_switch]);
+    ErrorObj.Show(ltInternal,X3001_UNHANDLED_CASE_OPTION,['TCommandList.CommandRecFromSwitch']);
 end;
 
 procedure TCommandList.ShowHelp;
