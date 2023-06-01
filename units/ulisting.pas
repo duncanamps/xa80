@@ -25,6 +25,7 @@ type
       constructor Create;
       destructor Destroy; override;
       procedure Output(const _s: string);
+      procedure Reset;
       property Filename: string  read FFilename write SetFilename;
       property Listing:  boolean read FListing  write FListing;
       property Title:    string  read FTitle    write FTitle;
@@ -37,8 +38,7 @@ begin
   FStream := nil;
   FPageWidth := DEFAULT_LISTING_PAGE_WIDTH;
   FPageLength := DEFAULT_LISTING_PAGE_LENGTH;
-  FPageNo := 0;
-  FLineNo := 0;
+  Reset;
 end;
 
 destructor TListing.Destroy;
@@ -84,6 +84,12 @@ begin
   _s := _s + LINE_TERMINATOR;
   FStream.Write(_s[1],Length(_s));
   Inc(FLineNo);
+end;
+
+procedure TListing.Reset;
+begin
+  FPageNo := 0;
+  FLineNo := 0;
 end;
 
 procedure TListing.SetFilename(const _filename: string);

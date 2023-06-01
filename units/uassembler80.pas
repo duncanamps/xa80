@@ -894,6 +894,7 @@ end;
 
 procedure TAssembler80.Assemble(const filename: string);
 begin
+  FListing.Reset;
   FSymbolTable.Clear;
   ErrorObj.SetLogFilename('error_obj.log');
   ErrorObj.Show(ltInfo,I0003_ASSEMBLING_FILE,[filename]);
@@ -1783,7 +1784,6 @@ begin
   FCmdList.RegisterCommand('LIST_OFF',  @CmdLISTOFF);
   FCmdList.RegisterCommand('WARN_OFF',  @CmdWARNOFF);
   FCmdList.RegisterCommand('ORG',	@CmdORG);
-  FCmdList.RegisterCommand('ORIGIN',	@CmdORG);
   FCmdList.RegisterCommand('REPEAT',	@CmdREPEAT);
   FCmdList.RegisterCommand('TITLE',	@CmdTITLE);
   FCmdList.RegisterCommand('UDATA',	@CmdUDATA);
