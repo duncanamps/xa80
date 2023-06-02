@@ -1,6 +1,9 @@
 ; Test for issue #12
 ; "Label EQU directive not handling strings correctly"
 
+label 		EQU 	'Duncan'
+address		EQU		$
+
 			ORG		0x200
 			
 smallval	EQU		4			
@@ -10,7 +13,5 @@ smallval	EQU		4
 			LD		A,(IX+smallval)
 			LD		A,(IY+'0')
 		
-label 		EQU 	'Duncan'
-address		EQU		$
 
 table: 		DB 		27,label,"$"

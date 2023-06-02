@@ -75,6 +75,10 @@ const
               '  3: Verbose, show more information' + CRLF +
               '  4: War and Peace, show much more information' + CRLF +
               '  5: Debug, only relevant with debug versions of the software' + CRLF +
+              CRLF +
+              '<w> can be one of:' + CRLF +
+              '  0: Warnings are off and are unaffected by WARNON/OFF' + CRLF +
+              '  1: Warnings are on respecting WARNON/OFF in code' + CRLF +
               CRLF;
 
 type
@@ -197,30 +201,37 @@ begin
       4: ErrorObj.InfoLimit := ltWarAndPeace;
       5: ErrorObj.InfoLimit := ltDebug;
     end;
+    if (EnvObject.GetValue('Warnings') = '0') then
+      ErrorObj.WarningsAvailable := False
+    else
+      ErrorObj.WarningsAvailable := True;
 
     // DO the list of files
     if ErrorObj.InfoLimit >= ltInfo then
       ShowTitle;
-    ErrorObj.Show(ltInfo,I0001_ASSEMBLY_STARTED);
-    ErrorObj.Show(ltVerbose,I0005_PROCESSOR_IS,[Asm80.Processor]);
-    for filename in sl do
+    if sl.Count > 0 then
       begin
-        try
-          Asm80.Assemble(filename);
-        except
-          On E:LCGErrorException do    ; // Silent handler, we've already caught this one
-          On E:LCGInternalException do ; // Silent handler, we've already caught this one
-          On E:Exception do
-            begin
-              try
-                ErrorObj.Show(ltInternal,X3999_UNHANDLED_EXCEPTION,[E.Message]);
-              except
-                // Do nothing
-              end;
+        ErrorObj.Show(ltInfo,I0001_ASSEMBLY_STARTED);
+        ErrorObj.Show(ltVerbose,I0005_PROCESSOR_IS,[Asm80.Processor]);
+        for filename in sl do
+          begin
+            try
+              Asm80.Assemble(filename);
+            except
+              On E:LCGErrorException do    ; // Silent handler, we've already caught this one
+              On E:LCGInternalException do ; // Silent handler, we've already caught this one
+              On E:Exception do
+                begin
+                  try
+                    ErrorObj.Show(ltInternal,X3999_UNHANDLED_EXCEPTION,[E.Message]);
+                  except
+                    // Do nothing
+                  end;
+                end;
             end;
-        end;
+          end;
+        ErrorObj.Show(ltInfo,I0002_ASSEMBLY_ENDED);
       end;
-    ErrorObj.Show(ltInfo,I0002_ASSEMBLY_ENDED);
   finally
     FreeAndNil(sl);
   end;

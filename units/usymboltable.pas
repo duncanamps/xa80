@@ -276,12 +276,15 @@ end;
 procedure TSymbolTable.DumpByBoth(const filename: string);
 var strm: TFileStream;
 begin
-  strm := TFileStream.Create(filename,fmCreate);
-  try
-    DumpByBoth(strm);
-  finally
-    FreeAndNil(strm);
-  end;
+  if filename <> '' then
+    begin
+      strm := TFileStream.Create(filename,fmCreate);
+      try
+        DumpByBoth(strm);
+      finally
+        FreeAndNil(strm);
+      end;
+    end;
 end;
 
 procedure TSymbolTable.DumpByName(_strm: TFileStream);

@@ -40,8 +40,9 @@ const
   DEFAULT_LISTING_PAGE_LENGTH       = 60;
   DEFAULT_LISTING_PAGE_WIDTH        = 120;
   DEFAULT_ORG                       = 0;
-  DEFAULT_PROCESSOR_VALUE           = 'Z80';
+  DEFAULT_PROCESSOR                 = 'Z80';
   DEFAULT_TAB_SIZE                  = 4;
+  DEFAULT_WARNINGS                  = 1;
   ENVIRONMENT_VARIABLE              = 'XA80';
   FILETYPE_COM                      = '.com';
   FILETYPE_DEBUG                    = '.dbg80';

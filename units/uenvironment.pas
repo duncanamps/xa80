@@ -113,7 +113,7 @@ var
 implementation
 
 uses
-  typinfo, umessages, lacogen_types;
+  typinfo, umessages, lacogen_types, uasmglobals;
 
 
 function EnvironmentSourceAsString(_es: TEnvironmentSource): string;
@@ -201,20 +201,21 @@ begin
   // The default items which will be optionally overridden by the
   // environment variable, and command line
   // Key items
-  SetValue('Defines',    '',         esDefault);
-  SetValue('Includes',   '',         esDefault);
-  SetValue('Processor',  'Z80',      esDefault);
-  SetValue('Tab',        4,          esDefault);
-  SetValue('Verbose',    1,          esDefault);
-  SetValue('SourceFiles','',         esDefault);
+  SetValue('Defines',    '',                     esDefault);
+  SetValue('Includes',   '',                     esDefault);
+  SetValue('Processor',  DEFAULT_PROCESSOR,      esDefault);
+  SetValue('Tab',        4,                      esDefault);
+  SetValue('Verbose',    3,                      esDefault);
+  SetValue('Warnings',   DEFAULT_WARNINGS,       esDefault);
+  SetValue('SourceFiles','',                     esDefault);
   // File specific
-  SetValue('FilenameCom',       '',  esDefault);
-  SetValue('FilenameDebug',     '',  esDefault);
-  SetValue('FilenameError',     '',  esDefault);
-  SetValue('FilenameHex',       '',  esDefault);
-  SetValue('FilenameListing',   '',  esDefault);
-  SetValue('FilenameMap',       '',  esDefault);
-  SetValue('FilenameObj',       '',  esDefault);
+  SetValue('FilenameCom',       '',              esDefault);
+  SetValue('FilenameDebug',     '',              esDefault);
+  SetValue('FilenameError',     '',              esDefault);
+  SetValue('FilenameHex',       '',              esDefault);
+  SetValue('FilenameListing',   '',              esDefault);
+  SetValue('FilenameMap',       '',              esDefault);
+  SetValue('FilenameObj',       '',              esDefault);
 end;
 
 procedure TEnvironment.Dump;

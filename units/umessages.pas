@@ -70,7 +70,7 @@ type
 
                      W1000_USER_WARNING,
                      W1001_CODE_WRAPPED_ROUND,
-                     W1002_UNRECOGNISED_COMMAND_LINE_OPTION,
+                     W1002_,
                      W1003_LABEL_REDEFINED,
                      W1004_END_OPERANDS_IGNORED,
 
@@ -116,6 +116,8 @@ type
                      E2039_SWITCH_MISSING_VALUE,
                      E2040_MISSING_EQUALS,
                      E2041_PREMATURE_STRING_END,
+                     E2042_INVALID_COMMAND_LINE_SWITCH,
+                     E2043_INVALID_COMMAND_OPCODE,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -138,10 +140,11 @@ type
 
   TErrorObject = class(TObject)
     private
-      FLogFilename:   string;
-      FLogStream:     TFileStream;
-      FStartTime:     TDateTime;
-      FWarnings:      boolean;
+      FLogFilename:       string;
+      FLogStream:         TFileStream;
+      FStartTime:         TDateTime;
+      FWarnings:          boolean;
+      FWarningsAvailable: boolean;
       function  MonitorString(_logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const): string;
     public
       ColNumber:  integer;
@@ -157,6 +160,7 @@ type
       procedure Show(_logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
       property LogFilename: string read FLogFilename write SetLogFilename;
       property Warnings: boolean read FWarnings write FWarnings;
+      property WarningsAvailable: boolean read FWarningsAvailable write FWarningsAvailable;
   end;
 
 var
@@ -182,7 +186,7 @@ var
 
     '%s',
     'Code wrapped around back to zero',
-    'Unrecognised command line option',
+    '*****UNDEFINED*****',
     'Label %s has been redefined',
     'Operands after END directive ignored',
 
@@ -228,6 +232,8 @@ var
     'Mandatory value missing after switch %s',
     'Equals expected but not found in command or environment',
     'Premature end of string in command or environment %s',
+    'Invalid command line switch %s',
+    '%s is not a valid command directive or processor instruction',
 
     'Unhandled case option at %s',
     'Preparser peeek error',
@@ -322,7 +328,7 @@ end;
 procedure TErrorObject.Show(_logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
 var msg: string;
 begin
-  if (not FWarnings) and (_logtype = ltWarning) then
+  if (not (FWarnings and FWarningsAvailable)) and (_logtype = ltWarning) then
     Exit;
   if _logtype > InfoLimit then
     Exit;

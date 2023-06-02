@@ -80,7 +80,7 @@ uses
 
 const
 
-  CommandEntries: array[0..13] of TCommandRec =
+  CommandEntries: array[0..14] of TCommandRec =
     (
       (
         ShortOption:  '-b';
@@ -232,6 +232,18 @@ const
         ParamName:    '<n>';
         EnvName:      'Verbose';
         Description:  'Set verbosity to <n>';
+        Allowed:      [caEnvironment,caCommandLine];
+        Parameter:    paMandatory;
+        MandateFiles: False;
+        Terminal:     False;
+        Value:        ''
+      ),
+      (
+        ShortOption:  '-w';
+        LongOption:   '--warnings';
+        ParamName:    '<w>';
+        EnvName:      'Warnings';
+        Description:  'Turn warnings on or off';
         Allowed:      [caEnvironment,caCommandLine];
         Parameter:    paMandatory;
         MandateFiles: False;
@@ -433,7 +445,7 @@ begin
       Inc(i);
     end;
   if i = Count then
-    ErrorObj.Show(ltInternal,X3001_UNHANDLED_CASE_OPTION,['TCommandList.CommandRecFromSwitch']);
+    ErrorObj.Show(ltError,E2042_INVALID_COMMAND_LINE_SWITCH,[_switch]);
 end;
 
 procedure TCommandList.ShowHelp;

@@ -19,3 +19,5 @@ backup/
 clean.bat
 _deprecated/
 lac/xa80oper.txt
+asm.bat
+asmlight.bat

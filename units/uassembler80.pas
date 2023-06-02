@@ -1776,19 +1776,19 @@ begin
   FCmdList.RegisterCommand('IFDEF',	@CmdIFDEF);
   FCmdList.RegisterCommand('IFNDEF',	@CmdIFNDEF);
   FCmdList.RegisterCommand('INCLUDE',	@CmdINCLUDE);
-  FCmdList.RegisterCommand('LIST_ON',   @CmdLISTON);
+  FCmdList.RegisterCommand('LISTON',    @CmdLISTON);
   FCmdList.RegisterCommand('MACRO',	@CmdMACRO);
   FCmdList.RegisterCommand('MSGINFO',	@CmdMSGINFO);
   FCmdList.RegisterCommand('MSGERROR',	@CmdMSGERROR);
   FCmdList.RegisterCommand('MSGWARNING',@CmdMSGWARNING);
-  FCmdList.RegisterCommand('LIST_OFF',  @CmdLISTOFF);
-  FCmdList.RegisterCommand('WARN_OFF',  @CmdWARNOFF);
+  FCmdList.RegisterCommand('LISTOFF',   @CmdLISTOFF);
+  FCmdList.RegisterCommand('WARNOFF',   @CmdWARNOFF);
   FCmdList.RegisterCommand('ORG',	@CmdORG);
   FCmdList.RegisterCommand('REPEAT',	@CmdREPEAT);
   FCmdList.RegisterCommand('TITLE',	@CmdTITLE);
   FCmdList.RegisterCommand('UDATA',	@CmdUDATA);
   FCmdList.RegisterCommand('WHILE',	@CmdWHILE);
-  FCmdList.RegisterCommand('WARN_ON',   @CmdWARNON);
+  FCmdList.RegisterCommand('WARNON',    @CmdWARNON);
 end;
 
 procedure TAssembler80.RegisterProcs;

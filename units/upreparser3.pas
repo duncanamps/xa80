@@ -537,6 +537,13 @@ begin
       ErrorObj.ColNumber := 1;
       ErrorObj.Show(ltError,E2030_USING_RESERVED_AS_LABEL,[FLabelX]);
     end;
+  // Check for operands without command or instruction
+  // This probably means we are using the wrong processor / instruction set
+  if (FCommandIndex < 0) and (FOpcodeIndex < 0) and (Count > 0) then
+    begin
+      ErrorObj.ColNumber := Items[0].Column;
+      ErrorObj.Show(ltError,E2043_INVALID_COMMAND_OPCODE,[Items[0].Payload]);
+    end;
   // Check for unresolved globs etc.
   for iter in Self do
     begin
