@@ -302,7 +302,9 @@ BITMASKS:	DB		%00000001
 
 MSG: 		DB      "Sieve",13,10
 			DB		"Created with XA80 cross assembler",13,10
-			DB		DATE() + " " + TIME(),13,10,10
+			DB		DATE() + " " + TIME(),13,10
+			DB		VERSION() + " Build "
+			DB		BUILD(),13,10,10
 			DB		'$'
 CRLF:		DB		13,10,'$'
 SPACE:		DB		" $"

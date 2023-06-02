@@ -103,6 +103,7 @@ T_WHITESPACE		= {Whitespace}+ ignore;
 // Functions
 
 F_ASC				= MIXED("ASC(")			keyword;
+F_BUILD				= MIXED("BUILD()")		keyword;
 F_CHR				= MIXED("CHR(")			keyword;
 F_DATE				= MIXED("DATE()")		keyword;
 F_HEX				= MIXED("HEX(")			keyword;
@@ -119,6 +120,7 @@ F_STRING		    = MIXED("STRING(")		keyword;
 F_TIME				= MIXED("TIME()")		keyword;
 F_UPPER				= MIXED("UPPER(")		keyword;
 F_VALUE				= MIXED("VALUE(")		keyword;
+F_VERSION			= MIXED("VERSION()")	keyword;
 
 
 //==============================================================================
@@ -208,6 +210,7 @@ F_VALUE				= MIXED("VALUE(")		keyword;
 					| F_POS <expression> "," <expression> ")"		# ActFuncPos
 					| F_VALUE <expression> ")"						# ActFuncValue
 					| T_SYMBOLDEF									# ActValueSymbol
+					| F_BUILD										# ActStrBuild
 					| F_CHR <expression> ")"						# ActStrChr
 					| F_DATE										# ActStrDate
 					| F_HEX <expression> ")"						# ActStrHex1
@@ -219,6 +222,7 @@ F_VALUE				= MIXED("VALUE(")		keyword;
 					| F_STRING <expression> ")"						# ActStrString
 					| F_TIME										# ActStrTime
 					| F_UPPER <expression> ")"						# ActStrUpper
+					| F_VERSION										# ActStrVersion
 					| T_CHARCONSTANT								# ActCharConstant
 					| T_STRINGCONSTANT								# ActStringConstant
 					| "(" <expression> ")"							# ActExprBracket

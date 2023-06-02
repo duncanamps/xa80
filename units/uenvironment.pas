@@ -64,6 +64,21 @@ uses
 
 type
 
+  { TVersion }
+
+  TVersion = class (TPersistent)
+  private
+    FBuild: Integer;
+    FMajor: Integer;
+    FMinor: Integer;
+    FVersion: Integer;
+  published
+    property Version: Integer read FVersion write FVersion;
+    property Major: Integer read FMajor write FMajor;
+    property Minor: Integer read FMinor write FMinor;
+    property Build: Integer read FBuild write FBuild;
+  end;
+
   TEnvironmentSource = (esDefault,esEnvironment,esCommandline);
 
   TEnvironmentElement = class(TObject)
@@ -89,7 +104,9 @@ type
     private
       EnvComparer: specialize IComparer<TEnvironmentElement>;
     public
+      Build:       string;
       ShowAndQuit: TShowAndQuit;
+      Version:     string;
       constructor Create(_setdefaults: boolean = true);
       destructor Destroy; override;
       procedure AddSourceName(const _filename: string);
@@ -113,7 +130,7 @@ var
 implementation
 
 uses
-  typinfo, umessages, lacogen_types, uasmglobals;
+  typinfo, umessages, lacogen_types, uasmglobals, fileinfo;
 
 
 function EnvironmentSourceAsString(_es: TEnvironmentSource): string;
@@ -146,6 +163,8 @@ end;
 //------------------------------------------------------------------------------
 
 constructor TEnvironment.Create(_setdefaults: boolean);
+var aVersionInfo: TVersionInfo;
+    VersionInfo:  TVersion;
 begin
   EnvComparer := specialize TComparer<TEnvironmentElement>.Construct(@Compare);
   inherited Create(EnvComparer);
@@ -154,8 +173,21 @@ begin
   ShowAndQuit := saqNone;
   if _setdefaults then
     ApplyDefaults;
-  // @@@@@ Delete the following
-//  Dump;
+  // Get the version information
+  aVersionInfo:=TVersionInfo.Create;
+  VersionInfo:=TVersion.Create;
+  try
+    aVersionInfo.Load(HINSTANCE);
+    VersionInfo.Version:=aVersionInfo.FixedInfo.FileVersion[0];
+    VersionInfo.Major:=aVersionInfo.FixedInfo.FileVersion[1];
+    VersionInfo.Minor:=aVersionInfo.FixedInfo.FileVersion[2];
+    VersionInfo.Build:=aVersionInfo.FixedInfo.FileVersion[3];
+    Version := IntToStr(VersionInfo.Major) + '.' + IntToStr(VersionInfo.Minor);
+    Build   := IntToStr(VersionInfo.Build);
+  finally
+    FreeAndNil(VersionInfo);
+    FreeAndNil(aVersionInfo);
+  end;
 end;
 
 destructor TEnvironment.Destroy;

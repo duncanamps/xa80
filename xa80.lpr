@@ -83,6 +83,20 @@ const
 
 type
 
+  { TVersion }
+  TVersion = class (TPersistent)
+  private
+    FBuild: Integer;
+    FMajor: Integer;
+    FMinor: Integer;
+    FVersion: Integer;
+  published
+    property Version: Integer read FVersion write FVersion;
+    property Major: Integer read FMajor write FMajor;
+    property Minor: Integer read FMinor write FMinor;
+    property Build: Integer read FBuild write FBuild;
+  end;
+
   { TXA80 }
 
   TXA80 = class(TCustomApplication)
@@ -171,7 +185,6 @@ end;
 procedure TXA80.Assemble;
 var sl: TStringList;
     filename: string;
-    s: string;
     listing: string;
     map:     string;
     verbose: integer;
@@ -181,7 +194,6 @@ begin
     sl.Delimiter := ';';
     sl.StrictDelimiter := True;
     sl.DelimitedText := EnvObject.GetValue('SourceFiles');
-    s := sl.DelimitedText;
 
     // Set up the environment
     listing := EnvObject.GetValue('FilenameListing');
@@ -291,7 +303,7 @@ end;
 procedure TXA80.ShowTitle;
 begin
   WriteLn;
-  WriteLn('XA80 Cross Assembler for x80 processors V' + VERSION_STRING);
+  WriteLn('XA80 Cross Assembler for x80 processors V' + EnvObject.Version);
   WriteLn('Copyright (C)2020-2023 Duncan Munro');
   WriteLn;
   if ParamCount = 0 then
@@ -316,7 +328,8 @@ end;
 
 procedure TXA80.ShowVersion;
 begin
-  WriteLn('Version:    V' + VERSION_STRING);
+  WriteLn('Version:    V', EnvObject.Version);
+  WriteLn('Build:      ',  EnvObject.Build);
   WriteLn('Target CPU: ' + {$I %FPCTARGETCPU%});
   WriteLn('Target OS:  ' + {$I %FPCTARGETOS%});
 end;

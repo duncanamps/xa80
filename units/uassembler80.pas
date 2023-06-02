@@ -110,6 +110,7 @@ type
       function  ActSetOpIndOffIX(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpIndOffIY(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActSetOpLiteral(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActStrBuild(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrChr(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrDate(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrHex1(_parser: TLCGParser): TLCGParserStackEntry;
@@ -122,6 +123,7 @@ type
       function  ActStrString(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrTime(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActStrUpper(_parser: TLCGParser): TLCGParserStackEntry;
+      function  ActStrVersion(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
       function  ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
       procedure AsmProcessLabel(const _label: string; _command_index: integer);
@@ -688,6 +690,13 @@ begin
   Result := ParserM1;
 end;
 
+function TAssembler80.ActStrBuild(_parser: TLCGParser): TLCGParserStackEntry;
+begin
+  Result.Buf := EnvObject.Build;
+  Result.BufType := pstString;
+  Result.Source := pssConstant;
+end;
+
 function TAssembler80.ActStrChr(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   NeedPosNumber(-2,'for CHR() function');
@@ -785,6 +794,13 @@ begin
   Result.Buf := UpperCase(ParserM2.Buf);
   Result.BufType := pstString;
   Result.Source := SourceCombine1(-2);
+end;
+
+function TAssembler80.ActStrVersion(_parser: TLCGParser): TLCGParserStackEntry;
+begin
+  Result.Buf := EnvObject.Version;
+  Result.BufType := pstString;
+  Result.Source := pssConstant;
 end;
 
 {
@@ -1946,6 +1962,7 @@ begin
   RegisterProc('ActSetOpIndOffIX',      @ActSetOpIndOffIX, _procs);
   RegisterProc('ActSetOpIndOffIY',      @ActSetOpIndOffIY, _procs);
   RegisterProc('ActSetOpLiteral',	@ActSetOpLiteral, _procs);
+  RegisterProc('ActStrBuild',		@ActStrBuild, _procs);
   RegisterProc('ActStrChr',		@ActStrChr, _procs);
   RegisterProc('ActStrDate',		@ActStrDate, _procs);
   RegisterProc('ActStrHex1',		@ActStrHex1, _procs);
@@ -1957,6 +1974,7 @@ begin
   RegisterProc('ActStrString',		@ActStrString, _procs);
   RegisterProc('ActStrTime',		@ActStrTime, _procs);
   RegisterProc('ActStrUpper',		@ActStrUpper, _procs);
+  RegisterProc('ActStrVersion',		@ActStrVersion, _procs);
   RegisterProc('ActStringConstant',     @ActStringConstant, _procs);
   RegisterProc('ActValueOrg',		@ActValueOrg, _procs);
   RegisterProc('ActValueSymbol',	@ActValueSymbol, _procs);

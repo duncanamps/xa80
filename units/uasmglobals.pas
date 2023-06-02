@@ -63,7 +63,7 @@ const
   MAX_OPERANDS                      = 2;
   MAX_SOURCE_BYTES_PER_LISTING_LINE = 4;
   TEMP_FILE_DIVIDER                 = '?END?';
-  VERSION_STRING                    = '0.2';
+//VERSION_STRING                    = '0.2';
   // Derived constants
   MAX_HEX_WIDTH                     = (MAX_HEX_BYTES_IN_LISTING*2+MAX_HEX_BYTES_IN_LISTING-1);
 //  HEXBUF_LENGTH                     = ((3*MAX_HEX_BYTES_IN_LISTING) + 7);
