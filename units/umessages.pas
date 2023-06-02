@@ -66,6 +66,8 @@ type
                      I0003_ASSEMBLING_FILE,
                      I0004_FILENAME_ASSIGNMENT,
                      I0005_PROCESSOR_IS,
+                     I0006_SEARCHING_FOR_INCLUDE,
+                     I0007_PROCESSING_INCLUDE,
                      I9999_DEBUG_MESSAGE,
 
                      W1000_USER_WARNING,
@@ -118,6 +120,8 @@ type
                      E2041_PREMATURE_STRING_END,
                      E2042_INVALID_COMMAND_LINE_SWITCH,
                      E2043_INVALID_COMMAND_OPCODE,
+                     E2044_INCLUDE_FILE_NOT_FOUND,
+                     E2045_MAXIMUM_INCLUDES_EXCEEDED,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -182,6 +186,8 @@ var
     'Assembling file %s',
     'Filename for %s is %s',
     'Processor is %s',
+    'Searching for include file %s at %s',
+    'Processing include file %s',
     'DEBUG: %s',
 
     '%s',
@@ -234,6 +240,8 @@ var
     'Premature end of string in command or environment %s',
     'Invalid command line switch %s',
     '%s is not a valid command directive or processor instruction',
+    'Include file %s not found',
+    'Maximum number of includes (%d) exceeded',
 
     'Unhandled case option at %s',
     'Preparser peeek error',

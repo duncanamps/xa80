@@ -5,39 +5,27 @@ unit uinclude;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, Generics.Collections;
 
 type
-  TIncludeEntry = class(TObject)
-    private
-      FFilename: string;
-      procedure SetFilename(const _filename: string);
-    public
-      property FileName: string read FFilename write SetFilename;
+  TIncludeEntry = record
+    Filename:   string;
+    LineNumber: integer;
+    Warnings:   boolean;
+  end;
+
+  TIncludeStack = class(specialize TStack<TIncludeEntry>)
+
   end;
 
 implementation
 
-//-----------------------------------------------------------------------------
-//
-//  TIncludeEntry code
-//
-//-----------------------------------------------------------------------------
-
-procedure TIncludeEntry.SetFilename(const _filename: string);
-var fn: string;
-begin
-  fn := ExpandFilename(_filename);
-  if FileExists(fn) then
-    FFileName := fn
-
-end;
 
 
 
 //-----------------------------------------------------------------------------
 //
-//  TIncludeList code
+//  TIncludeStack code
 //
 //-----------------------------------------------------------------------------
 

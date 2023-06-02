@@ -31,7 +31,8 @@ interface
 uses
   Classes, SysUtils, lacogen_types, lacogen_module,
   umessages, uinstruction, usymboltable,
-  upreparser3, ucommand, upreparser3_defs, ucodebuffer, ulisting;
+  upreparser3, ucommand, upreparser3_defs, ucodebuffer, ulisting, uinclude,
+  uenvironment;
 
 type
   TCompareMode = (cmEqual,cmNotEqual,cmLessThan,cmLessEqual,cmGreaterThan,cmGreaterEqual);
@@ -45,10 +46,13 @@ type
       FFilenameAsm:     string;
       FFilenameMap:     string;
       FInputCol:        integer;
+      FIncludeStack:    TIncludeStack;
+      FIncludeList:     string;
       FInstructionList: TInstructionList;
       FListing:         TListing;
       FMemory:          array[Word] of byte;
       FMemoryUsed:      array[Word] of boolean;
+      FNextInclude:     string;
       FOptionListing:   string;
       FOptionMap:       string;
       FOrg:             integer;
@@ -178,6 +182,7 @@ type
       procedure PostReduce(Parser: TLCGParser);
       procedure Preparse(const _s: string);
       procedure ProcessFile(const filename: string);
+      procedure ProcessInclude;
       function  Reduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
       procedure RegisterCommands;
       procedure SetFilenameAsm(const _filename: string);
@@ -203,6 +208,7 @@ type
       property FilenameAsm:     string  read FFilenameAsm       write SetFilenameAsm;
       property FilenameMap:     string  read FFilenameMap       write FFilenameMap;
       property FilenameListing: string  read GetFilenameListing write SetFilenameListing;
+      property IncludeList:     string  read FIncludeList       write FIncludeList;
       property InputLine:       integer read FInputLine;
       property InputCol:        integer read FInputCol;
       property OptionListing:   string  read FOptionListing     write FOptionListing;
@@ -237,6 +243,8 @@ begin
   FPreparser := TPreparser.Create(FCmdList,FInstructionList);
   FPreparser.ForceColon := True;
   FSymbolTable := TSymbolTable.Create;
+  FIncludeStack := TIncludeStack.Create;
+  FIncludeList  := EnvObject.GetValue('Includes');
   FCmdList.SymbolTable := FSymbolTable;
   LoadFromResource('XA80OPER');
   SetLength(FProcArray,Rules);
@@ -251,6 +259,7 @@ end;
 
 destructor TAssembler80.Destroy;
 begin
+  FreeAndNil(FIncludeStack);
   FreeAndNil(FSymbolTable);
   FreeAndNil(FPreparser);
   FreeAndNil(FCmdList);
@@ -1060,15 +1069,19 @@ begin
       end
   else
     Org := Org + FCodeBuffer.Contains;
+  // Process the include file if required
+  ProcessInclude;
 end;
 
 procedure TAssembler80.AssemblePass(_pass: integer; const filename: string);
 begin
+  FPass := _pass;
+  FPreparser.Pass := _pass;
+  FSymbolTable.Pass := _pass;
+
   ErrorObj.Filename := filename;
   FEnded := False;
-  FPass := _pass;
-  FSymbolTable.Pass := _pass;
-  FPreparser.Pass := _pass;
+  FNextInclude := '';
   FOrg := 0;
   ProcessFile(filename);
 end;
@@ -1300,6 +1313,11 @@ end;
 
 procedure TAssembler80.CmdINCLUDE(const _label: string; _preparser: TPreparserBase);
 begin
+  // Should only be one operand
+  CheckOperandCount(1,1);
+  if FPreparser[0].DataType <> pstString then
+    ErrorObj.Show(ltError,E2010_EXPECTED_STRING,['for INCLUDE command']);
+  FNextInclude := FPreparser[0].StrValue;
 end;
 
 procedure TAssembler80.CmdLISTON(const _label: string; _preparser: TPreparserBase);
@@ -1720,6 +1738,100 @@ begin
   finally
     FreeAndNil(sl);
   end;
+end;
+
+procedure TAssembler80.ProcessInclude;
+var fn: string;
+    rec: TIncludeEntry;
+
+  function TryIncludeNameUnchanged(const _fn, _next: string): string;
+  begin  // If source file has path info, we should leave as is!
+    if (_fn <> '') then
+      Result := _fn
+    else if FileExists(ExpandFilename(_next)) then
+      Result := _next
+    else if ExtractFilePath(_next) <> '' then
+      Result := _next
+    else
+      Result := '';  // Will only happen if file doesn't exist and no path info
+  end;
+
+  function TryUsingBasePath(const _fn, _next: string): string;
+  var path: string;
+  begin
+    if (_fn <> '') then
+      Result := _fn
+    else
+      begin
+        path := ExtractFilePath(FilenameAsm);
+        ErrorObj.Show(ltWarAndPeace,I0006_SEARCHING_FOR_INCLUDE,[_next,path]);
+        if FileExists(path+_next) then
+          Result := path+_next
+        else
+          Result := '';
+      end;
+  end;
+
+  function TryUsingIncludeOptions(const _fn, _next: string): string;
+  var _sl:  TStringList;
+      i:    integer;
+      path: string;
+  begin
+    Result := '';
+    if _fn <> '' then
+      Result := _fn;
+    _sl := TStringList.Create;
+    try
+      _sl.Delimiter := ';';
+      _sl.DelimitedText := FIncludeList;
+      i := 0;
+      while (i < _sl.Count) and (Result = '') do
+        begin
+          path := ExtractFilePath(_sl[i]);
+          ErrorObj.Show(ltWarAndPeace,I0006_SEARCHING_FOR_INCLUDE,[_next,path]);
+          if FileExists(path+_next) then
+            Result := path + _next;
+          Inc(i);
+        end;
+    finally
+      FreeAndNil(_sl);
+    end;
+  end;
+
+begin
+  // Check if the command was INCLUDE
+  if FNextInclude <> '' then
+    begin
+      fn := '';
+      fn := TryIncludeNameUnchanged(fn,FNextInclude);
+      fn := TryUsingBasePath(fn,FNextInclude);
+      fn := TryUsingIncludeOptions(fn,FNextInclude);
+      if (fn <> '') and (FileExists(fn)) then
+        begin
+          FNextInclude := '';
+          fn := ExpandFilename(fn);
+          ErrorObj.Show(ltWarAndPeace,I0007_PROCESSING_INCLUDE,[fn]);
+          // Stack the include
+          if FIncludeStack.Count >= MAX_NESTED_INCLUDES then
+            ErrorObj.Show(ltError,E2045_MAXIMUM_INCLUDES_EXCEEDED,[MAX_NESTED_INCLUDES]);
+          rec.Filename   := ErrorObj.Filename;
+          rec.LineNumber := ErrorObj.LineNumber;
+          rec.Warnings   := ErrorObj.Warnings;
+          FIncludeStack.Push(rec);
+          // and process the file
+          ProcessFile(fn);
+          // Unstack the include
+          rec := FIncludeStack.Pop;
+          ErrorObj.Filename   := rec.Filename;
+          ErrorObj.LineNumber := rec.LineNumber;
+          ErrorObj.Warnings   := rec.Warnings;
+        end
+      else
+        begin
+          ErrorObj.ColNumber := FPreparser[0].Column;
+          ErrorObj.Show(ltError,E2044_INCLUDE_FILE_NOT_FOUND,[FNextInclude]);
+        end;
+    end;
 end;
 
 procedure TAssembler80.RegisterProc(const _procname: string; _proc: TLCGParserProc; _procs: TStringArray);

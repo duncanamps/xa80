@@ -59,7 +59,7 @@ const
   MAX_HEX_BYTES_IN_LISTING          = 6;
   MAX_INDENT_DISPLAY                = 5; // Number of >>> to show for include and macro
   MAX_LINE_LENGTH                   = 4096;
-  MAX_NESTED_FILES                  = 16;
+  MAX_NESTED_INCLUDES               = 16;
   MAX_OPERANDS                      = 2;
   MAX_SOURCE_BYTES_PER_LISTING_LINE = 4;
   TEMP_FILE_DIVIDER                 = '?END?';
