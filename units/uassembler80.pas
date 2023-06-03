@@ -44,6 +44,9 @@ type
       FCurrentFile:     string;
       FEnded:           boolean;
       FFilenameAsm:     string;
+      FFilenameCom:     string;
+      FFilenameError:   string;
+      FFilenameHex:     string;
       FFilenameMap:     string;
       FInputCol:        integer;
       FIncludeStack:    TIncludeStack;
@@ -53,6 +56,9 @@ type
       FMemory:          array[Word] of byte;
       FMemoryUsed:      array[Word] of boolean;
       FNextInclude:     string;
+      FOptionCom:       string;
+      FOptionError:     string;
+      FOptionHex:       string;
       FOptionListing:   string;
       FOptionMap:       string;
       FOrg:             integer;
@@ -173,6 +179,7 @@ type
       procedure NeedPosNumber(_index: integer; const _msg: string; _min: integer = 0);
       procedure NeedString(_index: integer; const _msg: string);
       procedure OutputMemoryToCom(_filename: string);
+      procedure OutputMemoryToHex(_filename: string);
       procedure Parse(const _s: string);
       procedure Parse(_strm: TStream; _firstcol: integer);
       function  ParserM1: TLCGParserStackEntry;
@@ -187,7 +194,9 @@ type
       procedure ProcessInclude;
       function  Reduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
       procedure RegisterCommands;
+      procedure ResetMemory;
       procedure SetFilenameAsm(const _filename: string);
+      procedure SetFilenameError(const _filename: string);
       procedure SetFilenameListing(const _filename: string);
       procedure SetOrg(_neworg: integer);
       procedure SetTitle(_title: string);
@@ -208,11 +217,17 @@ type
       procedure ShowErrorToken(_token: TToken; _logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
       property CurrentFile:     string  read FCurrentFile;
       property FilenameAsm:     string  read FFilenameAsm       write SetFilenameAsm;
+      property FilenameCom:     string  read FFilenameCom       write FFilenameCom;
+      property FilenameError:   string  read FFilenameError     write SetFilenameError;
+      property FilenameHex:     string  read FFilenameHex       write FFilenameHex;
       property FilenameMap:     string  read FFilenameMap       write FFilenameMap;
       property FilenameListing: string  read GetFilenameListing write SetFilenameListing;
       property IncludeList:     string  read FIncludeList       write FIncludeList;
       property InputLine:       integer read FInputLine;
       property InputCol:        integer read FInputCol;
+      property OptionCom:       string  read FOptionCom         write FOptionCom;
+      property OptionError:     string  read FOptionError       write FOptionError;
+      property OptionHex:       string  read FOptionHex         write FOptionHex;
       property OptionListing:   string  read FOptionListing     write FOptionListing;
       property OptionMap:       string  read FOptionMap         write FOptionMap;
       property Org:             integer read FOrg               write SetOrg;
@@ -230,11 +245,9 @@ uses
   uutility, typinfo, uasmglobals;
 
 constructor TAssembler80.Create(const _processor: string);
-var w: Word;
 begin
   inherited Create;
-  for w in Word do FMemory[w] := 0;
-  for w in Word do FMemoryUsed[w] := False;
+  ResetMemory;
   FProcessor := _processor;
   FListing := TListing.Create;
   FListing.Listing := True;
@@ -919,21 +932,35 @@ end;
 
 procedure TAssembler80.Assemble(const filename: string);
 begin
+  if not FileExists(filename) then
+    ErrorObj.Show(ltError,E2031_FILE_NOT_FOUND,[filename]);
+  ResetMemory;
   FListing.Reset;
   FSymbolTable.Clear;
-  ErrorObj.SetLogFilename('error_obj.log');
-  ErrorObj.Show(ltInfo,I0003_ASSEMBLING_FILE,[filename]);
   FilenameAsm := filename;
+  FilenameCom     := MakeFilename(FilenameAsm,OptionCom,'.com');
+  if FilenameCom <> '' then
+    ErrorObj.Show(ltVerbose,I0004_FILENAME_ASSIGNMENT,['com',FilenameCom]);
   FilenameListing := MakeFilename(FilenameAsm,OptionListing,'.lst');
   if FilenameListing <> '' then
     ErrorObj.Show(ltVerbose,I0004_FILENAME_ASSIGNMENT,['listing',FilenameListing]);
+  FilenameHex := MakeFilename(FilenameAsm,OptionHex,'.hex');
+  if FilenameHex <> '' then
+    ErrorObj.Show(ltVerbose,I0004_FILENAME_ASSIGNMENT,['hex',FilenameHex]);
   FilenameMap := MakeFilename(FilenameAsm,OptionMap,'.map');
   if FilenameMap <> '' then
     ErrorObj.Show(ltVerbose,I0004_FILENAME_ASSIGNMENT,['map',FilenameMap]);
+  FilenameError := MakeFilename(FilenameAsm,OptionError,'.log');
+  if FilenameError <> '' then
+    ErrorObj.Show(ltVerbose,I0004_FILENAME_ASSIGNMENT,['error log',FilenameError]);
+  ErrorObj.SetLogFilename(FilenameError);
+  ErrorObj.Show(ltInfo,I0003_ASSEMBLING_FILE,[filename]);
   AssemblePass(1,filename);
   AssemblePass(2,filename);
-  OutputMemoryToCom('sieve.com');
+  OutputMemoryToCom(FilenameCom);
+  OutputMemoryToHex(FilenameHex);
   FSymbolTable.DumpByBoth(FFilenameMap);
+  ErrorObj.SetLogFilename('');
 end;
 
 // Key routine - assemble a single line of text from the input
@@ -1549,6 +1576,8 @@ var lowest, highest: integer;
     bcount: integer;
     strm: TFileStream;
 begin
+  if _filename = '' then
+    Exit;
   lowest := $0000;
   highest := $FFFF;
   while (highest > 0) and (not FMemoryUsed[highest]) do
@@ -1564,6 +1593,60 @@ begin
     FreeAndNil(strm);
   end;
 end;
+
+procedure TAssembler80.OutputMemoryToHex(_filename: string);
+var sl: TStringList;
+    i:  integer;
+    addr: integer;
+    remaining: integer;
+    column: integer;
+    checksum: integer;
+    s:      string;
+    lowest,highest: integer;
+begin
+  if _filename = '' then
+    Exit;
+  lowest := $0000;
+  highest := $FFFF;
+  while (highest > 0) and (not FMemoryUsed[highest]) do
+    Dec(highest);
+  while (lowest < 65536) and (not FMemoryUsed[lowest]) do
+    Inc(lowest);
+  sl := TStringList.Create;
+  try
+    column := 0;
+    addr := lowest;
+    while addr < Highest do
+      begin
+        // Do a line
+        s := ':';
+        remaining := Highest + 1 - addr;
+        if remaining > 16 then
+          remaining := 16;
+        s := s + Format('%2.2X%4.4X00',[remaining,addr]);
+        checksum := remaining + (addr and $ff) + ((addr shr 8) and $ff);
+        for i := 0 to remaining-1 do
+          begin
+            s := s + Format('%2.2X',[FMemory[addr+i]]);
+            checksum := checksum + FMemory[addr+i];
+          end;
+        s := s + Format('%2.2X',[(-checksum) and $ff]);
+        sl.Add(s);
+        addr := addr + remaining;
+      end;
+    // Final line
+    s := ':';
+    remaining := 0;
+    s := s + Format('%2.2X%4.4X01',[remaining,addr]);
+    checksum := remaining + (addr and $ff) + ((addr shr 8) and $ff) + 1;
+    s := s + Format('%2.2X',[(-checksum) and $ff]);
+    sl.Add(s);
+    sl.SaveToFile(_filename);
+  finally
+    sl.Free;
+  end;
+end;
+
 
 // Key routine - parse a single line of text from the input
 
@@ -1980,9 +2063,22 @@ begin
   RegisterProc('ActValueSymbol',	@ActValueSymbol, _procs);
 end;
 
+procedure TAssembler80.ResetMemory;
+var w: Word;
+begin
+  for w in Word do FMemory[w] := 0;
+  for w in Word do FMemoryUsed[w] := False;
+end;
+
 procedure TAssembler80.SetFilenameAsm(const _filename: string);
 begin
   FFilenameAsm := _filename;
+end;
+
+procedure TAssembler80.SetFilenameError(const _filename: string);
+begin
+  FFilenameError := _filename;
+  ErrorObj.Filename := _filename;
 end;
 
 procedure TAssembler80.SetFilenameListing(const _filename: string);

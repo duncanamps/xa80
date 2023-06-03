@@ -68,15 +68,15 @@ type
 
   TVersion = class (TPersistent)
   private
-    FBuild: Integer;
-    FMajor: Integer;
-    FMinor: Integer;
-    FVersion: Integer;
+    FMajor:   Integer;
+    FMinor:   Integer;
+    FRelease: Integer;
+    FBuild:   Integer;
   published
-    property Version: Integer read FVersion write FVersion;
-    property Major: Integer read FMajor write FMajor;
-    property Minor: Integer read FMinor write FMinor;
-    property Build: Integer read FBuild write FBuild;
+    property Major:   Integer read FMajor   write FMajor;
+    property Minor:   Integer read FMinor   write FMinor;
+    property Release: Integer read FRelease write FRelease;
+    property Build:   Integer read FBuild   write FBuild;
   end;
 
   TEnvironmentSource = (esDefault,esEnvironment,esCommandline);
@@ -178,11 +178,11 @@ begin
   VersionInfo:=TVersion.Create;
   try
     aVersionInfo.Load(HINSTANCE);
-    VersionInfo.Version:=aVersionInfo.FixedInfo.FileVersion[0];
-    VersionInfo.Major:=aVersionInfo.FixedInfo.FileVersion[1];
-    VersionInfo.Minor:=aVersionInfo.FixedInfo.FileVersion[2];
-    VersionInfo.Build:=aVersionInfo.FixedInfo.FileVersion[3];
-    Version := IntToStr(VersionInfo.Major) + '.' + IntToStr(VersionInfo.Minor);
+    VersionInfo.Major   := aVersionInfo.FixedInfo.FileVersion[0];
+    VersionInfo.Minor   := aVersionInfo.FixedInfo.FileVersion[1];
+    VersionInfo.Release := aVersionInfo.FixedInfo.FileVersion[2];
+    VersionInfo.Build   := aVersionInfo.FixedInfo.FileVersion[3];
+    Version := IntToStr(VersionInfo.Major) + '.' + IntToStr(VersionInfo.Minor) + '.' + IntToStr(VersionInfo.Release);
     Build   := IntToStr(VersionInfo.Build);
   finally
     FreeAndNil(VersionInfo);

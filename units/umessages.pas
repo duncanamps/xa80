@@ -323,8 +323,9 @@ end;
 procedure TErrorObject.SetLogFilename(_fn: string);
 begin
   if Assigned(FLogStream) then
-    FreeAndNil(fLogStream);
-  FLogStream := TFileStream.Create(_fn,fmCreate);
+    FreeAndNil(FLogStream);
+  if _fn <> '' then
+    FLogStream := TFileStream.Create(_fn,fmCreate);
   FLogFilename   := _fn;
 end;
 

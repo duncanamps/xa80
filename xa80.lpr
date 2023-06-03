@@ -185,9 +185,22 @@ end;
 procedure TXA80.Assemble;
 var sl: TStringList;
     filename: string;
+    comfile:  string;
+    hexfile:  string;
+    errorlog: string;
     listing: string;
     map:     string;
     verbose: integer;
+
+  function AcquireParam(const envname: string): string;
+  var parm: string;
+  begin
+    parm := EnvObject.GetValue(envname);
+    if (parm = '') and (EnvObject.GetSource(envname) = esCommandLine) then
+      parm := '*';
+    AcquireParam := parm;
+  end;
+
 begin
   sl := TStringList.Create;
   try
@@ -196,14 +209,12 @@ begin
     sl.DelimitedText := EnvObject.GetValue('SourceFiles');
 
     // Set up the environment
-    listing := EnvObject.GetValue('FilenameListing');
-    if (listing = '') and (EnvObject.GetSource('FilenameListing') = esCommandLine) then
-      listing := '*';
-    Asm80.OptionListing := listing;
-    map := EnvObject.GetValue('FilenameMap');
-    if (map = '') and (EnvObject.GetSource('FilenameMap') = esCommandLine) then
-      map := '*';
-    Asm80.OptionMap := map;
+    Asm80.OptionError   := AcquireParam('FilenameError');
+    Asm80.OptionCom     := AcquireParam('FilenameCom');
+    Asm80.OptionHex     := AcquireParam('FilenameHex');
+    Asm80.OptionListing := AcquireParam('FilenameListing');
+    Asm80.OptionMap     := AcquireParam('FilenameMap');
+
     verbose := StrToInt(EnvObject.GetValue('Verbose'));
     case verbose of
       0: ErrorObj.InfoLimit := ltError;
@@ -213,6 +224,7 @@ begin
       4: ErrorObj.InfoLimit := ltWarAndPeace;
       5: ErrorObj.InfoLimit := ltDebug;
     end;
+
     if (EnvObject.GetValue('Warnings') = '0') then
       ErrorObj.WarningsAvailable := False
     else
