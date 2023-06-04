@@ -22,6 +22,7 @@ type
     private
       FCommandIndex:      integer;
       FCommandList:       TCommandList;
+      FContainsEQU:       boolean;
       FDFA:               TPreparserDFA;
       FErrorMsg:          string;
       FEscape:            char;
@@ -83,7 +84,7 @@ begin
   FOpcodeCol   := 0;
   FEscape  := DEFAULT_ESCAPE;
   FEscaped := DEFAULT_ESCAPED;
-  FForceColon := False;
+  FForceColon := True;
   FDFA := TPreparserDFA.Create;
   PopulateDFA;
 {$IFDEF DEBUG_LOG}
@@ -147,7 +148,11 @@ begin
                     rec.Index := token - FDFA.OffsetOperand;
                   end
                 else
-                  rec.State := ppCommand
+                  begin
+                    rec.State := ppCommand;
+                    if (UpperCase(cmd) = 'EQU') or (cmd = '=') then
+                      FContainsEQU := True;
+                  end;
               end
             else
               begin
@@ -191,20 +196,46 @@ end;
 procedure TPreparser.AllocateLabels;
 var rec: TParserProp;
     _pos: integer;
+    _haslabel: boolean;
+    _index:    integer;
 begin
   _pos := 0;
-  if (Count > 0) and (Items[0].State <> psWhitespace) then
+  _index := 0;
+  _haslabel := False;
+  if Count = 0 then
+    Exit;
+  if Items[_index].State <> psWhitespace then
+    _haslabel := True  // Must be a label if in first position
+  else
     begin
-      InvalidLabelCharacters(Items[0].Payload,_pos);
-      if (_pos > 0) and (Items[0].Payload[_pos] <> ':') then
+      if FContainsEQU then
         begin
-          ErrorObj.ColNumber := _pos;
-          ErrorObj.Show(ltError,E2036_INVALID_LABEL_CHARACTER);
+          while (_index < Count) and (Items[_index].State = psWhitespace) do
+            Inc(_index);
+          _haslabel := (_index < Count);
         end;
-      rec := Items[0];
-      rec.State := ppLabel;
-      Items[0] := rec;
     end;
+  if not _haslabel then
+    Exit;
+
+  // _index is point to what should be the label
+  // check if so...
+
+  if not (Items[_index].State in [psGlob]) then
+    begin
+      ErrorObj.ColNumber := Items[_index].Column;
+      ErrorObj.Show(ltError,E2046_EXPECTED_LABEL,[Items[_index].Payload]);
+    end;
+
+  InvalidLabelCharacters(Items[_index].Payload,_pos);
+  if (_pos > 0) and (Items[_index].Payload[_pos] <> ':') then
+    begin
+      ErrorObj.ColNumber := _pos;
+      ErrorObj.Show(ltError,E2036_INVALID_LABEL_CHARACTER);
+    end;
+  rec := Items[_index];
+  rec.State := ppLabel;
+  Items[_index] := rec;
 end;
 
 procedure TPreparser.AllocateMacros;
@@ -333,6 +364,7 @@ procedure TPreparser.Init;
 begin
   FErrorMsg      := '';
   FLabelX        := '';
+  FContainsEqu   := False;
   FCommandIndex  := -1;
   FOpcodeIndex   := -1;
   Clear;
@@ -469,7 +501,7 @@ begin
   if state in [psSQChr,psDQStr,psDQEsc] then
     ErrorObj.Show(ltError,E2002_UNTERMINATED_STRING,[payload]);
   NewState(psDone);
-{$IFDEF DEBUG_LOG}
+{$IFDEF DEBUG_LOGX}
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[_input]);
   for iter in Self do
     begin
@@ -490,8 +522,76 @@ begin
   RemoveAfterEnd;
   CombineBrackets;
   CombineGlobs;
+{$IFDEF DEBUG_LOGX}
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Label   = ' + FLabelX]);
+  if FCommandIndex >= 0 then
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Command = ' + IntToStr(FCommandIndex) + ' (' + FCommandList[FCommandIndex].CommandName + ')'])
+  else
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Command = ' + IntToStr(FCommandIndex)]);
+  if FOpcodeIndex >= 0 then
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Opcode  = ' + IntToStr(FOpcodeIndex) + ' (' + FOpcodeList.OpcodeAtIndex(FOpcodeIndex) + ')'])
+  else
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Opcode  = ' + IntToStr(FOpcodeIndex)]);
+  for iter in Self do
+    begin
+      if iter.index >= 0 then
+        ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[
+              Format('    %d: %s [%s] Idx=%d %s, Lev=%d  ',
+                    [iter.Column,
+                     GetEnumName(TypeInfo(TParserState),Ord(iter.State)),
+                     iter.Payload,
+                     iter.Index,
+                     OperandSanitised[TOperandOption(iter.Index)],
+                     iter.Level]
+                     )])
+      else
+        ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[
+              Format('    %d: %s [%s] Idx=%d, Lev=%d  ',
+                    [iter.Column,
+                     GetEnumName(TypeInfo(TParserState),Ord(iter.State)),
+                     iter.Payload,
+                     iter.Index,
+                     iter.Level]
+                     )]);
+    end;
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[StringOfChar('=',80)]);
+{$ENDIF}
   AllocateLabels;
   AllocateMacros;
+{$IFDEF DEBUG_LOGX}
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Label   = ' + FLabelX]);
+  if FCommandIndex >= 0 then
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Command = ' + IntToStr(FCommandIndex) + ' (' + FCommandList[FCommandIndex].CommandName + ')'])
+  else
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Command = ' + IntToStr(FCommandIndex)]);
+  if FOpcodeIndex >= 0 then
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Opcode  = ' + IntToStr(FOpcodeIndex) + ' (' + FOpcodeList.OpcodeAtIndex(FOpcodeIndex) + ')'])
+  else
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Opcode  = ' + IntToStr(FOpcodeIndex)]);
+  for iter in Self do
+    begin
+      if iter.index >= 0 then
+        ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[
+              Format('    %d: %s [%s] Idx=%d %s, Lev=%d  ',
+                    [iter.Column,
+                     GetEnumName(TypeInfo(TParserState),Ord(iter.State)),
+                     iter.Payload,
+                     iter.Index,
+                     OperandSanitised[TOperandOption(iter.Index)],
+                     iter.Level]
+                     )])
+      else
+        ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[
+              Format('    %d: %s [%s] Idx=%d, Lev=%d  ',
+                    [iter.Column,
+                     GetEnumName(TypeInfo(TParserState),Ord(iter.State)),
+                     iter.Payload,
+                     iter.Index,
+                     iter.Level]
+                     )]);
+    end;
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[StringOfChar('=',80)]);
+{$ENDIF}
   RemoveWhitespace;
   AllocateOperands;
   ExtractLabel;

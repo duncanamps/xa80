@@ -22,3 +22,4 @@ lac/xa80oper.txt
 asm.bat
 asmlight.bat
 publish.bat
+test_files/z80/test.z80

@@ -152,6 +152,7 @@ type
       procedure CmdENDR(const _label: string; _preparser: TPreparserBase);
       procedure CmdENDW(const _label: string; _preparser: TPreparserBase);
       procedure CmdEQU(const _label: string; _preparser: TPreparserBase);
+      procedure CmdEQU2(const _label: string; _preparser: TPreparserBase);
       procedure CmdEXTERN(const _label: string; _preparser: TPreparserBase);
       procedure CmdGLOBAL(const _label: string; _preparser: TPreparserBase);
       procedure CmdIF(const _label: string; _preparser: TPreparserBase);
@@ -172,6 +173,7 @@ type
       procedure CmdWARNON(const _label: string; _preparser: TPreparserBase);
       procedure CmdWHILE(const _label: string; _preparser: TPreparserBase);
       function  CompareGeneric(_comparer: TCompareMode): TLCGParserStackEntry;
+      procedure EQUCore(const _label: string; _preparser: TPreparserBase; _allow_redefine: boolean);
       function  GetFilenameListing: string;
       function  MakeFilename(const _base_asm, _option, _ext: string): string;
       procedure NeedNumber(_index: integer; const _msg: string);
@@ -1297,41 +1299,13 @@ begin
 end;
 
 procedure TAssembler80.CmdEQU(const _label: string; _preparser: TPreparserBase);
-var _index: integer;
-    sym:    TSymbol;
 begin
-  // Make an assignment to the label
-  // EQU is allowed to change value during assembly but is not allowed to
-  // change type. e.g. cannot define as integer then re-define as string
+  EQUCore(_label,_preparser,False);
+end;
 
-  // There should be one and only one operand
-  CheckOperandCount(1,1);
-  // If label exists get it, if not create it
-  ErrorObj.ColNumber := _preparser[0].Column;
-  _index := FSymbolTable.IndexOf(_label);
-  if _index < 0 then
-    begin  // Label doesn't exist, create it
-      if FPreparser.DFA.IsReserved(_preparser[0].Payload) then
-        ErrorObj.Show(ltError,E2030_USING_RESERVED_AS_LABEL,[_label]);
-      case _preparser[0].DataType of
-        pstNone:   ErrorObj.Show(ltError,E2018_OPERAND_NO_DATA_TYPE,[1]);
-        pstINT32:  FSymbolTable.Add(_label,stWord,_preparser[0].IntValue,'',True,False);
-        pstString: FSymbolTable.Add(_label,stString,0,_preparser[0].StrValue,True,False);
-      end; // case
-    end
-  else
-    begin  // Label exists
-      if Pass = 1 then
-        ErrorObj.Show(ltWarning,W1003_LABEL_REDEFINED,[_label]);
-      sym := FSymbolTable[_index];
-      sym.Defined := True;
-      case _preparser[0].DataType of
-        pstNone:   ErrorObj.Show(ltError,E2018_OPERAND_NO_DATA_TYPE,[1]);
-        pstINT32:  sym.IValue := _preparser[0].IntValue;
-        pstString: sym.SValue := _preparser[0].StrValue;
-      end; // case
-      FSymbolTable[_index] := sym;
-    end;
+procedure TAssembler80.CmdEQU2(const _label: string; _preparser: TPreparserBase);
+begin
+  EQUCore(_label,_preparser,True);
 end;
 
 procedure TAssembler80.CmdEXTERN(const _label: string; _preparser: TPreparserBase);
@@ -1518,6 +1492,46 @@ begin
     Result.BufInt := 0;
   Result.BufType := pstINT32;
   Result.Source := SourceCombine2(-3,-1);
+end;
+
+procedure TAssembler80.EQUCore(const _label: string; _preparser: TPreparserBase; _allow_redefine: boolean);
+var _index: integer;
+    sym:    TSymbol;
+begin
+  // Make an assignment to the label
+  // EQU is allowed to change value during assembly but is not allowed to
+  // change type. e.g. cannot define as integer then re-define as string
+  // If _allow_redefine is false, a warning will be issued if you try a
+  // (valid) redefine
+
+  // There should be one and only one operand
+  CheckOperandCount(1,1);
+  // If label exists get it, if not create it
+  ErrorObj.ColNumber := _preparser[0].Column;
+  _index := FSymbolTable.IndexOf(_label);
+  if _index < 0 then
+    begin  // Label doesn't exist, create it
+      if FPreparser.DFA.IsReserved(_preparser[0].Payload) then
+        ErrorObj.Show(ltError,E2030_USING_RESERVED_AS_LABEL,[_label]);
+      case _preparser[0].DataType of
+        pstNone:   ErrorObj.Show(ltError,E2018_OPERAND_NO_DATA_TYPE,[1]);
+        pstINT32:  FSymbolTable.Add(_label,stWord,_preparser[0].IntValue,'',True,False);
+        pstString: FSymbolTable.Add(_label,stString,0,_preparser[0].StrValue,True,False);
+      end; // case
+    end
+  else
+    begin  // Label exists
+      if (Pass = 1) and not _allow_redefine then
+        ErrorObj.Show(ltWarning,W1003_LABEL_REDEFINED,[_label]);
+      sym := FSymbolTable[_index];
+      sym.Defined := True;
+      case _preparser[0].DataType of
+        pstNone:   ErrorObj.Show(ltError,E2018_OPERAND_NO_DATA_TYPE,[1]);
+        pstINT32:  sym.IValue := _preparser[0].IntValue;
+        pstString: sym.SValue := _preparser[0].StrValue;
+      end; // case
+      FSymbolTable[_index] := sym;
+    end;
 end;
 
 function TAssembler80.GetFilenameListing: string;
@@ -1965,7 +1979,7 @@ end;
 
 procedure TAssembler80.RegisterCommands;
 begin
-  FCmdList.RegisterCommand('=',		@CmdEQU);
+  FCmdList.RegisterCommand('=',		@CmdEQU2);
   FCmdList.RegisterCommand('CODE',	@CmdCODE);
   FCmdList.RegisterCommand('DATA',	@CmdDATA);
   FCmdList.RegisterCommand('DB',	@CmdDB);

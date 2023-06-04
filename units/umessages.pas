@@ -122,6 +122,7 @@ type
                      E2043_INVALID_COMMAND_OPCODE,
                      E2044_INCLUDE_FILE_NOT_FOUND,
                      E2045_MAXIMUM_INCLUDES_EXCEEDED,
+                     E2046_EXPECTED_LABEL,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -242,6 +243,7 @@ var
     '%s is not a valid command directive or processor instruction',
     'Include file %s not found',
     'Maximum number of includes (%d) exceeded',
+    'Expected label, found %s',
 
     'Unhandled case option at %s',
     'Preparser peeek error',

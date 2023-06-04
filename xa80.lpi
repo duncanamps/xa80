@@ -25,7 +25,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="2"/>
-      <BuildNr Value="17"/>
+      <BuildNr Value="18"/>
       <Language Value="0809"/>
       <StringTable LegalCopyright="Copyright 2020-2023 Duncan Munro" ProductName="XA80" ProductVersion="0.2"/>
     </VersionInfo>
@@ -57,8 +57,9 @@
           </Linking>
           <Other>
             <CustomOptions Value="-dCONSOLE_APP"/>
-            <OtherDefines Count="1">
+            <OtherDefines Count="2">
               <Define0 Value="CONSOLE_APP"/>
+              <Define1 Value="DEBUG_LOGX"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -245,8 +246,9 @@
         <IgnoredMessages idx5024="True"/>
       </CompilerMessages>
       <CustomOptions Value="-dCONSOLE_APP"/>
-      <OtherDefines Count="1">
+      <OtherDefines Count="2">
         <Define0 Value="CONSOLE_APP"/>
+        <Define1 Value="DEBUG_LOGX"/>
       </OtherDefines>
     </Other>
   </CompilerOptions>
