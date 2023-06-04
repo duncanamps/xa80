@@ -49,6 +49,11 @@
 ;
 
 ;
+; THIS FILE CONTAINS THE BASE Z80 INSTRUCTIONS WITH THE SPECIALS
+; RELEVANT TO THE Z180 AT THE END
+;
+
+;
 ; Z80 - 8 bit load instructions
 ;
 
@@ -233,8 +238,8 @@ CPDR            | $ED $B9
 ;
 
 ADC HL_IND      | $8E
-ADC IXPD_IND    | $DD $8E [2:S8]
-ADC IYPD_IND    | $FD $8E [2:S8]
+ADC IXPD_IND    | $DD $8E [1:S8]
+ADC IYPD_IND    | $FD $8E [1:S8]
 ADC A           | $8F
 ADC B           | $88
 ADC C           | $89
@@ -244,8 +249,8 @@ ADC H           | $8C
 ADC L			| $8D
 ADC U8          | $CE [1:U8]
 ADD HL_IND      | $86
-ADD IXPD_IND    | $DD $86 [2:S8]
-ADD IYPD_IND    | $FD $86 [2:S8]
+ADD IXPD_IND    | $DD $86 [1:S8]
+ADD IYPD_IND    | $FD $86 [1:S8]
 ADD A           | $87
 ADD B           | $80
 ADD C           | $81
@@ -674,6 +679,7 @@ OUTI            | $ED $A3
 OTIR            | $ED $B3                    
 OUTD            | $ED $AB                    
 OTDR            | $ED $BB                    
+                  
 
 ; 
 ; Z180 Extra instructions
@@ -693,14 +699,14 @@ MULT DE				| $ED $5C
 MULT HL				| $ED $6C
 MULT SP				| $ED $7C
 
-OUT0 U16_IND B		| $ED $01 [1:U8]
-OUT0 U16_IND C		| $ED $09 [1:U8]
-OUT0 U16_IND D		| $ED $11 [1:U8]
-OUT0 U16_IND E		| $ED $19 [1:U8]
-OUT0 U16_IND H		| $ED $21 [1:U8]
-OUT0 U16_IND L		| $ED $29 [1:U8]
-OUT0 U16_IND HL_IND	| $ED $31 [1:U8]
-OUT0 U16_IND A		| $ED $39 [1:U8]
+OUT0 U8_IND B		| $ED $01 [1:U8]
+OUT0 U8_IND C		| $ED $09 [1:U8]
+OUT0 U8_IND D		| $ED $11 [1:U8]
+OUT0 U8_IND E		| $ED $19 [1:U8]
+OUT0 U8_IND H		| $ED $21 [1:U8]
+OUT0 U8_IND L		| $ED $29 [1:U8]
+OUT0 U8_IND HL_IND	| $ED $31 [1:U8]
+OUT0 U8_IND A		| $ED $39 [1:U8]
 
 OTIM				| $ED $83
 OTDM				| $ED $8B

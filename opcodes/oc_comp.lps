@@ -85,7 +85,7 @@
         <UsageCount Value="10"/>
       </Unit>
     </Units>
-    <JumpHistory HistoryIndex="29">
+    <JumpHistory HistoryIndex="28">
       <Position>
         <Filename Value="oc_comp.lpr"/>
         <Caret Line="243" TopLine="228"/>
@@ -198,10 +198,6 @@
       <Position>
         <Filename Value="oc_comp.lpr"/>
         <Caret Line="152" TopLine="136"/>
-      </Position>
-      <Position>
-        <Filename Value="oc_comp.lpr"/>
-        <Caret TopLine="10"/>
       </Position>
     </JumpHistory>
     <RunParams>

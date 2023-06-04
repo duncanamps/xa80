@@ -375,9 +375,9 @@ DI					| %11110011
 NOP					| %00000000
 HLT					| %01110110
 
-;
 ; 
 ; 8085 - Additional instructions over 8080
+;
 
 RIM                 | %00100000
 SIM                 | %00110000
