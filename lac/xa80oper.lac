@@ -68,7 +68,7 @@ T_BINAND           = "&" 	symbol ;
 T_BINNOT           = "~" 	symbol ;                 
 T_BINOR            = "|"	symbol ;
 T_BINXOR           = "^"    symbol ;                                  
-T_LEFTSHIFT        = "<<" | MIDEX("SHL")   symbol ;
+T_LEFTSHIFT        = "<<" | MIXED("SHL")   symbol ;
 T_MODULO           = "%"  | MIXED("MOD")   symbol ;
 T_RIGHTSHIFT       = ">>" | MIXED("SHR")   symbol ;
                                                    

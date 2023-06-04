@@ -141,6 +141,7 @@ type
       procedure CheckOperandInteger(_index, _min, _max: integer);
       procedure CheckStringNotEmpty(const _s: string);
       procedure CmdCODE(const _label: string; _preparser: TPreparserBase);
+      procedure CmdCPU(const _label: string; _preparser: TPreparserBase);
       procedure CmdDATA(const _label: string; _preparser: TPreparserBase);
       procedure CmdDB(const _label: string; _preparser: TPreparserBase);
       procedure CmdDS(const _label: string; _preparser: TPreparserBase);
@@ -173,6 +174,7 @@ type
       procedure CmdWARNON(const _label: string; _preparser: TPreparserBase);
       procedure CmdWHILE(const _label: string; _preparser: TPreparserBase);
       function  CompareGeneric(_comparer: TCompareMode): TLCGParserStackEntry;
+      procedure ConvertOperandToOrd(_index: integer);
       procedure EQUCore(const _label: string; _preparser: TPreparserBase; _allow_redefine: boolean);
       function  GetFilenameListing: string;
       function  MakeFilename(const _base_asm, _option, _ext: string): string;
@@ -295,9 +297,14 @@ end;
 
 function TAssembler80.ActCharConstant(_parser: TLCGParser): TLCGParserStackEntry;
 begin
+  Result.Buf := StripQuotesAndEscaped(ParserM1.Buf);
+  Result.BufType := pstString;
+  Result.Source := pssConstant;
+  {
   Result.BufInt := Ord(ParserM1.Buf[2]);
   Result.BufType := pstINT32;
   Result.Source  := pssConstant;
+  }
 end;
 
 function TAssembler80.ActCharLiteral(_parser: TLCGParser): TLCGParserStackEntry;
@@ -1166,11 +1173,22 @@ begin
 end;
 
 procedure TAssembler80.CheckOperandInteger(_index, _min, _max: integer);
+var itm: TParserProp;
 begin
   if _index >= FPreparser.Count then
     ErrorObj.Show(ltError,E2022_OPERANDS_EXPECTED);
-  if FPreparser[_index].DataType <> pstINT32 then
-    ErrorObj.Show(ltError,E2019_EXPECTED_INTEGER);
+  itm := FPreparser[_index];
+  if itm.DataType <> pstINT32 then
+    begin
+      if (itm.DataType = pstString) and (Length(itm.Payload) = 3) and (itm.Payload[1] = '''') then
+        begin
+          itm.DataType  := pstInt32;
+          itm.IntValue  := Ord(itm.Payload[2]);
+          FPreparser[_index] := itm;
+        end
+      else
+        ErrorObj.Show(ltError,E2019_EXPECTED_INTEGER);
+    end;
   CheckInteger(FPreparser[_index].IntValue,_min,_max);
 end;
 
@@ -1182,6 +1200,12 @@ end;
 
 procedure TAssembler80.CmdCODE(const _label: string; _preparser: TPreparserBase);
 begin
+end;
+
+procedure TAssembler80.CmdCPU(const _label: string; _preparser: TPreparserBase);
+begin
+  if FPass = 1 then
+    ErrorObj.Show(ltWarning,W1002_DIRECTIVE_IGNORED,['CPU']);
 end;
 
 procedure TAssembler80.CmdDATA(const _label: string; _preparser: TPreparserBase);
@@ -1276,7 +1300,6 @@ end;
 
 procedure TAssembler80.CmdEND(const _label: string; _preparser: TPreparserBase);
 begin
-  // Turn listings on
   // There should be no operands
   CheckOperandCount(0,0);
   FEnded := True;
@@ -1494,6 +1517,12 @@ begin
   Result.Source := SourceCombine2(-3,-1);
 end;
 
+procedure TAssembler80.ConvertOperandToOrd(_index: integer);
+begin
+  ParserStack[ParserSP+_index].BufType := pstInt32;
+  ParserStack[ParserSP+_index].BufInt  := Ord(ParserStack[ParserSP+_index].Buf[2]);
+end;
+
 procedure TAssembler80.EQUCore(const _label: string; _preparser: TPreparserBase; _allow_redefine: boolean);
 var _index: integer;
     sym:    TSymbol;
@@ -1562,8 +1591,17 @@ end;
 
 procedure TAssembler80.NeedNumber(_index: integer; const _msg: string);
 begin
+  // Requests a number in a certain position
+  // If it's a string _and_ it's exactly 1 character in length, we can
+  // take the ordinal value of the first character.
+  // We use the for things like:   LD A,'0'
   if ParserStack[ParserSP+_index].BufType <> pstINT32 then
-    ShowErrorToken(ParserStack[ParserSP+_index].Token,ltError,E2004_EXPECTED_NUMBER,[_msg])
+    begin
+      if (ParserStack[ParserSP+_index].BufType = pstString) and (Length(ParserStack[ParserSP+_index].Buf) = 3) and (ParserStack[ParserSP+_index].Buf[1] = '''') then
+        ConvertOperandToOrd(_index)
+      else
+        ShowErrorToken(ParserStack[ParserSP+_index].Token,ltError,E2004_EXPECTED_NUMBER,[_msg])
+    end;
 end;
 
 procedure TAssembler80.NeedNumberCompare;
@@ -1981,6 +2019,7 @@ procedure TAssembler80.RegisterCommands;
 begin
   FCmdList.RegisterCommand('=',		@CmdEQU2);
   FCmdList.RegisterCommand('CODE',	@CmdCODE);
+  FCmdList.RegisterCommand('CPU',	@CmdCPU);
   FCmdList.RegisterCommand('DATA',	@CmdDATA);
   FCmdList.RegisterCommand('DB',	@CmdDB);
   FCmdList.RegisterCommand('DEFB',	@CmdDB);

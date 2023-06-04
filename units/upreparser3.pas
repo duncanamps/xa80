@@ -204,7 +204,7 @@ begin
   _haslabel := False;
   if Count = 0 then
     Exit;
-  if Items[_index].State <> psWhitespace then
+  if Items[_index].State = psGlob then
     _haslabel := True  // Must be a label if in first position
   else
     begin

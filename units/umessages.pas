@@ -72,7 +72,7 @@ type
 
                      W1000_USER_WARNING,
                      W1001_CODE_WRAPPED_ROUND,
-                     W1002_,
+                     W1002_DIRECTIVE_IGNORED,
                      W1003_LABEL_REDEFINED,
                      W1004_END_OPERANDS_IGNORED,
 
@@ -193,7 +193,7 @@ var
 
     '%s',
     'Code wrapped around back to zero',
-    '*****UNDEFINED*****',
+    'Directive %s ignored',
     'Label %s has been redefined',
     'Operands after END directive ignored',
 
