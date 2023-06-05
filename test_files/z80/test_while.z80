@@ -1,0 +1,39 @@
+;
+; TEST_WHILE.Z80
+;
+; Test the WHILE and ENDW statements
+;
+; Duncan Munro
+; 05/06/2023
+;
+
+
+;
+; Generate a table of prime numbers up to 100
+;
+
+MAXPRIME	EQU		100
+
+PRIMETABLE:
+			J = 1
+			WHILE J <= MAXPRIME
+			  MSGINFO "J=" + STRING(J) 
+			  PRIME = 1
+			  K = 3
+			  WHILE PRIME && (K <= J / 2)
+			    MSGINFO "  K=" + STRING(K)
+			    IF (J MOD K) == 0
+				  PRIME = 0
+			    ELSE
+				  K = K + 2
+				ENDIF
+			  ENDW
+			  IF PRIME
+				DW J
+			  ENDIF
+			  J = J + 2
+			ENDW
+
+PRIMECOUNT = ($ - PRIMETABLE) / 2
+		
+			END

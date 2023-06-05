@@ -9,42 +9,60 @@
 ;   2. Code
 ;
 ;
-; INSTRUCTION FIELDS
-; ------------------
+; INSTRUCTION FIELD
+; -----------------
 ;
-; XX specifies the opcode where XX is the mnemonic between 2 and 5
-; characters. For example: LD CCF. Valid opcodes are:
+; The instruction field identifies which instruction the assembler should
+; try to match, and can consist of between 1 and 3 elements:
 ;
-; XX specifies the operand, e.g. A or HL_IND or (IX+16). Valid values
-; are:
+;		Mnemonic
+;		Mnemonic Operand1
+;		Mnemonic Operand1 Operand2
+;
+; Mnemonic is between 2 and 5 characters. For example: MOV, LD or CCF
+;
+; Operand1 and Operand2 if present, can be one of:
 ;
 ;   A AF AF_ B BC BC_IND C C_IND D DE DE_IND E H HL HL_IND I IX IXPD_IND 
 ;   IX_IND IY IYPD_IND IY_IND L M NC NZ P PE PO PSW R SP SP_IND U16 U16_IND
 ;   U8 U8_IND Z
 ;
-; XX specifies the type of expression:
+; Not all operands are used with all processors.
 ;
-;	U8 / U8_IND  - Unsigned 8 bit range 0 to 255
-;   U16 - Unsigned 16 bit range 0 to 65535
+; Most are obvious, e.g. BC is the BC register pair. Anything with _IND on the
+; end is an indirect operand where the operand specifies the address of memory
+; or a port to which the fetch or store is made. For example, HL_IND would be
+; represented in the assembler as (HL).
 ;
+; Other ones are U8/U8_IND for unsigned 8 bit and U16/U16_IND for unsigned
+; 16 bit values.
 ;
-; CODE
-; ----
+; Special mentions are IXPD_IND and IYPD_IND which are IX or IY respectively
+; Plus a signed 8 bit Displacement and INDirected. Example would be [IX+3] or
+; [IY+MY_OFFSET]. Also special is AF_ which would represent AF' in the
+; assembler.
 ;
-; A sequence of entries will generate 1 or 2 bytes per entry to make up the
-; whole instruction. These basic entries are
+; CODE FIELD
+; ----------
+;
+; A sequence of elements which will generate between 1 and 4 bytes of code
+; depending on the instruction. These elements can be one of:
 ;
 ; $xx        A hex value, e.g. $ED or $57
 ; xxx        A decimal value, e.g. 123
 ; %xxxxxxxx  A binary value, e.g. %10100110
-; [p:R8]	 An 8 bit value as a relative range from ORG+2 where p is expr 1 or 2
+; [p:R8]	 An 8 bit value as a relative range from ORG+2 where p is 
+;		     Operand1 or Operand2
 ; [p:U8]	 An 8 bit unsigned value
+; {p:S8]     An 8 bit signed value
 ; [p:U16]	 A 16 bit unsigned value output as 2 bytes with the LSB first
 ; [p:B3]	 A 3 bit value which can be output on its own or embedded in a
-;			 binary value, for example %101[1:B3]10
+;			 binary value, for example %101[1:B3]10. If B3 is binary 011
+;			 the generated output will be %10101110
 ; [p:RST]	 RST number in 3 bits representing $00,$08,$10...$38
 ; [p:IM]     IM 0/1/2 generates $46 / $56 / $5E
 ;
+
 
 ;
 ; 8085 - Move Load and Store

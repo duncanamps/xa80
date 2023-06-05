@@ -123,6 +123,12 @@ type
                      E2044_INCLUDE_FILE_NOT_FOUND,
                      E2045_MAXIMUM_INCLUDES_EXCEEDED,
                      E2046_EXPECTED_LABEL,
+                     E2047_UNEXPECTED_END,
+                     E2048_UNEXPECTED_ENDIF,
+                     E2049_UNEXPECTED_ELSE,
+                     E2050_ELSE_ALREADY_USED,
+                     E2051_UNEXPECTED_ENDW,
+                     E2052_ENDW_IN_DIFFERENT_FILE,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -137,6 +143,7 @@ type
                      X3011_STACK_EMPTY,
                      X3012_PARSER_GOTO_ERROR,
                      X3013_LEXER_SET_ERROR,
+                     X3015_POP_FROM_EMPTY_STACK,
 
                      X3999_UNHANDLED_EXCEPTION
                     );
@@ -244,6 +251,12 @@ var
     'Include file %s not found',
     'Maximum number of includes (%d) exceeded',
     'Expected label, found %s',
+    'Unexpected end: %s',
+    'Unexpected ENDIF',
+    'Unexpected ELSE',
+    'More than one ELSE statement between IF and ENDIF',
+    'Unexpected ENDW',
+    'ENDW in different file to WHILE statement (%s)',
 
     'Unhandled case option at %s',
     'Preparser peeek error',
@@ -258,6 +271,7 @@ var
     'Stack empty',
     'Goto expected for rule index #%d but not found in table',
     'Attempt to set lexer buffer size while in the middle of an activity',
+    'Attempt to pop from empty execution stack',
 
     'Unhandled exception %s'
   );
@@ -309,14 +323,20 @@ begin
   if _logtype <= ltWarning then
     begin
       // Append the line number and filename
-      if (LineNumber > 0) and (ColNumber > 0) and (Filename <> '') then
+      if (LineNumber > 0) and (Filename <> '') then
         begin
           s := s + LINE_TERMINATOR;
-          s := s + Format('          at %d,%d in %s',[LineNumber,ColNumber,Filename]);
+          if ColNumber <= 0 then
+            s := s + Format('          at line %d in %s',[LineNumber,Filename])
+          else
+            s := s + Format('          at line %d col %d in %s',[LineNumber,ColNumber,Filename]);
           s := s + LINE_TERMINATOR;
-          s := s + Space(10) + SourceLine;
-          s := s + LINE_TERMINATOR;
-          s := s + Space(10+ColNumber-2) + '_^_';
+          if ColNumber > 0 then
+            begin
+              s := s + Space(10) + SourceLine;
+              s := s + LINE_TERMINATOR;
+              s := s + Space(10+ColNumber-2) + '_^_';
+            end;
         end;
     end;
   MonitorString := s;

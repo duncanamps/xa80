@@ -65,6 +65,7 @@ type
       function  Add(_name: string; _datatype: TSymbolType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean): integer; reintroduce;
       procedure Clear;
       function  CalcHash(const _txt:string): integer;
+      function  Defined(const _name: string): boolean;
       procedure Dump(_strm: TFileStream; const _caption: string);
       procedure DumpByAddress(_strm: TFileStream);
       procedure DumpByAddress(const filename: string);
@@ -180,6 +181,16 @@ procedure TSymbolTable.Clear;
 begin
   inherited Clear;
   ReHash;
+end;
+
+function TSymbolTable.Defined(const _name: string): boolean;
+var idx: integer;
+    sym: TSymbol;
+begin
+  idx := IndexOf(_name);
+  if idx >= 0 then
+    sym := Items[idx];
+  Result := (idx >= 0) and (Items[idx].Defined);
 end;
 
 procedure TSymbolTable.Dump(_strm: TFileStream; const _caption: string);

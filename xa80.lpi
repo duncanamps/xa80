@@ -25,7 +25,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="2"/>
-      <BuildNr Value="20"/>
+      <BuildNr Value="21"/>
       <Language Value="0809"/>
       <StringTable LegalCopyright="Copyright 2020-2023 Duncan Munro" ProductName="XA80" ProductVersion="0.2"/>
     </VersionInfo>
@@ -205,6 +205,10 @@
       </Unit>
       <Unit>
         <Filename Value="units\upreparser3_defs.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\ustack.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>

@@ -8,15 +8,14 @@
       <Unit>
         <Filename Value="oc_comp.lpr"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="10"/>
+        <IsVisibleTab Value="True"/>
         <UsageCount Value="36"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\units\uinstruction.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="1"/>
         <TopLine Value="139"/>
         <CursorPos X="14" Y="161"/>
         <UsageCount Value="33"/>
@@ -25,16 +24,14 @@
       <Unit>
         <Filename Value="lac\deployment_parser_module_12.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="-1"/>
         <UsageCount Value="20"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="lac\deployment_parser_types_12.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="-1"/>
         <UsageCount Value="20"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\..\..\lacogen1\lac\core\deployment_parser_module_12.pas"/>
@@ -85,7 +82,7 @@
         <UsageCount Value="10"/>
       </Unit>
     </Units>
-    <JumpHistory HistoryIndex="28">
+    <JumpHistory HistoryIndex="27">
       <Position>
         <Filename Value="oc_comp.lpr"/>
         <Caret Line="243" TopLine="228"/>
@@ -175,9 +172,6 @@
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
         <Caret Line="233" Column="38" TopLine="226"/>
-      </Position>
-      <Position>
-        <Filename Value="lac\deployment_parser_types_12.pas"/>
       </Position>
       <Position>
         <Filename Value="oc_comp.lpr"/>

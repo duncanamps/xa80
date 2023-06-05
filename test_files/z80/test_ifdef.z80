@@ -1,0 +1,38 @@
+;
+; TEST_IFDEF.Z80
+;
+; Test the IFDEF, IFNDEF, ELSE and ENDIF commands
+;
+; Duncan Munro
+; 05/06/2023
+;
+
+GOODVAL	EQU		1	
+BADVAL	EQU		0
+
+  IFDEF NON_EXISTENT
+	    MSGERROR "BAD"
+  ELSE
+		MSGINFO	"Good result"
+  ENDIF
+  
+  IFDEF GOODVAL
+		MSGINFO	"Good result"
+  ELSE
+	    MSGERROR "BAD"
+  ENDIF
+
+
+  IFNDEF GOODVAL
+	    MSGERROR "BAD"
+  ELSE
+		MSGINFO	"Good result"
+  ENDIF
+
+  IFNDEF NON_EXISTENT
+		MSGINFO	"Good result"
+  ELSE
+	    MSGERROR "BAD"
+  ENDIF
+		
+		END

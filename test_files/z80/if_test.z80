@@ -1,0 +1,28 @@
+;
+; IF_TEST.Z80
+;
+; Test the IF, ELSE and ENDIF commands
+;
+; Duncan Munro
+; 05/06/2023
+;
+
+GOODVAL	EQU		1	
+BADVAL	EQU		0
+
+  IF GOODVAL
+		MSGINFO	"Producing some code"
+		NOP
+		NOP
+		NOP
+    IF 1 > 2
+	    MSGERROR "We shouldn't be here"
+	ELSE
+		LD		A,123
+	ENDIF
+  ELSE
+		MSGERROR "We shouldn't be here"
+		LD		A, LOW(NEWVAL + 5678)
+  ENDIF
+		
+		END

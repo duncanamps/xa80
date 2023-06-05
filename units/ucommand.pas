@@ -51,7 +51,7 @@ type
     public
       constructor Create;
       procedure PopulateStringList(_sl: TStringList);
-      procedure RegisterCommand(const _cmdname: string; _cmdexec: TCommandExec);
+      function RegisterCommand(const _cmdname: string; _cmdexec: TCommandExec): integer;
       property SymbolTable: TSymbolTable read FSymbolTable write FSymbolTable;
   end;
 
@@ -75,12 +75,13 @@ begin
     _sl.Add(obj.CommandName);
 end;
 
-procedure TCommandList.RegisterCommand(const _cmdname: string; _cmdexec: TCommandExec);
+function TCommandList.RegisterCommand(const _cmdname: string; _cmdexec: TCommandExec): integer;
 var obj: TCommandObj;
 begin
   obj := TCommandObj.Create;
   obj.CommandName := _cmdname;
   obj.CommandExec := _cmdexec;
+  Result := Count;
   Add(obj);
 end;
 
