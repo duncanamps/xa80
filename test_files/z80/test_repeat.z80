@@ -1,0 +1,37 @@
+;
+; TEST_WHILE.Z80
+;
+; Test the REPEAT and ENDR statements
+;
+; Duncan Munro
+; 05/06/2023
+;
+
+			loop_count = 0
+			
+			REPEAT 3
+			NOP
+			loop_count = loop_count + 1
+			ENDR
+			
+			REPEAT loop_count
+			DB loop_count
+			loop_count = loop_count - 1
+			ENDR
+			
+;
+; Nested repeat
+;
+
+			J = 0
+			REPEAT 3
+			  J = J + 1
+			  K = 0
+			  REPEAT 3
+			    K = K + 1
+				LL = J << K
+				DB LL
+			  ENDR
+			ENDR
+		
+			END

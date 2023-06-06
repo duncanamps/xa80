@@ -1393,7 +1393,23 @@ begin
 end;
 
 procedure TAssembler80.CmdENDR(const _label: string; _preparser: TPreparserBase);
+var entry: TAsmStackEntry;
 begin
+  // Should only be no operands
+  CheckOperandCount(0, 0);
+  if FAsmStack.TOStype <> setRepeat then
+    ErrorObj.Show(ltError, E2053_UNEXPECTED_ENDR);
+  // Check it's in the same file as the REPEAT statement
+  entry := FAsmStack.TOS;
+  if entry.Filename <> FCurrentFile then
+    ErrorObj.Show(ltError, E2054_ENDR_IN_DIFFERENT_FILE, [entry.Filename]);
+  entry.RepeatRemain := entry.RepeatRemain - 1;
+  entry.EvalResult := entry.RepeatRemain > 0;
+  FAsmStack[FAsmStack.Count-1] := entry;
+  if entry.EvalResult then
+    FInputLine := entry.LineNumber - 1  // Go round again
+  else
+    FAsmStack.Pop;                      // or end the repeat statement loop
 end;
 
 procedure TAssembler80.CmdENDW(const _label: string; _preparser: TPreparserBase);
@@ -1591,7 +1607,28 @@ begin
 end;
 
 procedure TAssembler80.CmdREPEAT(const _label: string; _preparser: TPreparserBase);
+var
+  entry: TAsmStackEntry;
 begin
+  // Should only be one operand
+  CheckOperandCount(1, 1);
+  CheckOperandInteger(0, 0, 65535);
+  // Check if the top of stack is already this repeat loop in progress
+  if (FAsmStack.TOStype = setRepeat) then
+  begin
+    entry := FAsmStack.TOS;
+    if (entry.Filename = FCurrentFile) and (entry.LineNumber = FInputLine) then
+      Exit;
+  end;
+  // Must be a new REPEAT statement
+  entry.EntryType := setRepeat;
+  entry.ElseDoneAlready := False;
+  entry.EvalResult := FPreparser[0].IntValue > 0;
+  entry.ParentGen := FSolGenerate;
+  entry.Filename := FCurrentFile;
+  entry.LineNumber := FInputLine;
+  entry.RepeatRemain := FPreparser[0].IntValue;
+  FAsmStack.Add(entry);
 end;
 
 procedure TAssembler80.CmdTITLE(const _label: string; _preparser: TPreparserBase);

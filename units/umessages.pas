@@ -129,6 +129,8 @@ type
                      E2050_ELSE_ALREADY_USED,
                      E2051_UNEXPECTED_ENDW,
                      E2052_ENDW_IN_DIFFERENT_FILE,
+                     E2053_UNEXPECTED_ENDR,
+                     E2054_ENDR_IN_DIFFERENT_FILE,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -257,6 +259,8 @@ var
     'More than one ELSE statement between IF and ENDIF',
     'Unexpected ENDW',
     'ENDW in different file to WHILE statement (%s)',
+    'Unexpected ENDR',
+    'ENDR in different file to REPEAT statement (%s)',
 
     'Unhandled case option at %s',
     'Preparser peeek error',

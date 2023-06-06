@@ -242,8 +242,42 @@ FULL	=		FIRST + "/" + LAST
 			DW (J << 8) + K
 		  ENDW
 		ENDW
+		
 ;
-; Composites of IF / WHILE etc.
+; REPEAT / ENDR
+;
+
+		; Simple repeat
+		
+		loop_count = 0
+		
+		REPEAT 3
+			NOP
+			loop_count = loop_count + 1
+		ENDR
+			
+		REPEAT loop_count
+			DB loop_count
+			loop_count = loop_count - 1
+		ENDR
+			
+;
+; Nested repeat
+;
+
+		J = 0
+		REPEAT 3
+			J = J + 1
+			K = 0
+			REPEAT 3
+				K = K + 1
+				LL = J << K
+				DB LL
+			ENDR
+		ENDR		
+		
+;
+; Composites of IF / WHILE / REPEAT etc.
 ;
 
 		IF 1
@@ -251,10 +285,14 @@ FULL	=		FIRST + "/" + LAST
 		  WHILE K < 4
 		    IF (K MOD 2) == 0
 			  DB "Even"
-			  DB K
+			  REPEAT 2
+			    DB K
+			  ENDR
 			ELSE
 			  DB "Odd"
-			  DB K
+			  REPEAT 3
+				DB K
+			  ENDR
 			ENDIF
 		    K = K + 1
 		  ENDW
