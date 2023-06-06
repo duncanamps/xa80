@@ -106,6 +106,7 @@ F_ASC				= MIXED("ASC(")			keyword;
 F_BUILD				= MIXED("BUILD()")		keyword;
 F_CHR				= MIXED("CHR(")			keyword;
 F_DATE				= MIXED("DATE()")		keyword;
+F_DEFINED			= MIXED("DEFINED(")		keyword;
 F_HEX				= MIXED("HEX(")			keyword;
 F_HIGH				= MIXED("HIGH(")		keyword;
 F_IIF				= MIXED("IIF(")			keyword;
@@ -199,11 +200,14 @@ F_VERSION			= MIXED("VERSION()")	keyword;
                  
 <value>				: "$" 											# ActValueOrg 
 					| F_ORG											# ActValueOrg
+					| "{#}"											# ActValueSerial
+					| "{" T_SYMBOLDEF "}"							# ActValueParam
 					| T_HEXLITERAL									# ActHexLiteral
 					| T_DECLITERAL									# ActDecLiteral
 					| T_OCTLITERAL									# ActOctLiteral
 					| T_BINLITERAL									# ActBinLiteral
 					| F_ASC <expression> ")"						# ActFuncAsc
+					| F_DEFINED T_SYMBOLDEF ")"						# ActFuncDefined
 					| F_HIGH <expression> ")"						# ActFuncHigh
 					| F_IIF <expression> "," <expression> "," <expression> ")" # ActFuncIif
 					| F_LOW <expression> ")"						# ActFuncLow

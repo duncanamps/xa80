@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Generics.Collections;
 
 type
-  TAsmStackEntryType = (setNone,setMacroExpand,setIf,setWhile,setRepeat);
+  TAsmStackEntryType = (setNone,setIf,setWhile,setRepeat);
 
   TAsmStackEntry = record
     EntryType:       TAsmStackEntryType;
@@ -46,7 +46,6 @@ begin
       _tos := TOS;
       case _tos.EntryType of
         setNone:        ErrorObj.Show(ltInternal,X3001_UNHANDLED_CASE_OPTION,['TasmStack.CanGenerate']);
-        setMacroExpand: Result := _tos.ParentGen;
         setIf:          Result := _tos.EvalResult and _tos.ParentGen;
         setWhile:       Result := _tos.EvalResult and _tos.ParentGen;
         setRepeat:      Result := (_tos.RepeatRemain > 0) and _tos.ParentGen;

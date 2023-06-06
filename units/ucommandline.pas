@@ -80,7 +80,7 @@ uses
 
 const
 
-  CommandEntries: array[0..14] of TCommandRec =
+  CommandEntries: array[0..15] of TCommandRec =
     (
       (
         ShortOption:  '-b';
@@ -148,6 +148,18 @@ const
         ParamName:    '<il>';
         EnvName:      'Includes';
         Description:  'Set the include folders to <il>';
+        Allowed:      [caEnvironment,caCommandLine];
+        Parameter:    paMandatory;
+        MandateFiles: False;
+        Terminal:     False;
+        Value:        ''
+      ),
+      (
+        ShortOption:  '-k';
+        LongOption:   '--case-sensitive';
+        ParamName:    '<o>';
+        EnvName:      'CaseSensitive';
+        Description:  'Turn case sensitivity on or off (default 0)';
         Allowed:      [caEnvironment,caCommandLine];
         Parameter:    paMandatory;
         MandateFiles: False;
@@ -241,9 +253,9 @@ const
       (
         ShortOption:  '-w';
         LongOption:   '--warnings';
-        ParamName:    '<w>';
+        ParamName:    '<o>';
         EnvName:      'Warnings';
-        Description:  'Turn warnings on or off';
+        Description:  'Turn warnings on or off (default 1)';
         Allowed:      [caEnvironment,caCommandLine];
         Parameter:    paMandatory;
         MandateFiles: False;

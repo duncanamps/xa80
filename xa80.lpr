@@ -30,7 +30,7 @@ uses
   { you can add units after this }
   uenvironment, ucommandline, typinfo, uutility, uasmglobals,
   uassembler80, uprocessors, umessages, upreparser3, usymboltable,
-  lacogen_types, ustack;
+  lacogen_types, ustack, umacro;
 
 const
   CRLF = #13 + #10;
@@ -76,9 +76,9 @@ const
               '  4: War and Peace, show much more information' + CRLF +
               '  5: Debug, only relevant with debug versions of the software' + CRLF +
               CRLF +
-              '<w> can be one of:' + CRLF +
-              '  0: Warnings are off and are unaffected by WARNON/OFF' + CRLF +
-              '  1: Warnings are on respecting WARNON/OFF in code' + CRLF +
+              '<o> can be one of the following boolean values:' + CRLF +
+              '  0: Switches feature off' + CRLF +
+              '  1: Switches feature on' + CRLF +
               CRLF;
 
 type
@@ -135,6 +135,7 @@ begin
       else
         begin // Normal file processing
           Asm80 := TAssembler80.Create(UpperCase(EnvObject.GetValue('Processor')));
+          Asm80.CaseSensitive := (EnvObject.GetValue('CaseSensitive') <> '0');
           try
             Assemble;
           finally
@@ -177,7 +178,7 @@ var
 
 procedure TXA80.Initialisation;
 begin
-    // Initial processing of environment variable and command line to get grammar file
+    // Initial processing of environment variable and command line
     EnvObject.ProcessEnvironmentVariable;
     EnvObject.ProcessCommandLine;
 end;

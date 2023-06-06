@@ -233,6 +233,7 @@ begin
   // The default items which will be optionally overridden by the
   // environment variable, and command line
   // Key items
+  SetValue('CaseSensitive', '0',                 esDefault);
   SetValue('Defines',    '',                     esDefault);
   SetValue('Includes',   '',                     esDefault);
   SetValue('Processor',  DEFAULT_PROCESSOR,      esDefault);

@@ -1,0 +1,57 @@
+;
+; TEST_MACRO.Z80
+;
+; Test the MACRO and macro expansion statements
+;
+; Duncan Munro
+; 06/06/2023
+;
+
+ORG		0x200
+
+
+; Set up a simple macro
+
+NOP3		MACRO
+			NOP
+			NOP
+			NOP
+			ENDM
+
+; Now do a nested macro
+
+BUZZ		MACRO
+			JR		C, BUZZ_X{#}
+BUZZ_2{#}:	NOP3
+			DJNZ	BUZZ_2{#}
+BUZZ_X{#}:
+			ENDM
+			
+; Now use the macro
+
+			BUZZ
+			
+;
+; Define a macro with parameters
+;
+
+DELAY		MACRO	CYCLES
+			LD		A,{CYCLES}
+			OR		A,A
+			JR		Z,DELAY{#}X
+			LD		B,A
+DELAY{#}:	NOP3
+			DJNZ	DELAY{#}
+DELAY{#}X:	
+			ENDM
+			
+;
+; Now call it
+;
+
+			DELAY	18			; Simple number
+			DELAY	LOW($ >> 1)	; More complex parameter
+			
+			
+					
+			END

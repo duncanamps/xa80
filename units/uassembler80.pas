@@ -32,7 +32,7 @@ uses
   Classes, SysUtils, lacogen_types, lacogen_module,
   umessages, uinstruction, usymboltable,
   upreparser3, ucommand, upreparser3_defs, ucodebuffer, ulisting, uinclude,
-  uenvironment, ustack;
+  uenvironment, ustack, umacro;
 
 type
   TCompareMode = (cmEqual, cmNotEqual, cmLessThan, cmLessEqual, cmGreaterThan,
@@ -41,9 +41,12 @@ type
   TAssembler80 = class(TLCGParser)
   private
     FAsmStack: TAsmStack;
+    FCaseSensitive: boolean;
     FCmdList: TCommandList;
     FCodeBuffer: TCodeBuffer;
     FCurrentFile: string;
+    FDefiningMacro: boolean;
+    FDefMacro:      TMacroEntry;
     FEnded: boolean;
     FFilenameAsm: string;
     FFilenameCom: string;
@@ -55,6 +58,8 @@ type
     FIncludeList: string;
     FInstructionList: TInstructionList;
     FListing: TListing;
+    FMacroList: TMacroList;
+    FMacroStack: TMacroStack;
     FMemory: array[word] of byte;
     FMemoryUsed: array[word] of boolean;
     FNextInclude: string;
@@ -100,6 +105,7 @@ type
     function ActExprUnaryPlus(_parser: TLCGParser): TLCGParserStackEntry;
     function ActExprXor(_parser: TLCGParser): TLCGParserStackEntry;
     function ActFuncAsc(_parser: TLCGParser): TLCGParserStackEntry;
+    function ActFuncDefined(_parser: TLCGParser): TLCGParserStackEntry;
     function ActFuncHigh(_parser: TLCGParser): TLCGParserStackEntry;
     function ActFuncIif(_parser: TLCGParser): TLCGParserStackEntry;
     function ActFuncLow(_parser: TLCGParser): TLCGParserStackEntry;
@@ -135,11 +141,13 @@ type
     function ActStrUpper(_parser: TLCGParser): TLCGParserStackEntry;
     function ActStrVersion(_parser: TLCGParser): TLCGParserStackEntry;
     function ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
+    function ActValueParam(_parser: TLCGParser): TLCGParserStackEntry;
     function ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
     procedure AsmProcessLabel(const _label: string; _command_index: integer);
     procedure CheckNoLabel(const _label: string);
     procedure CheckByte(_i: integer);
     procedure CheckInteger(_i, _min, _max: integer);
+    procedure CheckMacroDone;
     procedure CheckOperandByte(_index: integer);
     procedure CheckOperandCount(_minop, _maxop: integer);
     procedure CheckOperandInteger(_index, _min, _max: integer);
@@ -162,8 +170,6 @@ type
     procedure CmdEXTERN(const _label: string; _preparser: TPreparserBase);
     procedure CmdGLOBAL(const _label: string; _preparser: TPreparserBase);
     procedure CmdIF(const _label: string; _preparser: TPreparserBase);
-    procedure CmdIFDEF(const _label: string; _preparser: TPreparserBase);
-    procedure CmdIFNDEF(const _label: string; _preparser: TPreparserBase);
     procedure CmdINCLUDE(const _label: string; _preparser: TPreparserBase);
     procedure CmdLISTON(const _label: string; _preparser: TPreparserBase);
     procedure CmdMACRO(const _label: string; _preparser: TPreparserBase);
@@ -180,8 +186,8 @@ type
     procedure CmdWHILE(const _label: string; _preparser: TPreparserBase);
     function CompareGeneric(_comparer: TCompareMode): TLCGParserStackEntry;
     procedure ConvertOperandToOrd(_index: integer);
-    procedure EQUCore(const _label: string; _preparser: TPreparserBase;
-      _allow_redefine: boolean);
+    procedure EQUCore(const _label: string; _preparser: TPreparserBase; _allow_redefine: boolean);
+    procedure ExpandMacro(macro_entry: TMacroEntry);
     function GetFilenameListing: string;
     function MakeFilename(const _base_asm, _option, _ext: string): string;
     procedure NeedNumber(_index: integer; const _msg: string);
@@ -190,7 +196,7 @@ type
     procedure NeedString(_index: integer; const _msg: string);
     procedure OutputMemoryToCom(_filename: string);
     procedure OutputMemoryToHex(_filename: string);
-    procedure Parse(const _s: string);
+    procedure Parse(const _s: string; _cmd_only: boolean);
     procedure Parse(_strm: TStream; _firstcol: integer);
     function ParserM1: TLCGParserStackEntry;
     function ParserM2: TLCGParserStackEntry;
@@ -205,6 +211,8 @@ type
     function Reduce(Parser: TLCGParser; RuleIndex: uint32): TLCGParserStackEntry;
     procedure RegisterCommands;
     procedure ResetMemory;
+    procedure SetCaseSensitive(_v: boolean);
+    procedure SetDefiningMacro(_v: boolean);
     procedure SetFilenameAsm(const _filename: string);
     procedure SetFilenameError(const _filename: string);
     procedure SetFilenameListing(const _filename: string);
@@ -229,25 +237,27 @@ type
       _msgno: TMessageNumbers);
     procedure ShowErrorToken(_token: TToken; _logtype: TLCGLogType;
       _msgno: TMessageNumbers; _args: array of const);
-    property CurrentFile: string read FCurrentFile;
-    property FilenameAsm: string read FFilenameAsm write SetFilenameAsm;
-    property FilenameCom: string read FFilenameCom write FFilenameCom;
-    property FilenameError: string read FFilenameError write SetFilenameError;
-    property FilenameHex: string read FFilenameHex write FFilenameHex;
-    property FilenameMap: string read FFilenameMap write FFilenameMap;
-    property FilenameListing: string read GetFilenameListing write SetFilenameListing;
-    property IncludeList: string read FIncludeList write FIncludeList;
-    property InputLine: integer read FInputLine;
-    property InputCol: integer read FInputCol;
-    property OptionCom: string read FOptionCom write FOptionCom;
-    property OptionError: string read FOptionError write FOptionError;
-    property OptionHex: string read FOptionHex write FOptionHex;
-    property OptionListing: string read FOptionListing write FOptionListing;
-    property OptionMap: string read FOptionMap write FOptionMap;
-    property Org: integer read FOrg write SetOrg;
-    property Pass: integer read FPass;
-    property Processor: string read FProcessor;
-    property Title: string read FTitle write SetTitle;
+    property CaseSensitive:   boolean read FCaseSensitive     write SetCaseSensitive;
+    property CurrentFile:     string  read FCurrentFile;
+    property DefiningMacro:   boolean read FDefiningMacro     write SetDefiningMacro;
+    property FilenameAsm:     string  read FFilenameAsm       write SetFilenameAsm;
+    property FilenameCom:     string  read FFilenameCom       write FFilenameCom;
+    property FilenameError:   string  read FFilenameError     write SetFilenameError;
+    property FilenameHex:     string  read FFilenameHex       write FFilenameHex;
+    property FilenameMap:     string  read FFilenameMap       write FFilenameMap;
+    property FilenameListing: string  read GetFilenameListing write SetFilenameListing;
+    property IncludeList:     string  read FIncludeList       write FIncludeList;
+    property InputLine:       integer read FInputLine;
+    property InputCol:        integer read FInputCol;
+    property OptionCom:       string  read FOptionCom         write FOptionCom;
+    property OptionError:     string  read FOptionError       write FOptionError;
+    property OptionHex:       string  read FOptionHex         write FOptionHex;
+    property OptionListing:   string  read FOptionListing     write FOptionListing;
+    property OptionMap:       string  read FOptionMap         write FOptionMap;
+    property Org:             integer read FOrg               write SetOrg;
+    property Pass:            integer read FPass;
+    property Processor:       string read FProcessor;
+    property Title:           string read FTitle              write SetTitle;
   end;
 
 var
@@ -272,10 +282,16 @@ begin
   FPreparser := TPreparser.Create(FCmdList, FInstructionList);
   FPreparser.ForceColon := True;
   FSymbolTable := TSymbolTable.Create;
+  FSymbolTable.MixedCase := False;
   FIncludeStack := TIncludeStack.Create;
   FIncludeList := EnvObject.GetValue('Includes');
   FAsmStack := TAsmStack.Create;
+  FMacroList  := TMacroList.Create;
+  FMacroStack := TMacroStack.Create;
+  FDefMacro   := TMacroEntry.Create;
+
   FCmdList.SymbolTable := FSymbolTable;
+  FPreparser.MacroList := FMacroList;
   LoadFromResource('XA80OPER');
   SetLength(FProcArray, Rules);
   RegisterProcs;
@@ -289,6 +305,9 @@ end;
 
 destructor TAssembler80.Destroy;
 begin
+  FreeAndNil(FDefMacro);
+  FreeAndNil(FMacroStack);
+  FreeAndNil(FMacroList);
   FreeAndNil(FAsmStack);
   FreeAndNil(FIncludeStack);
   FreeAndNil(FSymbolTable);
@@ -536,6 +555,14 @@ begin
   Result.BufType := pstINT32;
   Result.Buf := IntToStr(Result.BufInt);
   Result.Source := SourceCombine1(-2);
+end;
+
+function TAssembler80.ActFuncDefined(_parser: TLCGParser): TLCGParserStackEntry;
+begin
+  Result.BufInt   := Ord(FSymbolTable.Defined(ParserM2.Buf));
+  Result.BufType  := pstINT32;
+  Result.Buf      := IntToStr(Result.BufInt);
+  Result.Source   := SourceCombine1(-2);
 end;
 
 function TAssembler80.ActFuncHigh(_parser: TLCGParser): TLCGParserStackEntry;
@@ -846,6 +873,12 @@ begin
   Result.BufType := pstINT32;
 end;
 
+function TAssembler80.ActValueParam(_parser: TLCGParser): TLCGParserStackEntry;
+begin
+  // @@@@@ Add code to put the expanded parameter value in here
+  Result := ParserM1;
+end;
+
 function TAssembler80.ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
 var
   Name: string;
@@ -916,8 +949,7 @@ begin
   equate_or_macro := (_command_index >= 0) and
     ((FCmdList[_command_index].CommandName = '=') or
     (FCmdList[_command_index].CommandName = 'EQU') or
-    (FCmdList[_command_index].CommandName =
-    'MACRO'));
+    (FCmdList[_command_index].CommandName = 'MACRO'));
   if (_label <> '') and not equate_or_macro then
   begin // Must be an ordinary program label, cannot already be assigned
     if FPreparser.ForceColon and (not HasColon(_label)) then
@@ -978,6 +1010,7 @@ begin
   AssemblePass(1, filename);
   AssemblePass(2, filename);
   CheckStack;
+  CheckMacroDone;
   OutputMemoryToCom(FilenameCom);
   OutputMemoryToHex(FilenameHex);
   FSymbolTable.DumpByBoth(FFilenameMap);
@@ -991,6 +1024,7 @@ var
   labelx: string;
   command_index: integer;
   opcode_index: integer;
+  macro_index:  integer;
   inst_rec: TInstructionRec;
   oper1, oper2: TOperandOption;
   s: string;
@@ -1000,6 +1034,7 @@ var
   opval: integer;
   newaddr: integer;
   do_cmd: boolean;
+  macro_entry: TMacroEntry;
 
   function GetOpVal(_idx: integer): integer;
   begin
@@ -1011,11 +1046,13 @@ begin
   FSolGenerate := FAsmStack.CanGenerate;
   ErrorObj.SourceLine := _s;
   FCodeBuffer.Init;
-  Parse(_s); // Do the pre-parsing and main parsing
+  Parse(_s,FDefiningMacro); // Do the pre-parsing and main parsing
   labelx := FPreparser.LabelX;
-  command_index := FPreparser.CommandIndex;
   opcode_index := FPreparser.OpcodeIndex;
-  AsmProcessLabel(labelx, command_index);
+  command_index := FPreparser.CommandIndex;
+  macro_index   := FPreparser.MacroIndex;
+  if not FDefiningMacro then
+    AsmProcessLabel(labelx, command_index);
   // Check for end
   if FEnded and ((command_index > 0) or (opcode_index > 0)) then
     ErrorObj.Show(ltError, E2037_CODE_AFTER_END);
@@ -1023,7 +1060,7 @@ begin
   if command_index >= 0 then
     FCmdList[command_index].CommandExec(labelx, FPreparser);
   // Assemble opcodes if available
-  if (opcode_index >= 0) and FSolGenerate then
+  if (opcode_index >= 0) and FSolGenerate and (not FDefiningMacro) then
   begin
     oper1 := OPER_NULL;
     oper2 := OPER_NULL;
@@ -1113,6 +1150,9 @@ begin
       end;
     end;
   end;
+  // Add macro line if required
+  if (FPass = 1) and FDefiningMacro then
+    FDefMacro.Content.Add(_s);
   // Do the listing and increase FOrg
   if (FPass = 2) then
   begin
@@ -1129,11 +1169,13 @@ begin
       s := Format('%s %s %s', [Space(6 + MAX_HEX_WIDTH), indent_str, _s]);
     FListing.Output(s);
     // Code
-    if FSolGenerate then
-      for i := 0 to FCodeBuffer.Contains - 1 do
+    for i := 0 to FCodeBuffer.Contains - 1 do
       begin
-        FMemory[Org] := FCodeBuffer.Buffer[i];
-        FMemoryUsed[Org] := True;
+        if FSolGenerate then
+          begin
+            FMemory[Org] := FCodeBuffer.Buffer[i];
+            FMemoryUsed[Org] := True;
+          end;
         Org := Org + 1;
       end;
   end
@@ -1142,6 +1184,16 @@ begin
     Org := Org + FCodeBuffer.Contains;
   // Process the include file if required
   ProcessInclude;
+  // Push the macro details if available
+  if macro_index >= 0 then
+    begin
+      macro_entry := FMacroList.Items[macro_index];
+      macro_entry.Params.Clear;
+      for i := 0 to FPreparser.Count-1 do
+        macro_entry.Params.Add(FPreparser.Items[i].Payload);
+      // Run the macro expansion here
+      ExpandMacro(macro_entry);
+    end;
 end;
 
 procedure TAssembler80.AssemblePass(_pass: integer; const filename: string);
@@ -1152,9 +1204,11 @@ begin
   FAsmStack.Clear;
 
   ErrorObj.Filename := filename;
+  DefiningMacro := False;
   FEnded := False;
   FNextInclude := '';
   FOrg := 0;
+  FMacroList.Init;
   ProcessFile(filename);
 end;
 
@@ -1174,6 +1228,17 @@ procedure TAssembler80.CheckInteger(_i, _min, _max: integer);
 begin
   if (_i < _min) or (_i > _max) then
     ErrorObj.Show(ltError, E2026_INTEGER_RANGE_ERROR, [_min, _max]);
+end;
+
+procedure TAssembler80.CheckMacroDone;
+var _msg: string;
+begin
+  if FDefiningMacro then
+    begin
+      _msg := Format('No ENDM command for MACRO defined on line %d of %s',
+              [FDefMacro.LineNumber, FDefMacro.Filename]);
+      ErrorObj.Show(ltError, E2047_UNEXPECTED_END, [_msg]);
+    end;
 end;
 
 procedure TAssembler80.CheckOperandByte(_index: integer);
@@ -1232,7 +1297,6 @@ begin
     case _tos.EntryType of
       setNone: ErrorObj.Show(ltInternal, X3001_UNHANDLED_CASE_OPTION,
           ['TAssembler80.CheckStack']);
-      setMacroExpand: CreateMessage('ENDM', 'MACRO');
       setIf: CreateMessage('ENDIF', 'IF');
       setWhile: CreateMessage('ENDW', 'WHILE');
       setRepeat: CreateMessage('ENDR', 'REPEAT');
@@ -1253,7 +1317,7 @@ end;
 
 procedure TAssembler80.CmdCPU(const _label: string; _preparser: TPreparserBase);
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   if FPass = 1 then
     ErrorObj.Show(ltWarning, W1002_DIRECTIVE_IGNORED, ['CPU']);
@@ -1270,7 +1334,7 @@ var
   j: integer;
   s: string;
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   // Define bytes
   // There should be one or more operands
@@ -1301,7 +1365,7 @@ var
   bcount: integer;
   bval: integer;
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   // Define storage
   // Two forms of this command:
@@ -1332,7 +1396,7 @@ var
   j: integer;
   s: string;
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   // Define words
   // There should be one or more operands
@@ -1359,6 +1423,8 @@ var
   entry: TAsmStackEntry;
 begin
   // Should be no operands
+  if FDefiningMacro then
+    Exit;
   CheckOperandCount(0, 0);
   if FAsmStack.TOStype <> setIf then
     ErrorObj.Show(ltError, E2049_UNEXPECTED_ELSE);
@@ -1373,6 +1439,8 @@ end;
 procedure TAssembler80.CmdEND(const _label: string; _preparser: TPreparserBase);
 begin
   // There should be no operands
+  if (not FSolGenerate) or FDefiningMacro then
+    Exit;
   CheckOperandCount(0, 0);
   FEnded := True;
 end;
@@ -1382,6 +1450,8 @@ var
   entry: TAsmStackEntry;
 begin
   // Should only be no operands
+  if FDefiningMacro then
+    Exit;
   CheckOperandCount(0, 0);
   if FAsmStack.TOStype <> setIf then
     ErrorObj.Show(ltError, E2048_UNEXPECTED_ENDIF);
@@ -1389,12 +1459,40 @@ begin
 end;
 
 procedure TAssembler80.CmdENDM(const _label: string; _preparser: TPreparserBase);
+var newobj: TMacroEntry;
 begin
+  if not FDefiningMacro then
+    ErrorObj.Show(ltError,E2055_UNEXPECTED_ENDM);
+  if FPass = 1 then
+    begin
+      if FPreparser.LabelX <> '' then
+        begin
+          ErrorObj.ColNumber := 1;
+          ErrorObj.Show(ltError,E2058_NO_LABEL_ON_ENDM);
+        end;
+      // Set up a new macro object
+      newobj := TMacroEntry.Create;
+      // Clone the master object
+      newobj.Name       := FDefMacro.Name;
+      newobj.LineNumber := FDefMacro.LineNumber;
+      newobj.Filename   := FDefMacro.Filename;
+      newobj.Headings.Assign(FDefMacro.Headings);
+      newobj.Params.Assign(FDefMacro.Params);
+      newobj.Content.Assign(FDefMacro.Content);
+      // Delete first row from the macro content as it's the MACRO command!
+      if newobj.Content.Count > 0 then
+        newobj.Content.Delete(0);
+      FMacroList.Add(newobj);
+    end;
+  // Finally
+  DefiningMacro := False;
 end;
 
 procedure TAssembler80.CmdENDR(const _label: string; _preparser: TPreparserBase);
 var entry: TAsmStackEntry;
 begin
+  if FDefiningMacro then
+    Exit;
   // Should only be no operands
   CheckOperandCount(0, 0);
   if FAsmStack.TOStype <> setRepeat then
@@ -1416,6 +1514,8 @@ procedure TAssembler80.CmdENDW(const _label: string; _preparser: TPreparserBase)
 var
   entry: TAsmStackEntry;
 begin
+  if  FDefiningMacro then
+    Exit;
   // Should only be no operands
   CheckOperandCount(0, 0);
   if FAsmStack.TOStype <> setWhile then
@@ -1432,14 +1532,14 @@ end;
 
 procedure TAssembler80.CmdEQU(const _label: string; _preparser: TPreparserBase);
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   EQUCore(_label, _preparser, False);
 end;
 
 procedure TAssembler80.CmdEQU2(const _label: string; _preparser: TPreparserBase);
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   EQUCore(_label, _preparser, True);
 end;
@@ -1456,6 +1556,8 @@ procedure TAssembler80.CmdIF(const _label: string; _preparser: TPreparserBase);
 var
   entry: TAsmStackEntry;
 begin
+  if FDefiningMacro then
+    Exit;
   // Should only be one operand
   CheckOperandCount(1, 1);
   CheckOperandInteger(0, -32767, 65535);
@@ -1469,41 +1571,9 @@ begin
   FAsmStack.Add(entry);
 end;
 
-procedure TAssembler80.CmdIFDEF(const _label: string; _preparser: TPreparserBase);
-var
-  entry: TAsmStackEntry;
-begin
-  // Should only be one operand, a label name
-  CheckOperandCount(1, 1);
-  entry.EntryType := setIf;
-  entry.ElseDoneAlready := False;
-  entry.EvalResult := FSymbolTable.Defined(FPreparser[0].Payload);
-  entry.ParentGen := FSolGenerate;
-  entry.Filename := FCurrentFile;
-  entry.LineNumber := FInputLine;
-  entry.RepeatRemain := 0;
-  FAsmStack.Add(entry);
-end;
-
-procedure TAssembler80.CmdIFNDEF(const _label: string; _preparser: TPreparserBase);
-var
-  entry: TAsmStackEntry;
-begin
-  // Should only be one operand, a label name
-  CheckOperandCount(1, 1);
-  entry.EntryType := setIf;
-  entry.ElseDoneAlready := False;
-  entry.EvalResult := not FSymbolTable.Defined(FPreparser[0].Payload);
-  entry.ParentGen := FSolGenerate;
-  entry.Filename := FCurrentFile;
-  entry.LineNumber := FInputLine;
-  entry.RepeatRemain := 0;
-  FAsmStack.Add(entry);
-end;
-
 procedure TAssembler80.CmdINCLUDE(const _label: string; _preparser: TPreparserBase);
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   // Should only be one operand
   CheckOperandCount(1, 1);
@@ -1514,7 +1584,7 @@ end;
 
 procedure TAssembler80.CmdLISTON(const _label: string; _preparser: TPreparserBase);
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   // Turn listings on
   // There should be no operands
@@ -1523,12 +1593,35 @@ begin
 end;
 
 procedure TAssembler80.CmdMACRO(const _label: string; _preparser: TPreparserBase);
+var i: integer;
+    payload: string;
 begin
+  if FDefiningMacro then
+    ErrorObj.Show(ltError,E2056_MACRO_IN_MACRO_DEFINE);
+  DefiningMacro := True;
+  if FPass = 1 then
+    begin
+      FDefMacro.Name       := StripColon(_label);
+      FDefMacro.Filename   := FCurrentFile;
+      FDefMacro.LineNumber := FInputLine;
+      FDefMacro.Headings.Clear;
+      FDefMacro.Params.Clear;
+      FDefMacro.Content.Clear;
+      if FCaseSensitive then
+        FDefMacro.Name := UpperCase(FDefMacro.Name);
+      for i := 0 to _preparser.Count-1 do
+        begin
+          payload := _preparser.Items[i].Payload;
+          if FCaseSensitive then
+            payload := UpperCase(payload);
+          FDefMacro.Headings.Add(payload);
+        end;
+    end;
 end;
 
 procedure TAssembler80.CmdMSGERROR(const _label: string; _preparser: TPreparserBase);
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   // Issue an error message
   // There should be 1 operand (numeric or string)
@@ -1542,7 +1635,7 @@ end;
 
 procedure TAssembler80.CmdMSGINFO(const _label: string; _preparser: TPreparserBase);
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   // Issue an info message
   // There should be 1 operand (numeric or string)
@@ -1556,7 +1649,7 @@ end;
 
 procedure TAssembler80.CmdMSGWARNING(const _label: string; _preparser: TPreparserBase);
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   // Issue a warning message
   // There should be 1 operand (numeric or string)
@@ -1570,7 +1663,7 @@ end;
 
 procedure TAssembler80.CmdLISTOFF(const _label: string; _preparser: TPreparserBase);
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   // Turn listings off
   // There should be no operands
@@ -1580,7 +1673,7 @@ end;
 
 procedure TAssembler80.CmdWARNOFF(const _label: string; _preparser: TPreparserBase);
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   // Turn warnings off
   // There should be no operands
@@ -1590,7 +1683,7 @@ end;
 
 procedure TAssembler80.CmdORG(const _label: string; _preparser: TPreparserBase);
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   // Set the origin for the assembly
   // There should be one and only one operand and no label
@@ -1610,6 +1703,8 @@ procedure TAssembler80.CmdREPEAT(const _label: string; _preparser: TPreparserBas
 var
   entry: TAsmStackEntry;
 begin
+  if FDefiningMacro then
+    Exit;
   // Should only be one operand
   CheckOperandCount(1, 1);
   CheckOperandInteger(0, 0, 65535);
@@ -1633,7 +1728,7 @@ end;
 
 procedure TAssembler80.CmdTITLE(const _label: string; _preparser: TPreparserBase);
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   // Set the title
   // There should one string operand containing the title
@@ -1652,7 +1747,7 @@ end;
 
 procedure TAssembler80.CmdWARNON(const _label: string; _preparser: TPreparserBase);
 begin
-  if not FSolGenerate then
+  if (not FSolGenerate) or FDefiningMacro then
     Exit;
   // Turn warnings back on
   // There should be no operands
@@ -1664,6 +1759,8 @@ procedure TAssembler80.CmdWHILE(const _label: string; _preparser: TPreparserBase
 var
   entry: TAsmStackEntry;
 begin
+  if FDefiningMacro then
+    Exit;
   // Should only be one operand
   CheckOperandCount(1, 1);
   CheckOperandInteger(0, -32767, 65535);
@@ -1779,6 +1876,35 @@ begin
     end; // case
     FSymbolTable[_index] := sym;
   end;
+end;
+
+procedure TAssembler80.ExpandMacro(macro_entry: TMacroEntry);
+var i,j: integer;
+    s: string;
+    p: integer;
+    serial: integer;
+    param:  string;
+begin
+  serial := FMacroList.AllocateSerial;
+  for i := 0 to macro_entry.Content.Count-1 do
+    begin
+      s := macro_entry.Content[i];
+
+      p := Pos('{#}',s);
+      if p > 0 then
+        s := StringReplace(s,'{#}',IntToStr(serial),[]);
+
+      for j := 0 to macro_entry.Headings.Count-1 do
+        begin
+          if j >= macro_entry.Params.Count then
+            Exit;
+          param := '{' + macro_entry.Headings[j] + '}';
+          p := Pos(param,s);
+          if p > 0 then
+            s := StringReplace(s,param,macro_entry.Params[j],[rfReplaceAll]);
+        end;
+      AssembleLine(s);
+    end;
 end;
 
 function TAssembler80.GetFilenameListing: string;
@@ -1928,7 +2054,7 @@ end;
 
 // Key routine - parse a single line of text from the input
 
-procedure TAssembler80.Parse(const _s: string);
+procedure TAssembler80.Parse(const _s: string; _cmd_only: boolean);
 var
   i: integer;
   itm: TParserProp;
@@ -1937,48 +2063,49 @@ var
 begin
   FPreparser.Parse(_s);
   // Now parse all the operands where needed
-  for i := 0 to FPreparser.Count - 1 do
-  begin
-    itm := FPreparser.Items[i];
-    if itm.Index < 0 then
-    begin // We need to use the main parser to sort this out
-      s := itm.Payload;
-      if (s <> '') and (Indirected(s, DEFAULT_ESCAPE, DEFAULT_ESCAPED)) then
+  if not FDefiningMacro then
+    for i := 0 to FPreparser.Count - 1 do
       begin
-        s[1] := '[';
-        s[Length(s)] := ']';
-      end;
-      strm := TStringStream.Create(s);
-      try
-        Parse(strm, itm.Column);
-        case ParsedOperandOption of
-          OPER_U16,
-          OPER_U16_IND,
-          OPER_IXPD_IND,
-          OPER_IYPD_IND: begin
-            itm.Index := Ord(ParsedOperandOption);
-            itm.DataType := FinalVal.BufType;
-            itm.IntValue := (FinalVal.BufInt and $FFFF);
-            itm.StrValue := FinalVal.Buf;
-            itm.Source := FinalVal.Source;
-            FPreparser.Items[i] := itm;
+        itm := FPreparser.Items[i];
+        if itm.Index < 0 then
+        begin // We need to use the main parser to sort this out
+          s := itm.Payload;
+          if (s <> '') and (Indirected(s, DEFAULT_ESCAPE, DEFAULT_ESCAPED)) then
+          begin
+            s[1] := '[';
+            s[Length(s)] := ']';
           end;
-          otherwise
-            ErrorObj.Show(ltError, E2014_UNABLE_TO_PARSE, [itm.Payload]);
-        end;  // case
-      finally
-        FreeAndNil(strm);
-      end;
-    end
-    else
-    begin
-      itm.DataType := pstNone;
-      itm.IntValue := 0;
-      itm.StrValue := '';
-      itm.Source := pssUndefined;
-      FPreparser.Items[i] := itm;
+          strm := TStringStream.Create(s);
+          try
+            Parse(strm, itm.Column);
+            case ParsedOperandOption of
+              OPER_U16,
+              OPER_U16_IND,
+              OPER_IXPD_IND,
+              OPER_IYPD_IND: begin
+                itm.Index := Ord(ParsedOperandOption);
+                itm.DataType := FinalVal.BufType;
+                itm.IntValue := (FinalVal.BufInt and $FFFF);
+                itm.StrValue := FinalVal.Buf;
+                itm.Source := FinalVal.Source;
+                FPreparser.Items[i] := itm;
+              end;
+              otherwise
+                ErrorObj.Show(ltError, E2014_UNABLE_TO_PARSE, [itm.Payload]);
+            end;  // case
+          finally
+            FreeAndNil(strm);
+          end;
+        end
+        else
+        begin
+          itm.DataType := pstNone;
+          itm.IntValue := 0;
+          itm.StrValue := '';
+          itm.Source := pssUndefined;
+          FPreparser.Items[i] := itm;
+        end;
     end;
-  end;
 {$IFDEF DEBUG_LOG}
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Label   = ' + FPreparser.LabelX]);
   if FPreparser.CommandIndex >= 0 then
@@ -2032,7 +2159,8 @@ begin
   FinalVal.Token.Col := 0;
   FinalVal.Token.ID := 0;
   FinalVal.Token.Row := 0;
-  inherited Parse(_strm);
+  if not FDefiningMacro then
+    inherited Parse(_strm);
 end;
 
 function TAssembler80.ParserM1: TLCGParserStackEntry;
@@ -2276,8 +2404,6 @@ begin
   FCmdList.RegisterCommand('EXTERN', @CmdEXTERN);
   FCmdList.RegisterCommand('GLOBAL', @CmdGLOBAL);
   FCmdList.RegisterCommand('IF', @CmdIF);
-  FCmdList.RegisterCommand('IFDEF', @CmdIFDEF);
-  FCmdList.RegisterCommand('IFNDEF', @CmdIFNDEF);
   FCmdList.RegisterCommand('INCLUDE', @CmdINCLUDE);
   FCmdList.RegisterCommand('LISTOFF', @CmdLISTOFF);
   FCmdList.RegisterCommand('LISTON', @CmdLISTON);
@@ -2324,6 +2450,7 @@ begin
   RegisterProc('ActExprUnaryPlus', @ActExprUnaryPlus, _procs);
   RegisterProc('ActExprXor', @ActExprXor, _procs);
   RegisterProc('ActFuncAsc', @ActFuncAsc, _procs);
+  RegisterProc('ActFuncDefined', @ActFuncDefined, _procs);
   RegisterProc('ActFuncHigh', @ActFuncHigh, _procs);
   RegisterProc('ActFuncIif', @ActFuncIif, _procs);
   RegisterProc('ActFuncLow', @ActFuncLow, _procs);
@@ -2353,6 +2480,7 @@ begin
   RegisterProc('ActStrVersion', @ActStrVersion, _procs);
   RegisterProc('ActStringConstant', @ActStringConstant, _procs);
   RegisterProc('ActValueOrg', @ActValueOrg, _procs);
+  RegisterProc('ActValueParam', @ActValueParam, _procs);
   RegisterProc('ActValueSymbol', @ActValueSymbol, _procs);
 end;
 
@@ -2362,6 +2490,18 @@ var
 begin
   for w in word do FMemory[w] := 0;
   for w in word do FMemoryUsed[w] := False;
+end;
+
+procedure TAssembler80.SetCaseSensitive(_v: boolean);
+begin
+  FCaseSensitive := _v;
+  FSymbolTable.MixedCase := _v;
+end;
+
+procedure TAssembler80.SetDefiningMacro(_v: boolean);
+begin
+  FDefiningMacro := _v;
+  FPreparser.DefiningMacro := _v;
 end;
 
 procedure TAssembler80.SetFilenameAsm(const _filename: string);

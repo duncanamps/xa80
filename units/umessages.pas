@@ -131,6 +131,10 @@ type
                      E2052_ENDW_IN_DIFFERENT_FILE,
                      E2053_UNEXPECTED_ENDR,
                      E2054_ENDR_IN_DIFFERENT_FILE,
+                     E2055_UNEXPECTED_ENDM,
+                     E2056_MACRO_IN_MACRO_DEFINE,
+                     E2057_MACRO_NOT_FOUND,
+                     E2058_NO_LABEL_ON_ENDM,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -261,6 +265,10 @@ var
     'ENDW in different file to WHILE statement (%s)',
     'Unexpected ENDR',
     'ENDR in different file to REPEAT statement (%s)',
+    'Unexpected ENDM',
+    'Cannot define a macro within another macro',
+    'Macro %s not found',
+    'Cannot place a label on an ENDM directive',
 
     'Unhandled case option at %s',
     'Preparser peeek error',

@@ -884,7 +884,38 @@ DISPL	EQU		57				// Displacement value
 		OTDR            		// $ED $BB                    
 
 
+;----------------------------------------------------------------------------
+;
+; Test macro definition, expansion and nesting
+;
+;----------------------------------------------------------------------------
 
+; Set up a simple macro
+
+NOP3		MACRO
+			NOP
+			NOP
+			NOP
+			ENDM
+			
+; Set up a nested macro with parameters
+			
+DELAY		MACRO 	CYCLES
+			LD		A,{CYCLES}
+			OR		A,A
+			JR		Z,DELAYX{#}
+ 			LD		B,A
+DELAY{#}:	NOP3
+			DJNZ	DELAY{#}
+DELAYX{#}:
+			ENDM
+			
+; Now invoke the macro
+
+			DELAY	123
+			DELAY	19
+			
+			
 ;----------------------------------------------------------------------------
 ;
 ; Test expressions

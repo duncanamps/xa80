@@ -96,6 +96,8 @@ HIGHNUM	EQU		19
 		DB		ASC("7")				// 37 ASCII value of character
 		DB		ASC("765")				// 37 Only first character
 		DB		ASC("")					// 00 NULL string gives character 0
+		DB		DEFINED(HIGHNUM)		// 01 as HIGHNUM is already defined
+		DB		DEFINED(NONUM)			// 00 as NONUM is not already defined
 		DB		HIGH(0x1234)			// 12 High byte of word
 		DB		IIF(1>2,0x12,0x99)		// 99 Immediate IF
 		DB		IIF(1<2,0x12,0x99)		// 12
@@ -150,7 +152,7 @@ FULL	=		FIRST + "/" + LAST
 		DB		RIGHT(FULL,2) + LEFT(FULL,2)	// 44 43 41 43 
 
 ;
-; IF / IFDEF / IFNDEF / ELSE / ENDIF
+; IF / ELSE / ENDIF
 ;
 
 		; Check IF for a true value
@@ -169,38 +171,6 @@ FULL	=		FIRST + "/" + LAST
 			MSGINFO "Good"
 		ENDIF
 
-		; Check IFDEF for a label that is defined
-		
-		IFDEF FIRST
-			MSGINFO "Good"
-		ELSE
-			MSGERROR "BAD!"
-		ENDIF
-
-		; Check IFDEF for a label that isn't defined
-		
-		IFDEF NON_EXISTENT
-			MSGERROR "BAD!"
-		ELSE
-			MSGINFO "Good"
-		ENDIF
-
-		; Check IFNDEF for a label that is defined
-		
-		IFNDEF FIRST
-			MSGERROR "BAD!"
-		ELSE
-			MSGINFO "Good"
-		ENDIF
-
-		; Check IFNDEF for a label that isn't defined
-		
-		IFNDEF NON_EXISTENT
-			MSGINFO "Good"
-		ELSE
-			MSGERROR "BAD!"
-		ENDIF
-		
 		; Check nesting
 		
 		IF 1
