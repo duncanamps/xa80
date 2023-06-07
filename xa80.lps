@@ -8,7 +8,6 @@
       <Unit>
         <Filename Value="xa80.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <TopLine Value="253"/>
         <CursorPos X="5" Y="269"/>
         <UsageCount Value="132"/>
@@ -17,8 +16,9 @@
       <Unit>
         <Filename Value="units\uenvironment.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="373"/>
+        <TopLine Value="372"/>
         <CursorPos X="34" Y="236"/>
         <UsageCount Value="132"/>
         <Loaded Value="True"/>
@@ -383,12 +383,18 @@
         <CursorPos X="45" Y="133"/>
         <UsageCount Value="5"/>
       </Unit>
+      <Unit>
+        <Filename Value="units\uevaluator.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="110"/>
+        <UsageCount Value="10"/>
+      </Unit>
     </Units>
     <OtherDefines Count="2">
       <Define0 Value="CONSOLE_APP"/>
       <Define1 Value="DEBUG_LOGX"/>
     </OtherDefines>
-    <JumpHistory HistoryIndex="29">
+    <JumpHistory HistoryIndex="28">
       <Position>
         <Filename Value="units\uassembler80.pas"/>
         <Caret Line="966" TopLine="940"/>
@@ -502,10 +508,6 @@
       <Position>
         <Filename Value="units\uassembler80.pas"/>
         <Caret Line="1624" Column="3" TopLine="1620"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uenvironment.pas"/>
-        <Caret Line="236" Column="34" TopLine="373"/>
       </Position>
     </JumpHistory>
     <RunParams>
