@@ -3,33 +3,33 @@
   <ProjectSession>
     <PathDelim Value="\"/>
     <Version Value="12"/>
-    <BuildModes Active="Release"/>
+    <BuildModes Active="Debug"/>
     <Units>
       <Unit>
         <Filename Value="xa80.lpr"/>
         <IsPartOfProject Value="True"/>
         <TopLine Value="253"/>
         <CursorPos X="5" Y="269"/>
-        <UsageCount Value="132"/>
+        <UsageCount Value="134"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="units\uenvironment.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="372"/>
+        <TopLine Value="371"/>
         <CursorPos X="34" Y="236"/>
-        <UsageCount Value="132"/>
+        <UsageCount Value="134"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="units\uasmglobals.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="11"/>
         <TopLine Value="61"/>
-        <CursorPos Y="78"/>
-        <UsageCount Value="132"/>
+        <CursorPos X="46" Y="77"/>
+        <UsageCount Value="134"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -38,16 +38,16 @@
         <EditorIndex Value="2"/>
         <TopLine Value="232"/>
         <CursorPos X="59" Y="258"/>
-        <UsageCount Value="119"/>
+        <UsageCount Value="121"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="units\uassembler80.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="6"/>
-        <TopLine Value="2383"/>
-        <CursorPos X="9" Y="2414"/>
-        <UsageCount Value="103"/>
+        <TopLine Value="268"/>
+        <CursorPos X="49" Y="282"/>
+        <UsageCount Value="105"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -57,7 +57,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="100"/>
+        <UsageCount Value="102"/>
       </Unit>
       <Unit>
         <Filename Value="lexer_parser\units\udmnfa.pas"/>
@@ -66,7 +66,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="100"/>
+        <UsageCount Value="102"/>
       </Unit>
       <Unit>
         <Filename Value="lexer_parser\units\udmset.pas"/>
@@ -75,7 +75,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="100"/>
+        <UsageCount Value="102"/>
       </Unit>
       <Unit>
         <Filename Value="lexer_parser\units\udmyala.pas"/>
@@ -84,7 +84,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="100"/>
+        <UsageCount Value="102"/>
       </Unit>
       <Unit>
         <Filename Value="units\uprocessors.pas"/>
@@ -92,7 +92,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="15"/>
         <CursorPos X="3" Y="41"/>
-        <UsageCount Value="99"/>
+        <UsageCount Value="101"/>
       </Unit>
       <Unit>
         <Filename Value="lac\lacogen_module.pas"/>
@@ -100,7 +100,7 @@
         <EditorIndex Value="5"/>
         <TopLine Value="846"/>
         <CursorPos Y="864"/>
-        <UsageCount Value="98"/>
+        <UsageCount Value="100"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -109,16 +109,16 @@
         <EditorIndex Value="3"/>
         <TopLine Value="33"/>
         <CursorPos X="3" Y="49"/>
-        <UsageCount Value="98"/>
+        <UsageCount Value="100"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="units\umessages.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="4"/>
-        <TopLine Value="136"/>
-        <CursorPos X="22" Y="137"/>
-        <UsageCount Value="98"/>
+        <TopLine Value="369"/>
+        <CursorPos Y="387"/>
+        <UsageCount Value="100"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -127,7 +127,7 @@
         <EditorIndex Value="7"/>
         <TopLine Value="413"/>
         <CursorPos Y="433"/>
-        <UsageCount Value="96"/>
+        <UsageCount Value="98"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -136,7 +136,7 @@
         <EditorIndex Value="12"/>
         <TopLine Value="332"/>
         <CursorPos Y="347"/>
-        <UsageCount Value="96"/>
+        <UsageCount Value="98"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -145,7 +145,7 @@
         <EditorIndex Value="13"/>
         <TopLine Value="342"/>
         <CursorPos Y="358"/>
-        <UsageCount Value="96"/>
+        <UsageCount Value="98"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -155,7 +155,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="96"/>
+        <UsageCount Value="98"/>
       </Unit>
       <Unit>
         <Filename Value="units\ucommand.pas"/>
@@ -163,7 +163,7 @@
         <EditorIndex Value="9"/>
         <TopLine Value="57"/>
         <CursorPos X="19" Y="84"/>
-        <UsageCount Value="96"/>
+        <UsageCount Value="98"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -173,14 +173,14 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="96"/>
+        <UsageCount Value="98"/>
       </Unit>
       <Unit>
         <Filename Value="units\uinclude.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="17" Y="14"/>
-        <UsageCount Value="96"/>
+        <UsageCount Value="98"/>
       </Unit>
       <Unit>
         <Filename Value="units\uinstruction.pas"/>
@@ -189,7 +189,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="96"/>
+        <UsageCount Value="98"/>
       </Unit>
       <Unit>
         <Filename Value="units\ulisting.pas"/>
@@ -197,7 +197,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="59"/>
         <CursorPos Y="94"/>
-        <UsageCount Value="96"/>
+        <UsageCount Value="98"/>
       </Unit>
       <Unit>
         <Filename Value="units\upreparser3_defs.pas"/>
@@ -205,7 +205,7 @@
         <EditorIndex Value="14"/>
         <TopLine Value="14"/>
         <CursorPos X="3" Y="40"/>
-        <UsageCount Value="96"/>
+        <UsageCount Value="98"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -214,7 +214,7 @@
         <EditorIndex Value="10"/>
         <TopLine Value="33"/>
         <CursorPos Y="49"/>
-        <UsageCount Value="64"/>
+        <UsageCount Value="66"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -223,7 +223,7 @@
         <EditorIndex Value="8"/>
         <TopLine Value="39"/>
         <CursorPos X="20" Y="45"/>
-        <UsageCount Value="50"/>
+        <UsageCount Value="52"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -394,120 +394,125 @@
       <Define0 Value="CONSOLE_APP"/>
       <Define1 Value="DEBUG_LOGX"/>
     </OtherDefines>
-    <JumpHistory HistoryIndex="28">
+    <JumpHistory HistoryIndex="29">
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="966" TopLine="940"/>
+        <Caret Line="166" Column="22" TopLine="142"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="968" TopLine="942"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="969" TopLine="943"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="970" TopLine="945"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="972" TopLine="947"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="979" TopLine="964"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="948" TopLine="932"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="981" TopLine="966"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1057" TopLine="1042"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1060" TopLine="1042"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1063" TopLine="1042"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1154" TopLine="1139"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1157" TopLine="1139"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1183" TopLine="1168"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1184" TopLine="1168"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1186" TopLine="1168"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1188" TopLine="1168"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1045" TopLine="1030"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="953" TopLine="937"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="963" Column="16" TopLine="937"/>
+        <Caret Line="1494" Column="31" TopLine="1464"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="231" Column="27" TopLine="206"/>
-      </Position>
-      <Position>
-        <Filename Value="units\umacro.pas"/>
-        <Caret Line="103" TopLine="72"/>
-      </Position>
-      <Position>
-        <Filename Value="units\umacro.pas"/>
+        <Caret Line="176" Column="23" TopLine="152"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1211" Column="19" TopLine="1198"/>
+        <Caret Line="1625" Column="18" TopLine="1598"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1469" Column="49" TopLine="1455"/>
+        <Caret Line="1915" TopLine="1900"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="2421" Column="26" TopLine="2391"/>
+        <Caret Line="1916" TopLine="1900"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="176" Column="15" TopLine="162"/>
+        <Caret Line="1917" TopLine="1900"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1624" Column="3" TopLine="1620"/>
+        <Caret Line="1920" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1915" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1916" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1919" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1920" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1921" Column="72" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1915" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1916" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1919" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1920" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1921" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1911" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1915" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1135" TopLine="1120"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1915" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1916" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1917" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1920" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1921" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1911" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="1915" TopLine="1900"/>
+      </Position>
+      <Position>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="291" Column="72" TopLine="268"/>
       </Position>
     </JumpHistory>
     <RunParams>
@@ -515,7 +520,7 @@
       <Modes ActiveMode="default">
         <Mode Name="default">
           <local>
-            <CommandLineParams Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_macro.z80&quot; --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
+            <CommandLineParams Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_colon_optional.z80&quot; --case-sensitive=1 --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
             <LaunchingApplication PathPlusParams="C:\Windows\system32\cmd.exe \C ${TargetCmdLine}"/>
           </local>
         </Mode>
@@ -527,46 +532,31 @@
         <Item2 Value="C:\Windows\system32\cmd.exe /C ${TargetCmdLine}"/>
       </List>
       <List Name="CommandLineParameters" Count="20">
-        <Item1 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_macro.z80&quot; --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
-        <Item2 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_if.z80&quot; --verbose=5 --listing --map --include=C:\temp --processor=z80 --case-sensitive=1"/>
-        <Item3 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\binaries\debug\win64-x86_64\test.asm&quot; --verbose=5 --listing --map --include=C:\temp --processor=z80 --case-sensitive=1"/>
-        <Item4 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\binaries\debug\win64-x86_64\test.asm&quot; --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item5 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_repeat.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item6 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\calibration\test_z80.asm&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item7 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_ifdef.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item8 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_while.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item9 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_if.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item10 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\if_test.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item11 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\if_test.z80&quot;--com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item12 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\calibration\test_8080.asm&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --errorlog --processor=8080"/>
-        <Item13 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\8080\monitor.asm&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --errorlog --processor=8080"/>
-        <Item14 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\8080\tunnel.asm&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --errorlog --processor=8080"/>
-        <Item15 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\8080\tunnel.asm&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --errorlog"/>
-        <Item16 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --errorlog"/>
-        <Item17 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test.z80&quot; --com --hex --verbose=3 --listing --map --include=C:\temp --errorlog"/>
-        <Item18 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\sieve.z80&quot; --com --hex --verbose=3 --listing --map --include=C:\temp --errorlog"/>
-        <Item19 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\sieve.z80&quot; --com --hex --verbose=4 --listing --map --include=C:\temp --errorlog"/>
-        <Item20 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\sieve.z80&quot; --com --verbose=4 --listing --map --include=C:\temp --errorlog"/>
+        <Item1 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_colon_optional.z80&quot; --case-sensitive=1 --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
+        <Item2 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_colon_mandatory.z80&quot; --case-sensitive=1 --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
+        <Item3 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_case.z80&quot; --case-sensitive=1 --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
+        <Item4 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_case.z80&quot; --case-sensitive=0 --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
+        <Item5 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_macro.z80&quot; --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
+        <Item6 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_if.z80&quot; --verbose=5 --listing --map --include=C:\temp --processor=z80 --case-sensitive=1"/>
+        <Item7 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\binaries\debug\win64-x86_64\test.asm&quot; --verbose=5 --listing --map --include=C:\temp --processor=z80 --case-sensitive=1"/>
+        <Item8 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\binaries\debug\win64-x86_64\test.asm&quot; --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item9 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_repeat.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item10 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\calibration\test_z80.asm&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item11 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_ifdef.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item12 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_while.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item13 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_if.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item14 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\if_test.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item15 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\if_test.z80&quot;--com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item16 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\calibration\test_8080.asm&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --errorlog --processor=8080"/>
+        <Item17 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\8080\monitor.asm&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --errorlog --processor=8080"/>
+        <Item18 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\8080\tunnel.asm&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --errorlog --processor=8080"/>
+        <Item19 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\8080\tunnel.asm&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --errorlog"/>
+        <Item20 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --errorlog"/>
       </List>
+      <List Name="WorkingDirectory" Type="File" Count="1"/>
     </HistoryLists>
   </ProjectSession>
   <Debugging>
-    <BreakPoints>
-      <Item>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="units\uassembler80.pas"/>
-        <Line Value="1125"/>
-      </Item>
-      <Item>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="units\uassembler80.pas"/>
-        <Line Value="953"/>
-      </Item>
-    </BreakPoints>
     <Watches>
       <Item>
         <Expression Value="_label"/>

@@ -108,6 +108,7 @@ type
     function ActFuncDefined(_parser: TLCGParser): TLCGParserStackEntry;
     function ActFuncHigh(_parser: TLCGParser): TLCGParserStackEntry;
     function ActFuncIif(_parser: TLCGParser): TLCGParserStackEntry;
+    function ActFuncLength(_parser: TLCGParser): TLCGParserStackEntry;
     function ActFuncLow(_parser: TLCGParser): TLCGParserStackEntry;
     function ActFuncPos(_parser: TLCGParser): TLCGParserStackEntry;
     function ActFuncValue(_parser: TLCGParser): TLCGParserStackEntry;
@@ -280,7 +281,7 @@ begin
   FCmdList := TCommandList.Create;
   RegisterCommands;
   FPreparser := TPreparser.Create(FCmdList, FInstructionList);
-  FPreparser.ForceColon := True;
+  FPreparser.ForceColon := False;
   FSymbolTable := TSymbolTable.Create;
   FSymbolTable.MixedCase := False;
   FIncludeStack := TIncludeStack.Create;
@@ -586,6 +587,15 @@ begin
     Result := ParserM2;
     Result.Source := SourceCombine2(-6, -2);
   end;
+end;
+
+function TAssembler80.ActFuncLength(_parser: TLCGParser): TLCGParserStackEntry;
+begin
+  NeedString(-2, 'for LENGTH() function');
+  Result.BufInt := Length(ParserM2.Buf);
+  Result.BufType := pstINT32;
+  Result.Buf := IntToStr(Result.BufInt);
+  Result.Source := SourceCombine1(-2);
 end;
 
 function TAssembler80.ActFuncLow(_parser: TLCGParser): TLCGParserStackEntry;
@@ -1607,12 +1617,12 @@ begin
       FDefMacro.Headings.Clear;
       FDefMacro.Params.Clear;
       FDefMacro.Content.Clear;
-      if FCaseSensitive then
+      if not FCaseSensitive then
         FDefMacro.Name := UpperCase(FDefMacro.Name);
       for i := 0 to _preparser.Count-1 do
         begin
           payload := _preparser.Items[i].Payload;
-          if FCaseSensitive then
+          if not FCaseSensitive then
             payload := UpperCase(payload);
           FDefMacro.Headings.Add(payload);
         end;
@@ -1884,8 +1894,12 @@ var i,j: integer;
     p: integer;
     serial: integer;
     param:  string;
+    repl_flags: TReplaceFlags;
 begin
   serial := FMacroList.AllocateSerial;
+  repl_flags := [rfReplaceAll];
+  if not FCaseSensitive then
+    repl_flags := repl_flags + [rfIgnoreCase];
   for i := 0 to macro_entry.Content.Count-1 do
     begin
       s := macro_entry.Content[i];
@@ -1899,9 +1913,12 @@ begin
           if j >= macro_entry.Params.Count then
             Exit;
           param := '{' + macro_entry.Headings[j] + '}';
-          p := Pos(param,s);
+          if FCaseSensitive then
+            p := Pos(param,s)
+          else
+            p := Pos(param,UpperCase(s));
           if p > 0 then
-            s := StringReplace(s,param,macro_entry.Params[j],[rfReplaceAll]);
+            s := StringReplace(s,param,macro_entry.Params[j],repl_flags);
         end;
       AssembleLine(s);
     end;
@@ -2453,6 +2470,7 @@ begin
   RegisterProc('ActFuncDefined', @ActFuncDefined, _procs);
   RegisterProc('ActFuncHigh', @ActFuncHigh, _procs);
   RegisterProc('ActFuncIif', @ActFuncIif, _procs);
+  RegisterProc('ActFuncLength', @ActFuncLength, _procs);
   RegisterProc('ActFuncLow', @ActFuncLow, _procs);
   RegisterProc('ActFuncPos', @ActFuncPos, _procs);
   RegisterProc('ActFuncValue', @ActFuncValue, _procs);

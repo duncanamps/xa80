@@ -1,0 +1,33 @@
+;
+; TEST_COLON_MANDATORY.Z80
+;
+; Test for mandatory colons
+;
+; Duncan Munro
+; 07/06/2023
+;
+
+ORG			0x200
+
+;
+; Define labels with optional colons to see if they are OK
+; Check test_colon_mandatory.map to ensure they are all created
+; OK
+;
+
+LABEL1:		EQU		1		// Colon not needed but shouldn't fail either
+LABEL2:		EQU		2		// Ditto
+LABEL3		EQU		3
+
+PROG:		LD		B,2
+			LDIR
+
+DELAY:		MACRO	Cycles	// Put colon on MACRO to see if OK
+			LD		B,{Cycles}
+DLOOP{#}:	NOP
+			DJNZ	DLOOP{#}
+			ENDM
+			
+			DELAY	18
+			
+		END

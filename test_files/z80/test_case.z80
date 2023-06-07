@@ -1,0 +1,41 @@
+;
+; TEST_CASE.Z80
+;
+; Test the case sensitivity of labels, parameters etc.
+;
+;      ****** 
+; This *must* be assembled with --case-sensitive=1
+;      ******
+;
+; Duncan Munro
+; 07/06/2023
+;
+
+ORG			0x200
+
+;
+; Define labels with different cases
+; Check test_case.map to ensure they are all created
+;
+
+LABEL		EQU		1
+Label		EQU		2
+label		EQU		3
+
+			IF LABEL == label
+			  MSGERROR "Program error - labels should not be identical"
+			ENDIF
+		
+;
+; Test if macro expansion parameters are case sensitive
+;
+
+DELAY		MACRO	Cycles
+			LD		B,{Cycles}
+DLOOP{#}:	NOP
+			DJNZ	DLOOP{#}
+			ENDM
+			
+			DELAY	18
+			
+		END

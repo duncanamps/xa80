@@ -1,0 +1,19 @@
+;
+; TEST_COMPARE.Z80
+;
+; Test the comparison operators
+;
+; Duncan Munro
+; 07/06/2023
+;
+
+ORG		0x200
+
+; Test string compares
+
+		DB		"Duncan" < "Fred"		// 01
+		DB		"Duncan" < "Duncam"		// 00
+		DB		"Duncan" < "Duncaz"		// 01
+		DB		"Duncan" == "DUNCAN"	// 00
+					
+		END

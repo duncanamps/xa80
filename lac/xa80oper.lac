@@ -111,6 +111,7 @@ F_HEX				= MIXED("HEX(")			keyword;
 F_HIGH				= MIXED("HIGH(")		keyword;
 F_IIF				= MIXED("IIF(")			keyword;
 F_LEFT				= MIXED("LEFT(")		keyword;
+F_LENGTH			= MIXED("LENGTH(")		keyword;
 F_LOW				= MIXED("LOW(")			keyword;
 F_LOWER				= MIXED("LOWER(")		keyword;
 F_MID				= MIXED("MID(")			keyword;
@@ -210,6 +211,7 @@ F_VERSION			= MIXED("VERSION()")	keyword;
 					| F_DEFINED T_SYMBOLDEF ")"						# ActFuncDefined
 					| F_HIGH <expression> ")"						# ActFuncHigh
 					| F_IIF <expression> "," <expression> "," <expression> ")" # ActFuncIif
+					| F_LENGTH <expression> ")"						# ActFuncLength
 					| F_LOW <expression> ")"						# ActFuncLow
 					| F_POS <expression> "," <expression> ")"		# ActFuncPos
 					| F_VALUE <expression> ")"						# ActFuncValue
