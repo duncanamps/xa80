@@ -19,11 +19,12 @@ XA80 is a command line tool that allows the cross assembly of source files aimed
 
 Here are some of the key features of XA80:
 
+* Open source
 * Two pass assembler
 * Supports mnemonics from different processors (8080, 8085, Z80, Z180)
 * Opcode compiler so you can add your own secret/hidden instructions and extend to other processor variants in the "family"
-* Macro capability with nested expansion of macros allowed - To be implemented
-* Conditional assembly with IF / IFDEF / IFNDEF statements - To be implemented
+* Macro capability with nested expansion of macros allowed
+* Conditional assembly with IF / IFDEF / IFNDEF statements
 * Full expression evaluator with many functions and string handling capability
 * Rich set of command line parameters
 * XA80 Environment variable for commonly used parameters
