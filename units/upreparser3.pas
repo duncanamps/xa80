@@ -20,9 +20,9 @@ uses
 type
   TPreparser = class(TPreparserBase)
     private
+      FCmdFlags:          TCommandFlags;
       FCommandIndex:      integer;
       FCommandList:       TCommandList;
-      FContainsEQU:       boolean;
       FDefiningMacro:     boolean;
       FDFA:               TPreparserDFA;
       FErrorMsg:          string;
@@ -58,6 +58,7 @@ type
       destructor Destroy; override;
       procedure Init;
       function  Parse(_input: string): boolean;
+      property CmdFlags:         TCommandFlags    read FCmdFlags;
       property CommandIndex:     integer          read FCommandIndex;
       property CommandList:      TCommandList     read FCommandList    write FCommandList;
       property DefiningMacro:    boolean          read FDefiningMacro  write SetDefiningMacro;
@@ -159,8 +160,7 @@ begin
                 else
                   begin
                     rec.State := ppCommand;
-                    if (UpperCase(cmd) = 'EQU') or (cmd = '=') then
-                      FContainsEQU := True;
+                    FCmdFlags := FCommandList[token - FDFA.OffsetCommand].CommandFlags;
                   end;
               end
             else
@@ -217,7 +217,7 @@ begin
     _haslabel := True  // Must be a label if in first position
   else
     begin
-      if FContainsEQU then
+      if cfEQU in FCmdFlags then
         begin
           while (_index < Count) and (Items[_index].State = psWhitespace) do
             Inc(_index);
@@ -391,9 +391,9 @@ end;
 
 procedure TPreparser.Init;
 begin
+  FCmdFlags      := [];
   FErrorMsg      := '';
   FLabelX        := '';
-  FContainsEqu   := False;
   FCommandIndex  := -1;
   FOpcodeIndex   := -1;
   FMacroIndex    := -1;

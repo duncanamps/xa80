@@ -910,13 +910,14 @@ begin
   if idx < 0 then
     // Symbol not found, we should add a placeholder for it
     // But not if we're in a failed IF statement etc.
+    // Or if preparser CmdFlags contains cfNoPlaceHolder
     begin
       if FPreparser.DFA.IsReserved(Name) then
         ErrorObj.Show(ltError, E2030_USING_RESERVED_AS_LABEL, [Name]);
       Result.BufInt := 0; // Assume a forward address for now
       Result.BufType := pstINT32;
       Result.Source := pssUndefined;
-      if FSolGenerate then
+      if FSolGenerate and (not (cfNoPlaceholder in FPreparser.CmdFlags)) then
         FSymbolTable.Add(Name, stAddress, 0, '', False, True);
     end
   else
@@ -1069,7 +1070,9 @@ begin
     ErrorObj.Show(ltError, E2037_CODE_AFTER_END);
   // Process commands if available
   if command_index >= 0 then
-    FCmdList[command_index].CommandExec(labelx, FPreparser);
+    if FSolGenerate or (cfBypass in FCmdList[command_index].CommandFlags) then
+      if (cfDuringMD in FCmdList[command_index].CommandFlags) or (not FDefiningMacro) then
+        FCmdList[command_index].CommandExec(labelx, FPreparser);
   // Assemble opcodes if available
   if (opcode_index >= 0) and FSolGenerate and (not FDefiningMacro) then
   begin
@@ -1328,8 +1331,10 @@ end;
 
 procedure TAssembler80.CmdCPU(const _label: string; _preparser: TPreparserBase);
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   if FPass = 1 then
     ErrorObj.Show(ltWarning, W1002_DIRECTIVE_IGNORED, ['CPU']);
 end;
@@ -1345,8 +1350,10 @@ var
   j: integer;
   s: string;
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   // Define bytes
   // There should be one or more operands
   CheckOperandCount(1, 9999);
@@ -1376,8 +1383,10 @@ var
   bcount: integer;
   bval: integer;
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   // Define storage
   // Two forms of this command:
   //    DS <storagesize>
@@ -1407,8 +1416,10 @@ var
   j: integer;
   s: string;
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   // Define words
   // There should be one or more operands
   CheckOperandCount(1, 9999);
@@ -1434,8 +1445,10 @@ var
   entry: TAsmStackEntry;
 begin
   // Should be no operands
+  {
   if FDefiningMacro then
     Exit;
+  }
   CheckOperandCount(0, 0);
   if FAsmStack.TOStype <> setIf then
     ErrorObj.Show(ltError, E2049_UNEXPECTED_ELSE);
@@ -1450,8 +1463,10 @@ end;
 procedure TAssembler80.CmdEND(const _label: string; _preparser: TPreparserBase);
 begin
   // There should be no operands
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   CheckOperandCount(0, 0);
   FEnded := True;
 end;
@@ -1461,8 +1476,10 @@ var
   entry: TAsmStackEntry;
 begin
   // Should only be no operands
+  {
   if FDefiningMacro then
     Exit;
+  }
   CheckOperandCount(0, 0);
   if FAsmStack.TOStype <> setIf then
     ErrorObj.Show(ltError, E2048_UNEXPECTED_ENDIF);
@@ -1472,8 +1489,10 @@ end;
 procedure TAssembler80.CmdENDM(const _label: string; _preparser: TPreparserBase);
 var newobj: TMacroEntry;
 begin
+  {
   if not FDefiningMacro then
     ErrorObj.Show(ltError,E2055_UNEXPECTED_ENDM);
+  }
   if FPass = 1 then
     begin
       if FPreparser.LabelX <> '' then
@@ -1502,8 +1521,10 @@ end;
 procedure TAssembler80.CmdENDR(const _label: string; _preparser: TPreparserBase);
 var entry: TAsmStackEntry;
 begin
+  {
   if FDefiningMacro then
     Exit;
+  }
   // Should only be no operands
   CheckOperandCount(0, 0);
   if FAsmStack.TOStype <> setRepeat then
@@ -1525,8 +1546,10 @@ procedure TAssembler80.CmdENDW(const _label: string; _preparser: TPreparserBase)
 var
   entry: TAsmStackEntry;
 begin
+  {
   if  FDefiningMacro then
     Exit;
+  }
   // Should only be no operands
   CheckOperandCount(0, 0);
   if FAsmStack.TOStype <> setWhile then
@@ -1543,15 +1566,19 @@ end;
 
 procedure TAssembler80.CmdEQU(const _label: string; _preparser: TPreparserBase);
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   EQUCore(_label, _preparser, False);
 end;
 
 procedure TAssembler80.CmdEQU2(const _label: string; _preparser: TPreparserBase);
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   EQUCore(_label, _preparser, True);
 end;
 
@@ -1567,8 +1594,10 @@ procedure TAssembler80.CmdIF(const _label: string; _preparser: TPreparserBase);
 var
   entry: TAsmStackEntry;
 begin
+  {
   if FDefiningMacro then
     Exit;
+  }
   // Should only be one operand
   CheckOperandCount(1, 1);
   CheckOperandInteger(0, -32767, 65535);
@@ -1584,8 +1613,10 @@ end;
 
 procedure TAssembler80.CmdINCLUDE(const _label: string; _preparser: TPreparserBase);
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   // Should only be one operand
   CheckOperandCount(1, 1);
   if FPreparser[0].DataType <> pstString then
@@ -1595,8 +1626,10 @@ end;
 
 procedure TAssembler80.CmdLISTON(const _label: string; _preparser: TPreparserBase);
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   // Turn listings on
   // There should be no operands
   CheckOperandCount(0, 0);
@@ -1607,8 +1640,10 @@ procedure TAssembler80.CmdMACRO(const _label: string; _preparser: TPreparserBase
 var i: integer;
     payload: string;
 begin
+  {
   if FDefiningMacro then
     ErrorObj.Show(ltError,E2056_MACRO_IN_MACRO_DEFINE);
+  }
   DefiningMacro := True;
   if FPass = 1 then
     begin
@@ -1632,8 +1667,10 @@ end;
 
 procedure TAssembler80.CmdMSGERROR(const _label: string; _preparser: TPreparserBase);
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   // Issue an error message
   // There should be 1 operand (numeric or string)
   CheckOperandCount(1, 1);
@@ -1646,8 +1683,10 @@ end;
 
 procedure TAssembler80.CmdMSGINFO(const _label: string; _preparser: TPreparserBase);
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   // Issue an info message
   // There should be 1 operand (numeric or string)
   CheckOperandCount(1, 1);
@@ -1660,8 +1699,10 @@ end;
 
 procedure TAssembler80.CmdMSGWARNING(const _label: string; _preparser: TPreparserBase);
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   // Issue a warning message
   // There should be 1 operand (numeric or string)
   CheckOperandCount(1, 1);
@@ -1674,8 +1715,10 @@ end;
 
 procedure TAssembler80.CmdLISTOFF(const _label: string; _preparser: TPreparserBase);
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   // Turn listings off
   // There should be no operands
   CheckOperandCount(0, 0);
@@ -1684,8 +1727,10 @@ end;
 
 procedure TAssembler80.CmdWARNOFF(const _label: string; _preparser: TPreparserBase);
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   // Turn warnings off
   // There should be no operands
   CheckOperandCount(0, 0);
@@ -1694,8 +1739,10 @@ end;
 
 procedure TAssembler80.CmdORG(const _label: string; _preparser: TPreparserBase);
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   // Set the origin for the assembly
   // There should be one and only one operand and no label
   CheckOperandCount(1, 1);
@@ -1714,8 +1761,10 @@ procedure TAssembler80.CmdREPEAT(const _label: string; _preparser: TPreparserBas
 var
   entry: TAsmStackEntry;
 begin
+  {
   if FDefiningMacro then
     Exit;
+  }
   // Should only be one operand
   CheckOperandCount(1, 1);
   CheckOperandInteger(0, 0, 65535);
@@ -1739,8 +1788,10 @@ end;
 
 procedure TAssembler80.CmdTITLE(const _label: string; _preparser: TPreparserBase);
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   // Set the title
   // There should one string operand containing the title
   CheckOperandCount(1, 1);
@@ -1758,8 +1809,10 @@ end;
 
 procedure TAssembler80.CmdWARNON(const _label: string; _preparser: TPreparserBase);
 begin
+  {
   if (not FSolGenerate) or FDefiningMacro then
     Exit;
+  }
   // Turn warnings back on
   // There should be no operands
   CheckOperandCount(0, 0);
@@ -1770,8 +1823,10 @@ procedure TAssembler80.CmdWHILE(const _label: string; _preparser: TPreparserBase
 var
   entry: TAsmStackEntry;
 begin
+  {
   if FDefiningMacro then
     Exit;
+  }
   // Should only be one operand
   CheckOperandCount(1, 1);
   CheckOperandInteger(0, -32767, 65535);
@@ -2440,42 +2495,43 @@ begin
       [RuleIndex, RuleProcs[RuleIndex]]);
 end;
 
+
 procedure TAssembler80.RegisterCommands;
 begin
-  FCmdList.RegisterCommand('=', @CmdEQU2);
-  FCmdList.RegisterCommand('CODE', @CmdCODE);
-  FCmdList.RegisterCommand('CPU', @CmdCPU);
-  FCmdList.RegisterCommand('DATA', @CmdDATA);
-  FCmdList.RegisterCommand('DB', @CmdDB);
-  FCmdList.RegisterCommand('DEFB', @CmdDB);
-  FCmdList.RegisterCommand('DEFS', @CmdDS);
-  FCmdList.RegisterCommand('DEFW', @CmdDW);
-  FCmdList.RegisterCommand('DS', @CmdDS);
-  FCmdList.RegisterCommand('DW', @CmdDW);
-  FCmdList.RegisterCommand('ELSE', @CmdELSE);
-  FCmdList.RegisterCommand('END', @CmdEND);
-  FCmdList.RegisterCommand('ENDIF', @CmdENDIF);
-  FCmdList.RegisterCommand('ENDM', @CmdENDM);
-  FCmdList.RegisterCommand('ENDR', @CmdENDR);
-  FCmdList.RegisterCommand('ENDW', @CmdENDW);
-  FCmdList.RegisterCommand('EQU', @CmdEQU);
-  FCmdList.RegisterCommand('EXTERN', @CmdEXTERN);
-  FCmdList.RegisterCommand('GLOBAL', @CmdGLOBAL);
-  FCmdList.RegisterCommand('IF', @CmdIF);
-  FCmdList.RegisterCommand('INCLUDE', @CmdINCLUDE);
-  FCmdList.RegisterCommand('LISTOFF', @CmdLISTOFF);
-  FCmdList.RegisterCommand('LISTON', @CmdLISTON);
-  FCmdList.RegisterCommand('MACRO', @CmdMACRO);
-  FCmdList.RegisterCommand('MSGINFO', @CmdMSGINFO);
-  FCmdList.RegisterCommand('MSGERROR', @CmdMSGERROR);
-  FCmdList.RegisterCommand('MSGWARNING', @CmdMSGWARNING);
-  FCmdList.RegisterCommand('ORG', @CmdORG);
-  FCmdList.RegisterCommand('REPEAT', @CmdREPEAT);
-  FCmdList.RegisterCommand('TITLE', @CmdTITLE);
-  FCmdList.RegisterCommand('UDATA', @CmdUDATA);
-  FCmdList.RegisterCommand('WHILE', @CmdWHILE);
-  FCmdList.RegisterCommand('WARNOFF', @CmdWARNOFF);
-  FCmdList.RegisterCommand('WARNON', @CmdWARNON);
+  FCmdList.RegisterCommand('=',          [cfLabel,cfEQU],           @CmdEQU2);
+  FCmdList.RegisterCommand('CODE',       [],                        @CmdCODE);
+  FCmdList.RegisterCommand('CPU',        [],                        @CmdCPU);
+  FCmdList.RegisterCommand('DATA',       [],                        @CmdDATA);
+  FCmdList.RegisterCommand('DB',         [cfLabel],                 @CmdDB);
+  FCmdList.RegisterCommand('DEFB',       [cfLabel],                 @CmdDB);
+  FCmdList.RegisterCommand('DEFS',       [cfLabel],                 @CmdDS);
+  FCmdList.RegisterCommand('DEFW',       [cfLabel],                 @CmdDW);
+  FCmdList.RegisterCommand('DS',         [cfLabel],                 @CmdDS);
+  FCmdList.RegisterCommand('DW',         [cfLabel],                 @CmdDW);
+  FCmdList.RegisterCommand('ELSE',       [cfBypass],                @CmdELSE);
+  FCmdList.RegisterCommand('END',        [],                        @CmdEND);
+  FCmdList.RegisterCommand('ENDIF',      [cfBypass],                @CmdENDIF);
+  FCmdList.RegisterCommand('ENDM',       [cfDuringMD],              @CmdENDM);
+  FCmdList.RegisterCommand('ENDR',       [cfBypass],                @CmdENDR);
+  FCmdList.RegisterCommand('ENDW',       [cfBypass],                @CmdENDW);
+  FCmdList.RegisterCommand('EQU',        [cfLabel,cfEQU],           @CmdEQU);
+  FCmdList.RegisterCommand('EXTERN',     [],                        @CmdEXTERN);
+  FCmdList.RegisterCommand('GLOBAL',     [],                        @CmdGLOBAL);
+  FCmdList.RegisterCommand('IF',         [cfNoPlaceholder,cfBypass],@CmdIF);
+  FCmdList.RegisterCommand('INCLUDE',    [],                        @CmdINCLUDE);
+  FCmdList.RegisterCommand('LISTOFF',    [],                        @CmdLISTOFF);
+  FCmdList.RegisterCommand('LISTON',     [],                        @CmdLISTON);
+  FCmdList.RegisterCommand('MACRO',      [cfNoPlaceholder,cfLabel,cfDuringMD], @CmdMACRO);
+  FCmdList.RegisterCommand('MSGINFO',    [],                        @CmdMSGINFO);
+  FCmdList.RegisterCommand('MSGERROR',   [],                        @CmdMSGERROR);
+  FCmdList.RegisterCommand('MSGWARNING', [],                        @CmdMSGWARNING);
+  FCmdList.RegisterCommand('ORG',        [],                        @CmdORG);
+  FCmdList.RegisterCommand('REPEAT',     [cfNoPlaceholder,cfBypass],@CmdREPEAT);
+  FCmdList.RegisterCommand('TITLE',      [],                        @CmdTITLE);
+  FCmdList.RegisterCommand('UDATA',      [],                        @CmdUDATA);
+  FCmdList.RegisterCommand('WHILE',      [cfNoPlaceholder,cfBypass],@CmdWHILE);
+  FCmdList.RegisterCommand('WARNOFF',    [],                        @CmdWARNOFF);
+  FCmdList.RegisterCommand('WARNON',     [],                        @CmdWARNON);
 end;
 
 procedure TAssembler80.RegisterProcs;

@@ -36,12 +36,31 @@ type
 
   end;
 
+  //  Command flags:
+  //
+  //    cfNoPlaceholder used for commands which shouldn't allow a placeholder
+  //                    to be created. e.g. MACRO as these are params, not
+  //                    labels; and IF/WHILE/REPEAT as the contents should be
+  //                    known on pass 1 anyway
+  //    cfBypass        During conditional assembly, the cfBypass flag allows
+  //                    a "non processing" situation to be overridden - we need
+  //                    to know when an ELSE or ENDIF appears
+  //    cfLabel         Specifies if a label is mandatory for this command,
+  //                    otherwise it's completely unwelcome
+  //    cfDuringMD      Execute command during a Macro Definition, everything
+  //                    else is blocked from being run in that phase
+
+  TCommandFlag = (cfNoPlaceholder,cfEQU,cfBypass,cfLabel,cfDuringMD);
+
+  TCommandFlags = set of TCommandFlag;
+
   TCommandExec = procedure (const _label: string; _operandlist: TPreparserBase)  of object;
 
   TCommandObj = class(TObject)
     public
-      CommandExec: TCommandExec;
-      CommandName: string;
+      CommandName:  string;
+      CommandFlags: TCommandFlags;
+      CommandExec:  TCommandExec;
   end;
 
   TCommandList = class(specialize TObjectList<TCommandObj>)
@@ -51,7 +70,7 @@ type
     public
       constructor Create;
       procedure PopulateStringList(_sl: TStringList);
-      function RegisterCommand(const _cmdname: string; _cmdexec: TCommandExec): integer;
+      function RegisterCommand(const _cmdname: string; _cmdflags: TCommandFlags; _cmdexec: TCommandExec): integer;
       property SymbolTable: TSymbolTable read FSymbolTable write FSymbolTable;
   end;
 
@@ -75,12 +94,13 @@ begin
     _sl.Add(obj.CommandName);
 end;
 
-function TCommandList.RegisterCommand(const _cmdname: string; _cmdexec: TCommandExec): integer;
+function TCommandList.RegisterCommand(const _cmdname: string; _cmdflags: TCommandFlags; _cmdexec: TCommandExec): integer;
 var obj: TCommandObj;
 begin
   obj := TCommandObj.Create;
-  obj.CommandName := _cmdname;
-  obj.CommandExec := _cmdexec;
+  obj.CommandName  := _cmdname;
+  obj.CommandFlags := _cmdflags;
+  obj.CommandExec  := _cmdexec;
   Result := Count;
   Add(obj);
 end;
