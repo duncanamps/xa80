@@ -1,0 +1,37 @@
+;
+; TEST_DEFINED.Z80
+;
+; Test that the defined function is operating correctly
+;
+; Duncan Munro
+; 08/06/2023
+;
+
+ORG			0x200
+
+;
+; Make sure that an item marked as not defined in pass
+; 1 doesn't suddenly become defined in pass2
+;
+
+PREDEF	EQU		20
+
+		IF DEFINED(PREDEF)
+		  MSGINFO 	"PREDEF is defined"			// Should output
+		  DB		1
+		ELSE
+		  MSGINFO "PREDEF is NOT defined"		// Should not output
+		  DB		0
+		ENDIF
+
+		IF DEFINED(POSTDEF)
+		  MSGINFO 	"POSTDEF is defined"		// Should not output
+		  DB		1
+		ELSE
+		  MSGINFO 	"POSTDEF is NOT defined"	// Should output
+		  DB		0
+		ENDIF
+
+POSTDEF	EQU		20
+			
+		END

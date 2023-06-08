@@ -473,7 +473,7 @@ begin
       if Items[i].ParamName <> '' then
         long_opt := long_opt + '=' + Items[i].ParamName;
       desc := Items[i].Description;
-      WriteLn(Format('%-7s %-16s %s',[short_opt,long_opt,desc]));
+      WriteLn(Format('%-7s %-20s %s',[short_opt,long_opt,desc]));
     end;
   WriteLn;
 end;

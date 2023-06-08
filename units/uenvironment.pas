@@ -96,8 +96,8 @@ type
 
   TEnvComparer = specialize IComparer<TEnvironmentElement>;
 
-  TShowAndQuit = (saqNone,saqHelp,saqDFAE,saqDFAP,saqDistribution,saqEnvironment,
-                  saqInstructions,saqNFAE,saqNFAP,saqOperators,saqProcessors,
+  TShowAndQuit = (saqNone,saqHelp,saqDistribution,saqEnvironment,
+                  saqInstructions,saqProcessors,
                   saqReserved,saqVersion,saqWarranty);
 
   TEnvironment = class(specialize TSortedList<TEnvironmentElement>)
@@ -378,14 +378,9 @@ var cmd_list: TCommandList;
       begin
         case UpperCase(_data) of
           '':             ShowAndQuit := saqHelp;
-          'DFAE':         ShowAndQuit := saqDFAE;
-          'DFAP':         ShowAndQuit := saqDFAP;
           'DISTRIBUTION': ShowAndQuit := saqDistribution;
           'ENVIRONMENT':  ShowAndQuit := saqEnvironment;
           'INSTRUCTIONS': ShowAndQuit := saqInstructions;
-          'NFAE':         ShowAndQuit := saqNFAE;
-          'NFAP':         ShowAndQuit := saqNFAP;
-          'OPERATORS':    ShowAndQuit := saqOperators;
           'PROCESSORS':   ShowAndQuit := saqProcessors;
           'RESERVED':     ShowAndQuit := saqReserved;
           'VERSION':      ShowAndQuit := saqVersion;

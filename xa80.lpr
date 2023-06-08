@@ -53,14 +53,9 @@ const
               '<il> is the include list. Like with <id> ; can be used to separate.' + CRLF +
               CRLF +
               '<tp> topics are case insensitive and can be:' + CRLF +
-              '  DFAE         Show DFA for Expression analyser' + CRLF +
-              '  DFAP         Show DFA for Preparser' + CRLF +
               '  Distribution Show distribution terms for this software' + CRLF +
               '  Environment  Show the environment for the assembler' + CRLF +
               '  Instructions Show the instruction set for the chosen processor' + CRLF +
-              '  NFAE         Show the NFA for the Expression analyser' + CRLF +
-              '  NFAP         Show the NFA for the Preparser' + CRLF +
-              '  Operators    Show the logical and mathematical operators' + CRLF +
               '  Processors   Show the different processors available by default' + CRLF +
               '  Reserved     Show a list of reserved words' + CRLF +
               '  Version      Show the version information for the software' + CRLF +
@@ -108,11 +103,15 @@ type
     procedure Assemble;
     procedure Initialisation;
     procedure ShowAndQuit;
+    procedure ShowDistribution;
     procedure ShowEnvironment;
     procedure ShowHelp;
+    procedure ShowInstructions;
     procedure ShowProcessors;
+    procedure ShowReserved;
     procedure ShowTitle;
     procedure ShowVersion;
+    procedure ShowWarranty;
   end;
 
 
@@ -127,21 +126,21 @@ begin
     EnvObject   := TEnvironment.Create;
     try
       Initialisation;
-      if EnvObject.ShowAndQuit <> saqNone then
-        begin
-          ShowTitle;
-          ShowAndQuit;
-        end
-      else
-        begin // Normal file processing
-          Asm80 := TAssembler80.Create(UpperCase(EnvObject.GetValue('Processor')));
-          Asm80.CaseSensitive := (EnvObject.GetValue('CaseSensitive') <> '0');
-          try
+      Asm80 := TAssembler80.Create(UpperCase(EnvObject.GetValue('Processor')));
+      try
+        if EnvObject.ShowAndQuit <> saqNone then
+          begin
+            ShowTitle;
+            ShowAndQuit;
+          end
+        else
+          begin // Normal file processing
+            Asm80.CaseSensitive := (EnvObject.GetValue('CaseSensitive') <> '0');
             Assemble;
-          finally
-            FreeAndNil(Asm80);
           end;
-        end;
+      finally
+        FreeAndNil(Asm80);
+      end;
     finally
       FreeAndNil(EnvObject);
     end;
@@ -266,21 +265,25 @@ procedure TXA80.ShowAndQuit;
 begin
   case EnvObject.ShowAndQuit of
     saqHelp:          ShowHelp;
-    saqDFAE:          ;
-    saqDFAP:          ;
-    saqDistribution:  ;
+    saqDistribution:  ShowDistribution;
     saqEnvironment:   ShowEnvironment;
-    saqInstructions:  ;
-    saqNFAE:          ;
-    saqNFAP:          ;
-    saqOperators:     ;
+    saqInstructions:  ShowInstructions;
     saqProcessors:    ShowProcessors;
-    saqReserved:      ;
+    saqReserved:      ShowReserved;
     saqVersion:       ShowVersion;
-    saqWarranty:      ;
+    saqWarranty:      ShowWarranty;
     otherwise
       raise Exception.Create(Format('No handler for ShowAndQuit option %s',[GetEnumName(TypeInfo(TShowAndQuit),Ord(EnvObject.ShowAndQuit))]));
   end;
+end;
+
+procedure TXA80.ShowDistribution;
+begin
+  WriteLn('This program is free software: you can redistribute it and/or modify');
+  WriteLn('it under the terms of the GNU General Public License as published by');
+  WriteLn('the Free Software Foundation, either version 3 of the License, or');
+  WriteLn('any later version.');
+  WriteLn;
 end;
 
 procedure TXA80.ShowEnvironment;
@@ -304,6 +307,12 @@ begin
   WriteLn(HELP_INFO);
 end;
 
+procedure TXA80.ShowInstructions;
+begin
+  Asm80.DumpInstructions;
+  WriteLn;
+end;
+
 procedure TXA80.ShowProcessors;
 var i: integer;
 begin
@@ -313,28 +322,24 @@ begin
     WriteLn('    ' + ProcessorList[i]);
 end;
 
+procedure TXA80.ShowReserved;
+begin
+  Asm80.DumpReserved;
+  WriteLn;
+end;
+
 procedure TXA80.ShowTitle;
 begin
   WriteLn;
   WriteLn('XA80 Cross Assembler for x80 processors V' + EnvObject.Version);
-  WriteLn('Copyright (C)2020-2023 Duncan Munro');
+  WriteLn('Copyright (C)2020-' + COPYRIGHT_YEAR + ' Duncan Munro');
   WriteLn;
   if ParamCount = 0 then
     begin
-      WriteLn('This program is free software: you can redistribute it and/or modify');
-      WriteLn('it under the terms of the GNU General Public License as published by');
-      WriteLn('the Free Software Foundation, either version 3 of the License, or');
-      WriteLn('(at your option) any later version.');
-      WriteLn;
-      WriteLn('This program is distributed in the hope that it will be useful,');
-      WriteLn('but WITHOUT ANY WARRANTY; without even the implied warranty of');
-      WriteLn('MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the');
-      WriteLn('GNU General Public License for more details.');
-      WriteLn;
-      WriteLn('You should have received a copy of the GNU General Public License');
-      WriteLn('along with this program.  If not, see <https://www.gnu.org/licenses/>.');
-      WriteLn;
-      WriteLn('Use xa80 --help for more details');
+      WriteLn('This program comes with ABSOLUTELY NO WARRANTY; for details type ''xa80 --show=Warranty''');
+      WriteLn('This is free software, and you are welcome to redistribute it');
+      WriteLn('under certain conditions; type ''xa80 --show=Distribution'' for details.');
+      WriteLn('Use ''xa80 --help'' for further command line options');
       WriteLn;
     end;
 end;
@@ -346,6 +351,16 @@ begin
   WriteLn('Target CPU: ' + {$I %FPCTARGETCPU%});
   WriteLn('Target OS:  ' + {$I %FPCTARGETOS%});
 end;
+
+procedure TXA80.ShowWarranty;
+begin
+  WriteLn('This program is distributed in the hope that it will be useful,');
+  WriteLn('but WITHOUT ANY WARRANTY; without even the implied warranty of');
+  WriteLn('MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the');
+  WriteLn('GNU General Public License for more details.');
+  WriteLn;
+end;
+
 
 begin
   Application:=TXA80.Create(nil);

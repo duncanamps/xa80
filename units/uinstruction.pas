@@ -254,6 +254,7 @@ type
       function  FindNextPrime(_start: integer): integer;
       function  FindOpcode(const _opcode: string; var _index: integer): boolean;
       procedure GetSimpleOperands(_sl: TStringList);
+      procedure GetInstructions(_sl: TStringList);
       procedure LoadFromFile(const _filename: string);
       procedure LoadFromStream(const _stream: TStream);
       procedure LoadFromResource(const _resource: string);
@@ -413,10 +414,10 @@ begin
     end;
   WriteLn;
   // Dump contents of operand list
-  WriteLn(Format('OPERAND LIST (%d items in total - not all may be used)',[Ord(High(TOperandOption))+1]));
+  WriteLn(Format('OPERAND LIST (%d items in total - not all of them may be listed below)',[Ord(High(TOperandOption))+1]));
   for i := 0 to Ord(High(TOperandOption))-1 do
     if FOperandAvailable[TOperandOption(i)] then
-      WriteLn(Format('%d:%s (%s)',[i,OperandStrings[TOperandOption(i)],OperandActual[TOperandOption(i)]]));
+      WriteLn(Format('%d: %s',[i,OperandSanitised[TOperandOption(i)]]));
   WriteLn;
   // Dump contents of instruction list
   sl := TStringList.Create;
@@ -553,6 +554,19 @@ begin
       TryAdd(r.Operand1Index);
       TryAdd(r.Operand2Index);
     end;
+end;
+
+procedure TInstructionList.GetInstructions(_sl: TStringList);
+var i: integer;
+    oo: TOperandOption;
+begin
+  // Get contents of opcode list
+  for i := 0 to FOpcodes.Count-1 do
+    _sl.Add(FOpcodes[i]);
+  // Get contents of operand list
+  for oo in TOperandOption do
+    if FOperandAvailable[oo] and (OperandActual[oo] <> '') then
+      _sl.Add(OperandActual[oo]);
 end;
 
 procedure TInstructionList.LoadFromFile(const _filename: string);

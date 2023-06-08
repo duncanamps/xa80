@@ -34,6 +34,7 @@ uses
 
 
 const
+  COPYRIGHT_YEAR                    = '2023';
   DEFAULT_GRAMMAR_VALUE             = 'XA80';
   DEFAULT_LISTING_MARGIN_LEFT       = 0;
   DEFAULT_LISTING_MARGIN_TOP        = 2;

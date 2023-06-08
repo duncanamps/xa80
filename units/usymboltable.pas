@@ -44,6 +44,7 @@ type
     IValue:       Word;
     SValue:       string;
     CreationPass: integer;
+    DefinedPass:  integer;
     Referenced:   boolean;
     Defined:      boolean;
   end;
@@ -160,6 +161,10 @@ begin
   sym.Referenced   := _referenced;
   sym.SymType      := _datatype;
   sym.CreationPass := FPass;
+  if _defined then
+    sym.DefinedPass := FPass
+  else
+    sym.DefinedPass := 0;
   Add := inherited Add(sym);
   AddHash(sym.Name,Count-1);
 end;
@@ -190,7 +195,7 @@ begin
   idx := IndexOf(_name);
   if idx >= 0 then
     sym := Items[idx];
-  Result := (idx >= 0) and (Items[idx].Defined);
+  Result := (idx >= 0) and (Items[idx].Defined) and (Items[idx].DefinedPass = FPass);
 end;
 
 procedure TSymbolTable.Dump(_strm: TFileStream; const _caption: string);

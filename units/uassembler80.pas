@@ -189,6 +189,7 @@ type
     procedure ConvertOperandToOrd(_index: integer);
     procedure EQUCore(const _label: string; _preparser: TPreparserBase; _allow_redefine: boolean);
     procedure ExpandMacro(macro_entry: TMacroEntry);
+    function GetDFA: TLCGDFA;
     function GetFilenameListing: string;
     function MakeFilename(const _base_asm, _option, _ext: string): string;
     procedure NeedNumber(_index: integer; const _msg: string);
@@ -230,17 +231,16 @@ type
     procedure Assemble(const filename: string);
     procedure AssembleLine(const _s: string);
     procedure AssemblePass(_pass: integer; const filename: string);
-    procedure ShowError(_colno: integer; _logtype: TLCGLogType;
-      _msgno: TMessageNumbers);
-    procedure ShowError(_colno: integer; _logtype: TLCGLogType;
-      _msgno: TMessageNumbers; _args: array of const);
-    procedure ShowErrorToken(_token: TToken; _logtype: TLCGLogType;
-      _msgno: TMessageNumbers);
-    procedure ShowErrorToken(_token: TToken; _logtype: TLCGLogType;
-      _msgno: TMessageNumbers; _args: array of const);
+    procedure DumpInstructions;
+    procedure DumpReserved;
+    procedure ShowError(_colno: integer; _logtype: TLCGLogType; _msgno: TMessageNumbers);
+    procedure ShowError(_colno: integer; _logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
+    procedure ShowErrorToken(_token: TToken; _logtype: TLCGLogType; _msgno: TMessageNumbers);
+    procedure ShowErrorToken(_token: TToken; _logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
     property CaseSensitive:   boolean read FCaseSensitive     write SetCaseSensitive;
     property CurrentFile:     string  read FCurrentFile;
     property DefiningMacro:   boolean read FDefiningMacro     write SetDefiningMacro;
+    property DFA:             TLCGDFA read GetDFA;
     property FilenameAsm:     string  read FFilenameAsm       write SetFilenameAsm;
     property FilenameCom:     string  read FFilenameCom       write FFilenameCom;
     property FilenameError:   string  read FFilenameError     write SetFilenameError;
@@ -910,44 +910,44 @@ begin
   if idx < 0 then
     // Symbol not found, we should add a placeholder for it
     // But not if we're in a failed IF statement etc.
-  begin
-    if FPreparser.DFA.IsReserved(Name) then
-      ErrorObj.Show(ltError, E2030_USING_RESERVED_AS_LABEL, [Name]);
-    Result.BufInt := 0; // Assume a forward address for now
-    Result.BufType := pstINT32;
-    Result.Source := pssUndefined;
-    if FSolGenerate then
-      FSymbolTable.Add(Name, stAddress, 0, '', False, True);
-  end
+    begin
+      if FPreparser.DFA.IsReserved(Name) then
+        ErrorObj.Show(ltError, E2030_USING_RESERVED_AS_LABEL, [Name]);
+      Result.BufInt := 0; // Assume a forward address for now
+      Result.BufType := pstINT32;
+      Result.Source := pssUndefined;
+      if FSolGenerate then
+        FSymbolTable.Add(Name, stAddress, 0, '', False, True);
+    end
   else
-  begin
-    sym := FSymbolTable[idx];
-    sym.Referenced := True;
-    FSymbolTable[idx] := sym;
-    // @@@@@ Set up the variable/constant thing from the symbol table
-    case sym.SymType of
-      stUnknown: begin
-        Result.BufType := pstINT32;
-        Result.BufInt := 0;
-        Result.Source := pssUndefined;
-      end;
-      stAddress: begin
-        Result.BufType := pstINT32;
-        Result.BufInt := sym.IValue;
-        Result.Source := SetSource;
-      end;
-      stWord: begin
-        Result.BufType := pstINT32;
-        Result.BufInt := sym.IValue;
-        Result.Source := SetSource;
-      end;
-      stString: begin
-        Result.BufType := pstString;
-        Result.Buf := sym.SValue;
-        Result.Source := SetSource;
+    begin
+      sym := FSymbolTable[idx];
+      sym.Referenced := True;
+      FSymbolTable[idx] := sym;
+      // @@@@@ Set up the variable/constant thing from the symbol table
+      case sym.SymType of
+        stUnknown: begin
+          Result.BufType := pstINT32;
+          Result.BufInt := 0;
+          Result.Source := pssUndefined;
+        end;
+        stAddress: begin
+          Result.BufType := pstINT32;
+          Result.BufInt := sym.IValue;
+          Result.Source := SetSource;
+        end;
+        stWord: begin
+          Result.BufType := pstINT32;
+          Result.BufInt := sym.IValue;
+          Result.Source := SetSource;
+        end;
+        stString: begin
+          Result.BufType := pstString;
+          Result.Buf := sym.SValue;
+          Result.Source := SetSource;
+        end;
       end;
     end;
-  end;
 end;
 
 procedure TAssembler80.AsmProcessLabel(const _label: string; _command_index: integer);
@@ -969,21 +969,22 @@ begin
     end;
     _index := FSymbolTable.IndexOf(StripColon(_label));
     if (_index >= 0) then
-    begin
-      if (FPass = 1) then
-        // Check for forward reference already defined
-        if (FSymbolTable[_index].SymType = stAddress) and
-          (FSymbolTable[_index].Defined = False) then
-        begin
-          _symbol := FSymbolTable[_index];
-          _symbol.IValue := FOrg;
-          _symbol.Defined := True;
-          ;
-          FSymbolTable[_index] := _symbol;
-        end
-        else
-          ErrorObj.Show(ltError, E2015_CODE_SYMBOL_DEFINED, [_label]);
-    end
+      begin
+        _symbol := FSymbolTable[_index];
+        if (FPass = 1) then
+          // Check for forward reference already defined
+          if (FSymbolTable[_index].SymType = stAddress) and
+            (FSymbolTable[_index].Defined = False) then
+          begin
+            _symbol.IValue := FOrg;
+            _symbol.Defined := True;
+            ;
+          end
+          else
+            ErrorObj.Show(ltError, E2015_CODE_SYMBOL_DEFINED, [_label]);
+        _symbol.DefinedPass := FPass;
+        FSymbolTable[_index] := _symbol;
+      end
     else
       // Add the symbol at the current address
       FSymbolTable.Add(StripColon(_label), stAddress, FOrg, '', True, False);
@@ -1846,6 +1847,33 @@ begin
   ParserStack[ParserSP + _index].BufInt := Ord(ParserStack[ParserSP + _index].Buf[2]);
 end;
 
+procedure TAssembler80.DumpInstructions;
+begin
+  FInstructionList.Dump(True);
+end;
+
+procedure TAssembler80.DumpReserved;
+var sl: TStringList;
+    i: integer;
+begin
+  sl := TStringList.Create;
+  try
+    FCmdList.PopulateStringList(sl);
+    FInstructionList.GetInstructions(sl);
+
+    for i := sl.Count-1 downto 0 do
+      if (sl[i] = '') or (sl[i][1] < 'A') then
+        sl.Delete(i);
+    sl.Sort;
+    WriteLn(Format('RESERVED WORDS (%d ITEMS IN TOTAL)',[sl.Count]));
+    for i := 0 to sl.Count-1 do
+      WriteLn(sl[i]);
+    WriteLn;
+  finally
+    FreeAndNil(sl);
+  end;
+end;
+
 procedure TAssembler80.EQUCore(const _label: string; _preparser: TPreparserBase;
   _allow_redefine: boolean);
 var
@@ -1881,8 +1909,16 @@ begin
     sym.Defined := True;
     case _preparser[0].DataType of
       pstNone: ErrorObj.Show(ltError, E2018_OPERAND_NO_DATA_TYPE, [1]);
-      pstINT32: sym.IValue := _preparser[0].IntValue;
-      pstString: sym.SValue := _preparser[0].StrValue;
+      pstINT32:
+        begin
+          sym.IValue := _preparser[0].IntValue;
+          sym.DefinedPass := FPass;
+        end;
+      pstString:
+        begin
+          sym.SValue := _preparser[0].StrValue;
+          sym.DefinedPass := FPass;
+        end;
     end; // case
     FSymbolTable[_index] := sym;
   end;
@@ -1922,6 +1958,11 @@ begin
         end;
       AssembleLine(s);
     end;
+end;
+
+function TAssembler80.GetDFA: TLCGDFA;
+begin
+  Result := FDFA;
 end;
 
 function TAssembler80.GetFilenameListing: string;
