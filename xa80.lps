@@ -3,7 +3,7 @@
   <ProjectSession>
     <PathDelim Value="\"/>
     <Version Value="12"/>
-    <BuildModes Active="Debug"/>
+    <BuildModes Active="Release"/>
     <Units>
       <Unit>
         <Filename Value="xa80.lpr"/>
@@ -40,7 +40,6 @@
       <Unit>
         <Filename Value="units\uassembler80.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <TopLine Value="1844"/>
         <CursorPos X="4" Y="1867"/>
@@ -153,6 +152,7 @@
       <Unit>
         <Filename Value="units\ucommand.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="7"/>
         <TopLine Value="29"/>
         <CursorPos X="68" Y="53"/>
@@ -385,7 +385,7 @@
       <Define0 Value="CONSOLE_APP"/>
       <Define1 Value="DEBUG_LOGX"/>
     </OtherDefines>
-    <JumpHistory HistoryIndex="29">
+    <JumpHistory HistoryIndex="26">
       <Position>
         <Filename Value="units\upreparser3.pas"/>
         <Caret Line="26" Column="3" TopLine="10"/>
@@ -436,15 +436,7 @@
       </Position>
       <Position>
         <Filename Value="units\upreparser3.pas"/>
-        <Caret Line="26" Column="15" TopLine="553"/>
-      </Position>
-      <Position>
-        <Filename Value="units\upreparser3.pas"/>
         <Caret Line="41" Column="17" TopLine="27"/>
-      </Position>
-      <Position>
-        <Filename Value="units\upreparser3.pas"/>
-        <Caret Line="253" Column="3" TopLine="570"/>
       </Position>
       <Position>
         <Filename Value="units\upreparser3.pas"/>
@@ -469,10 +461,6 @@
       <Position>
         <Filename Value="units\upreparser3.pas"/>
         <Caret Line="60" Column="17" TopLine="45"/>
-      </Position>
-      <Position>
-        <Filename Value="units\upreparser3.pas"/>
-        <Caret Line="476" Column="3" TopLine="556"/>
       </Position>
       <Position>
         <Filename Value="units\upreparser3.pas"/>
