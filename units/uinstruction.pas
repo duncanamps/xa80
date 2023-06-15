@@ -262,6 +262,7 @@ type
       function  OpcodeCount: integer;
       procedure SaveToFile(const _filename: string);
       procedure SaveToStream(const _stream: TStream);
+      procedure Sort;
       function  SimpleOpToOperandOption(const _operand: string): TOperandOption;
   end;
 
@@ -784,6 +785,53 @@ begin
       begin
         Result := i;
       end;
+end;
+
+procedure TInstructionList.Sort;
+var i: integer;
+    sorted: boolean;
+    tmp: TInstructionRec;
+    loops: integer;
+
+  function compare(a,b: integer): integer;
+  var ra, rb: TInstructionRec;
+  begin
+    ra := Items[a];
+    rb := Items[b];
+    if ra.OpcodeIndex > rb.OpcodeIndex then
+      Result := 1
+    else if ra.OpcodeIndex < rb.OpcodeIndex then
+      Result := -1
+    else if ra.Operand1Index > rb.Operand1Index then
+      Result := 1
+    else if ra.Operand1Index < rb.Operand1Index then
+      Result := -1
+    else if ra.Operand2Index > rb.Operand2Index then
+      Result := 1
+    else if ra.Operand2Index < rb.Operand2Index then
+      Result := -1
+    else
+      raise Exception.Create('Multiple entries for the same opcode/operand combination');
+  end;
+
+begin
+  sorted := False;
+  loops := 0;
+  while not sorted do
+    begin
+      sorted := True;
+      for i := 0 to Count-2 do
+        begin
+          if compare(i,i+1) > 0 then
+            begin
+              sorted := False;
+              tmp := Items[i];
+              Items[i] := Items[i+1];
+              Items[i+1] := tmp;
+            end;
+        end;
+      Inc(loops);
+    end;
 end;
 
 end.

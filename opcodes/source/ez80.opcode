@@ -1,0 +1,759 @@
+;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+;
+;  WORK IN PROGRESS - DO NOT COMPILE OR USE
+;
+;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+
+;
+; Opcode map for Duncan's Cross Assembler xa80
+;
+; EZ80 opcode file - 12/06/2023
+;
+; Each line consists of 2 fields seperated by the vertical brace "|"
+;
+;   1. Instruction
+;   2. Code
+;
+;
+; INSTRUCTION FIELD
+; -----------------
+;
+; The instruction field identifies which instruction the assembler should
+; try to match, and can consist of between 1 and 3 elements:
+;
+;		Mnemonic
+;		Mnemonic Operand1
+;		Mnemonic Operand1 Operand2
+;
+; Mnemonic is between 2 and 5 characters. For example: MOV, LD or CCF
+;
+; Operand1 and Operand2 if present, can be one of:
+;
+;   A AF AF_ B BC BC_IND C C_IND D DE DE_IND E H HL HL_IND I IX IXPD_IND 
+;   IX_IND IY IYPD_IND IY_IND L M NC NZ P PE PO PSW R SP SP_IND U16 U16_IND
+;   U8 U8_IND Z
+;
+; Not all operands are used with all processors.
+;
+; Most are obvious, e.g. BC is the BC register pair. Anything with _IND on the
+; end is an indirect operand where the operand specifies the address of memory
+; or a port to which the fetch or store is made. For example, HL_IND would be
+; represented in the assembler as (HL).
+;
+; Other ones are U8/U8_IND for unsigned 8 bit and U16/U16_IND for unsigned
+; 16 bit values.
+;
+; Special mentions are IXPD_IND and IYPD_IND which are IX or IY respectively
+; Plus a signed 8 bit Displacement and INDirected. Example would be [IX+3] or
+; [IY+MY_OFFSET]. Also special is AF_ which would represent AF' in the
+; assembler.
+;
+; CODE FIELD
+; ----------
+;
+; A sequence of elements which will generate between 1 and 4 bytes of code
+; depending on the instruction. These elements can be one of:
+;
+; $xx        A hex value, e.g. $ED or $57
+; xxx        A decimal value, e.g. 123
+; %xxxxxxxx  A binary value, e.g. %10100110
+; [p:R8]	 An 8 bit value as a relative range from ORG+2 where p is 
+;		     Operand1 or Operand2
+; [p:U8]	 An 8 bit unsigned value
+; {p:S8]     An 8 bit signed value
+; [p:U16]	 A 16 bit unsigned value output as 2 bytes with the LSB first
+; [p:B3]	 A 3 bit value which can be output on its own or embedded in a
+;			 binary value, for example %101[1:B3]10. If B3 is binary 011
+;			 the generated output will be %10101110
+; [p:RST]	 RST number in 3 bits representing $00,$08,$10...$38
+; [p:IM]     IM 0/1/2 generates $46 / $56 / $5E
+;
+
+	;
+	; Z80 - 8 bit load instructions
+	;
+
+	LD A I          | $ED $57                    
+	LD A R          | $ED $5F                    
+	LD A A          | $7F                        
+	LD A B          | $78                        
+	LD A C          | $79                        
+	LD A D          | $7A                        
+	LD A E          | $7B                        
+	LD A H          | $7C                        
+	LD A L          | $7D                        
+	LD A HL_IND     | $7E                        
+	LD A BC_IND     | $0A                        
+	LD A DE_IND     | $1A                        
+	LD A IXPD_IND   | $DD $7E [2:S8]             
+	LD A IYPD_IND   | $FD $7E [2:S8]             
+	LD A U16_IND    | $3A [2:U16]                
+	LD A U8         | $3E [2:U8]                 
+	LD B A          | $47                        
+	LD B B          | $40                        
+	LD B C          | $41                        
+	LD B D          | $42                        
+	LD B E          | $43                        
+	LD B H          | $44                        
+	LD B L          | $45                        
+	LD B HL_IND     | $46                        
+	LD B IXPD_IND   | $DD $46 [2:S8]             
+	LD B IYPD_IND   | $FD $46 [2:S8]             
+	LD B U8         | $06 [2:U8]                 
+	LD C A          | $4F                        
+	LD C B          | $48                        
+	LD C C          | $49                        
+	LD C D          | $4A                        
+	LD C E          | $4B                        
+	LD C H          | $4C                        
+	LD C L          | $4D                        
+	LD C HL_IND     | $4E                        
+	LD C IXPD_IND   | $DD $4E [2:S8]             
+	LD C IYPD_IND   | $FD $4E [2:S8]             
+	LD C U8         | $0E [2:U8]                 
+	LD D A          | $57                        
+	LD D B          | $50                        
+	LD D C          | $51                        
+	LD D D          | $52                        
+	LD D E          | $53                        
+	LD D H          | $54                        
+	LD D L          | $55                        
+	LD D HL_IND     | $56                        
+	LD D IXPD_IND   | $DD $56 [2:S8]             
+	LD D IYPD_IND   | $FD $56 [2:S8]             
+	LD D U8         | $16 [2:U8]                 
+	LD E A          | $5F                        
+	LD E B          | $58                        
+	LD E C          | $59                        
+	LD E D          | $5A                        
+	LD E E          | $5B                        
+	LD E H          | $5C                        
+	LD E L          | $5D                        
+	LD E HL_IND     | $5E                        
+	LD E IXPD_IND   | $DD $5E [2:S8]             
+	LD E IYPD_IND   | $FD $5E [2:S8]             
+	LD E U8         | $1E [2:U8]                 
+	LD H A          | $67                        
+	LD H B          | $60                        
+	LD H C          | $61                        
+	LD H D          | $62                        
+	LD H E          | $63                        
+	LD H H          | $64                        
+	LD H L          | $65                        
+	LD H HL_IND     | $66                        
+	LD H IXPD_IND   | $DD $66 [2:S8]             
+	LD H IYPD_IND   | $FD $66 [2:S8]             
+	LD H U8         | $26 [2:U8]                 
+	LD L A          | $6F                        
+	LD L B          | $68                        
+	LD L C          | $69                        
+	LD L D          | $6A                        
+	LD L E          | $6B                        
+	LD L H          | $6C                        
+	LD L L          | $6D                        
+	LD L HL_IND     | $6E                        
+	LD L IXPD_IND   | $DD $6E [2:S8]             
+	LD L IYPD_IND   | $FD $6E [2:S8]             
+	LD L U8         | $2E [2:U8]                 
+	LD HL_IND A     | $77                        
+	LD HL_IND B     | $70                        
+	LD HL_IND C     | $71                        
+	LD HL_IND D     | $72                        
+	LD HL_IND E     | $73                        
+	LD HL_IND H     | $74                        
+	LD HL_IND L     | $75                        
+	LD HL_IND U8    | $36 [2:U8]                        
+	LD BC_IND A     | $02                        
+	LD DE_IND A     | $12                        
+	LD IXPD_IND A   | $DD $77 [1:S8]             
+	LD IXPD_IND B   | $DD $70 [1:S8]             
+	LD IXPD_IND C   | $DD $71 [1:S8]             
+	LD IXPD_IND D   | $DD $72 [1:S8]             
+	LD IXPD_IND E   | $DD $73 [1:S8]             
+	LD IXPD_IND H   | $DD $74 [1:S8]             
+	LD IXPD_IND L   | $DD $75 [1:S8]             
+	LD IXPD_IND U8  | $DD $36 [1:S8] [2:U8]      
+	LD IYPD_IND A   | $FD $77 [1:S8]             
+	LD IYPD_IND B   | $FD $70 [1:S8]             
+	LD IYPD_IND C   | $FD $71 [1:S8]             
+	LD IYPD_IND D   | $FD $72 [1:S8]             
+	LD IYPD_IND E   | $FD $73 [1:S8]             
+	LD IYPD_IND H   | $FD $74 [1:S8]             
+	LD IYPD_IND L   | $FD $75 [1:S8]             
+	LD IYPD_IND U8  | $FD $36 [1:S8] [2:U8]      
+	LD U16_IND A    | $32 [1:U16]                
+	LD I A          | $ED $47                    
+	LD R A          | $ED $4F                    
+
+	;
+	; Z80 - 16 bit load instructions
+	;
+
+	POP AF          | $F1                        
+	POP BC          | $C1                        
+	POP DE          | $D1                        
+	POP HL          | $E1                        
+	POP IX          | $DD $E1                    
+	POP IY          | $FD $E1                    
+	PUSH AF         | $F5                        
+	PUSH BC         | $C5                        
+	PUSH DE         | $D5                        
+	PUSH HL         | $E5                        
+	PUSH IX         | $DD $E5                    
+	PUSH IY         | $FD $E5  
+	LD SP HL		| $F9
+	LD SP IX		| $DD $F9
+	LD SP IY        | $FD $F9                  
+	LD BC U16       | $01 [2:U16]                
+	LD DE U16       | $11 [2:U16]                
+	LD HL U16       | $21 [2:U16]                
+	LD SP U16       | $31 [2:U16]                
+	LD IX U16       | $DD $21 [2:U16]            
+	LD IY U16       | $FD $21 [2:U16]            
+	LD BC U16_IND   | $ED $4B [2:U16]            
+	LD DE U16_IND   | $ED $5B [2:U16]            
+	LD HL U16_IND   | $2A [2:U16]                
+	LD SP U16_IND   | $ED $7B [2:U16]            
+	LD IX U16_IND   | $DD $2A [2:U16]            
+	LD IY U16_IND   | $FD $2A [2:U16]            
+	LD U16_IND BC   | $ED $43 [1:U16]            
+	LD U16_IND DE   | $ED $53 [1:U16]            
+	LD U16_IND HL   | $22 [1:U16]                
+	LD U16_IND SP   | $ED $73 [1:U16]            
+	LD U16_IND IX   | $DD $22 [1:U16]            
+	LD U16_IND IY   | $FD $22 [1:U16]            
+
+	;
+	; Z80 - Exchanges
+	;
+
+	EX DE HL        | $EB                        
+	EX AF AF_       | $08                        
+	EXX             | $D9                        
+	EX SP_IND HL    | $E3                        
+	EX SP_IND IX    | $DD $E3                    
+	EX SP_IND IY    | $FD $E3                    
+
+	; Z80 - Block transfer and search groups
+
+	LDI             | $ED $A0                    
+	LDIR            | $ED $B0                    
+	LDD             | $ED $A8                    
+	LDDR            | $ED $B8                    
+	CPI             | $ED $A1                    
+	CPIR            | $ED $B1                    
+	CPD             | $ED $A9                    
+	CPDR            | $ED $B9                    
+
+	;
+	; EZ80 - 8 bit arithmetic and logic
+	;
+	; These are in twice for the most part as correct instructions
+	; would be XOR A,H or AND A,30H however XOR H and AND 30H are
+	; also permitted
+	;
+
+ADC		A HL_IND	| $8E
+ADC		A IXH		| $DD $8C
+ADC		A IXL		| $DD $8D
+ADC		A IXPD_IND	| $DD $8E [2:S8]
+ADC		A IYH		| $FD $8C
+ADC		A IYL		| $FD $8D
+ADC		A IYPD_IND	| $FD $8E [2:S8]
+ADC		A U8		| $CE [2:S8]
+ADC		HL BC		| $ED $4A
+ADC		HL DE		| $ED $5A
+ADC		HL HL		| $ED $6A
+ADC		HL SP		| $ED $7A
+ADC		HL_IND		| $8E
+ADC		IXH			| $DD $8C
+ADC		IXL			| $DD $8D
+ADC		IXPD_IND	| $DD $8E [1:S8]
+ADC		IYH			| $FD $8C
+ADC		IYL			| $FD $8D
+ADC		IYPD_IND	| $FD $8E [1:S8]
+ADC		U8			| $CE [1:S8]
+ADC 	A           | $8F
+ADC 	A A         | $8F
+ADC 	A B    		| $88
+ADC 	A C     	| $89
+ADC 	A D      	| $8A
+ADC 	A E      	| $8B
+ADC 	A H      	| $8C
+ADC 	A HL_IND 	| $8E
+ADC 	A L			| $8D
+ADC 	B           | $88
+ADC 	C           | $89
+ADC 	D           | $8A
+ADC 	E           | $8B
+ADC 	H           | $8C
+ADC 	HL_IND      | $8E
+ADC 	L			| $8D
+ADC.L	A HL_IND	| $49 $8E
+ADC.L	A IXPD_IND	| $49 $DD $8E [2:S8]
+ADC.L	A IYPD_IND	| $49 $FD $8E [2:S8]
+ADC.L	HL BC		| $49 $ED $4A
+ADC.L	HL DE		| $49 $ED $5A
+ADC.L	HL HL		| $49 $ED $6A
+ADC.L	HL SP		| $49 $ED $7A
+ADC.L	HL_IND		| $49 $8E
+ADC.L	IXPD_IND	| $49 $DD $8E [1:S8]
+ADC.L	IYPD_IND	| $49 $FD $8E [1:S8]
+ADC.S	A HL_IND	| $52 $8E
+ADC.S	A IXPD_IND	| $52 $DD $8E [2:S8]
+ADC.S	A IYPD_IND	| $52 $FD $8E [2:S8]
+ADC.S	HL BC		| $52 $ED $4A
+ADC.S	HL DE		| $52 $ED $5A
+ADC.S	HL HL		| $52 $ED $6A
+ADC.S	HL SP		| $52 $ED $7A
+ADC.S	HL_IND		| $52 $8E
+ADC.S	IXPD_IND	| $52 $DD $8E [1:S8]
+ADC.S	IYPD_IND	| $52 $FD $8E [1:S8]
+
+
+
+
+	ADC HL_IND      | $8E
+	ADC IXPD_IND    | $DD $8E [1:S8]
+	ADC IYPD_IND    | $FD $8E [1:S8]
+	ADC A           | $8F
+	ADC B           | $88
+	ADC C           | $89
+	ADC D           | $8A
+	ADC E           | $8B
+	ADC H           | $8C
+	ADC L			| $8D
+	ADC U8          | $CE [1:U8]
+	ADD HL_IND      | $86
+	ADD IXPD_IND    | $DD $86 [1:S8]
+	ADD IYPD_IND    | $FD $86 [1:S8]
+	ADD A           | $87
+	ADD B           | $80
+	ADD C           | $81
+	ADD D           | $82
+	ADD E           | $83
+	ADD H           | $84
+	ADD L           | $85
+	ADD U8          | $C6 [1:U8]
+	AND HL_IND      | $A6
+	AND IXPD_IND    | $DD $A6 [1:S8]
+	AND IYPD_IND    | $FD $A6 [1:S8]
+	AND A           | $A7
+	AND B           | $A0
+	AND C           | $A1
+	AND D           | $A2
+	AND E           | $A3
+	AND H           | $A4
+	AND L           | $A5
+	AND U8          | $E6 [1:U8]
+	CP HL_IND       | $BE
+	CP IXPD_IND     | $DD $BE [1:S8]
+	CP IYPD_IND     | $FD $BE [1:S8]
+	CP A            | $BF
+	CP B            | $B8
+	CP C            | $B9
+	CP D            | $BA
+	CP E            | $BB
+	CP H            | $BC
+	CP L            | $BD
+	CP U8           | $FE [1:U8]
+	OR HL_IND       | $B6
+	OR IXPD_IND     | $DD $B6 [1:S8]
+	OR IYPD_IND     | $FD $B6 [1:S8]
+	OR A            | $B7
+	OR B            | $B0
+	OR C            | $B1
+	OR D            | $B2
+	OR E            | $B3
+	OR H            | $B4
+	OR L            | $B5
+	OR U8           | $F6 [1:U8]
+	SBC HL_IND      | $9E
+	SBC IXPD_IND    | $DD $9E [1:S8]
+	SBC IYPD_IND    | $FD $9E [1:S8]
+	SBC A           | $9F
+	SBC B           | $98
+	SBC C           | $99
+	SBC D           | $9A
+	SBC E           | $9B
+	SBC H           | $9C
+	SBC L           | $9D
+	SBC U8          | $DE [1:U8]
+	SUB HL_IND      | $96
+	SUB IXPD_IND    | $DD $96 [1:S8]
+	SUB IYPD_IND    | $FD $96 [1:S8]
+	SUB A           | $97
+	SUB B           | $90
+	SUB C           | $91
+	SUB D           | $92
+	SUB E           | $93
+	SUB H           | $94
+	SUB L           | $95
+	SUB U8          | $D6 [1:U8]
+	XOR HL_IND      | $AE
+	XOR IXPD_IND    | $DD $AE [1:S8]
+	XOR IYPD_IND    | $FD $AE [1:S8]
+	XOR A           | $AF
+	XOR B           | $A8
+	XOR C           | $A9
+	XOR D           | $AA
+	XOR E           | $AB
+	XOR H           | $AC
+	XOR L           | $AD
+	XOR U8          | $EE [1:U8]
+	ADC A HL_IND    | $8E                        
+	ADC A IXPD_IND  | $DD $8E [2:S8]             
+	ADC A IYPD_IND  | $FD $8E [2:S8]             
+	ADC A A         | $8F                        
+	ADC A B         | $88                        
+	ADC A C         | $89                        
+	ADC A D         | $8A                        
+	ADC A E         | $8B                        
+	ADC A H         | $8C                        
+	ADC A L         | $8D
+	ADC A U8        | $CE [2:U8]                        
+	ADD A HL_IND    | $86                        
+	ADD A IXPD_IND  | $DD $86 [2:S8]             
+	ADD A IYPD_IND  | $FD $86 [2:S8]             
+	ADD A A         | $87                        
+	ADD A B         | $80                        
+	ADD A C         | $81                        
+	ADD A D         | $82                        
+	ADD A E         | $83                        
+	ADD A H         | $84                        
+	ADD A L         | $85                        
+	ADD A U8        | $C6 [2:U8]                        
+	AND A HL_IND    | $A6                        
+	AND A IXPD_IND  | $DD $A6 [2:S8]             
+	AND A IYPD_IND  | $FD $A6 [2:S8]             
+	AND A A         | $A7                        
+	AND A B         | $A0                        
+	AND A C         | $A1                        
+	AND A D         | $A2                        
+	AND A E         | $A3                        
+	AND A H         | $A4                        
+	AND A L         | $A5                        
+	AND A U8        | $E6 [2:U8]                        
+	CP A HL_IND     | $BE                        
+	CP A IXPD_IND   | $DD $BE [2:S8]             
+	CP A IYPD_IND   | $FD $BE [2:S8]             
+	CP A A          | $BF                        
+	CP A B          | $B8                        
+	CP A C          | $B9                        
+	CP A D          | $BA                        
+	CP A E          | $BB                        
+	CP A H          | $BC                        
+	CP A L          | $BD                        
+	CP A U8         | $FE [2:U8]                        
+	DEC HL_IND      | $35                        
+	DEC IXPD_IND    | $DD $35 [1:S8]             
+	DEC IYPD_IND    | $FD $35 [1:S8]             
+	DEC A           | $3D                        
+	DEC B           | $05                        
+	DEC C           | $0D                        
+	DEC D           | $15                        
+	DEC E           | $1D                        
+	DEC H           | $25                        
+	DEC L           | $2D                        
+	INC HL_IND      | $34                        
+	INC IXPD_IND    | $DD $34 [1:S8]             
+	INC IYPD_IND    | $FD $34 [1:S8]             
+	INC A           | $3C                        
+	INC B           | $04                        
+	INC C           | $0C                        
+	INC D           | $14                        
+	INC E           | $1C                        
+	INC H           | $24                        
+	INC L           | $2C                        
+	OR A HL_IND     | $B6                        
+	OR A IXPD_IND   | $DD $B6 [2:S8]             
+	OR A IYPD_IND   | $FD $B6 [2:S8]             
+	OR A A          | $B7                        
+	OR A B          | $B0                        
+	OR A C          | $B1                        
+	OR A D          | $B2                        
+	OR A E          | $B3                        
+	OR A H          | $B4                        
+	OR A L          | $B5                        
+	OR A U8         | $F6 [2:U8]                        
+	SBC A HL_IND    | $9E                        
+	SBC A IXPD_IND  | $DD $9E [2:S8]             
+	SBC A IYPD_IND  | $FD $9E [2:S8]             
+	SBC A A         | $9F                        
+	SBC A B         | $98                        
+	SBC A C         | $99                        
+	SBC A D         | $9A                        
+	SBC A E         | $9B                        
+	SBC A H         | $9C                        
+	SBC A L         | $9D                        
+	SBC A U8        | $DE [2:U8]                        
+	SUB A HL_IND    | $96                        
+	SUB A IXPD_IND  | $DD $96 [2:S8]             
+	SUB A IYPD_IND  | $FD $96 [2:S8]             
+	SUB A A         | $97                        
+	SUB A B         | $90                        
+	SUB A C         | $91                        
+	SUB A D         | $92                        
+	SUB A E         | $93                        
+	SUB A H         | $94                        
+	SUB A L         | $95                        
+	SUB A U8        | $D6 [2:U8]                        
+	XOR A HL_IND    | $AE                        
+	XOR A IXPD_IND  | $DD $AE [2:S8]             
+	XOR A IYPD_IND  | $FD $AE [2:S8]             
+	XOR A A         | $AF                        
+	XOR A B         | $A8                        
+	XOR A C         | $A9                        
+	XOR A D         | $AA                        
+	XOR A E         | $AB                        
+	XOR A H         | $AC                        
+	XOR A L         | $AD                        
+	XOR A U8        | $EE [2:U8]                        
+
+	;
+	; Z80 - General purpose arithmetic and CPU control groups
+	;
+
+	DAA             | $27                        
+	CPL             | $2F                        
+	NEG             | $ED $44                    
+	CCF             | $3F                        
+	SCF             | $37                        
+	NOP             | $00                        
+	HALT            | $76                        
+	DI              | $F3                        
+	EI              | $FB                        
+	IM U8           | $ED [1:IM]                 
+
+	;
+	; Z80 - 16 bit arithmetic group
+	;
+
+	ADD HL BC       | $09                        
+	ADD HL DE       | $19                        
+	ADD HL HL       | $29                        
+	ADD HL SP       | $39                        
+	ADD IX BC       | $DD $09                    
+	ADD IX DE       | $DD $19                    
+	ADD IX SP       | $DD $39                    
+	ADD IX IX       | $DD $29                    
+	ADD IY BC       | $FD $09                    
+	ADD IY DE       | $FD $19                    
+	ADD IY SP       | $FD $39                    
+	ADD IY IY       | $FD $29                    
+	ADC HL BC       | $ED $4A                    
+	ADC HL DE       | $ED $5A                    
+	ADC HL HL       | $ED $6A                    
+	ADC HL SP       | $ED $7A                    
+	SBC HL BC       | $ED $42                    
+	SBC HL DE       | $ED $52                    
+	SBC HL HL       | $ED $62                    
+	SBC HL SP       | $ED $72                    
+	INC BC          | $03                        
+	INC DE          | $13                        
+	INC HL          | $23                        
+	INC SP          | $33                        
+	INC IX          | $DD $23                    
+	INC IY          | $FD $23                    
+	DEC BC          | $0B                        
+	DEC DE          | $1B                        
+	DEC HL          | $2B                        
+	DEC SP          | $3B                        
+	DEC IX          | $DD $2B                    
+	DEC IY          | $FD $2B                    
+
+	;
+	; Z80 - Rotate and shift group
+	;
+
+	RLCA            | $07                        
+	RLA             | $17                        
+	RRCA            | $0F                        
+	RRA             | $1F                        
+	RLC B           | $CB $00                    
+	RLC C           | $CB $01                    
+	RLC D           | $CB $02                    
+	RLC E           | $CB $03                    
+	RLC H           | $CB $04                    
+	RLC L           | $CB $05                    
+	RLC A           | $CB $07                    
+	RLC HL_IND      | $CB $06                    
+	RLC IXPD_IND    | $DD $CB [1:S8] $06         
+	RLC IYPD_IND    | $FD $CB [1:S8] $06         
+	RL B            | $CB $10                    
+	RL C            | $CB $11                    
+	RL D            | $CB $12                    
+	RL E            | $CB $13                    
+	RL H            | $CB $14                    
+	RL L            | $CB $15                    
+	RL A            | $CB $17                    
+	RL HL_IND       | $CB $16                    
+	RL IXPD_IND     | $DD $CB [1:S8] $16         
+	RL IYPD_IND     | $FD $CB [1:S8] $16         
+	RRC B           | $CB $08                    
+	RRC C           | $CB $09                    
+	RRC D           | $CB $0A                    
+	RRC E           | $CB $0B                    
+	RRC H           | $CB $0C                    
+	RRC L           | $CB $0D                    
+	RRC A           | $CB $0F                    
+	RRC HL_IND      | $CB $0E                    
+	RRC IXPD_IND    | $DD $CB [1:S8] $0E         
+	RRC IYPD_IND    | $FD $CB [1:S8] $0E         
+	RR B            | $CB $18                    
+	RR C            | $CB $19                    
+	RR D            | $CB $1A                    
+	RR E            | $CB $1B                    
+	RR H            | $CB $1C                    
+	RR L            | $CB $1D                    
+	RR A            | $CB $1F                    
+	RR HL_IND       | $CB $1E                    
+	RR IXPD_IND     | $DD $CB [1:S8] $1E         
+	RR IYPD_IND     | $FD $CB [1:S8] $1E         
+	SLA B           | $CB $20                    
+	SLA C           | $CB $21                    
+	SLA D           | $CB $22                    
+	SLA E           | $CB $23                    
+	SLA H           | $CB $24                    
+	SLA L           | $CB $25                    
+	SLA A           | $CB $27                    
+	SLA HL_IND      | $CB $26                    
+	SLA IXPD_IND    | $DD $CB [1:S8] $26         
+	SLA IYPD_IND    | $FD $CB [1:S8] $26         
+	SRA B           | $CB $28                    
+	SRA C           | $CB $29                    
+	SRA D           | $CB $2A                    
+	SRA E           | $CB $2B                    
+	SRA H           | $CB $2C                    
+	SRA L           | $CB $2D                    
+	SRA A           | $CB $2F                    
+	SRA HL_IND      | $CB $2E                    
+	SRA IXPD_IND    | $DD $CB [1:S8] $2E         
+	SRA IYPD_IND    | $FD $CB [1:S8] $2E         
+	SRL B           | $CB $38                    
+	SRL C           | $CB $39                    
+	SRL D           | $CB $3A                    
+	SRL E           | $CB $3B                    
+	SRL H           | $CB $3C                    
+	SRL L           | $CB $3D                    
+	SRL A           | $CB $3F                    
+	SRL HL_IND      | $CB $3E                    
+	SRL IXPD_IND    | $DD $CB [1:S8] $3E         
+	SRL IYPD_IND    | $FD $CB [1:S8] $3E         
+	RLD             | $ED $6F                    
+	RRD             | $ED $67                    
+
+	;
+	; Z80 - Bit set reset and test group
+	;
+
+	BIT U8 A        | $CB %01[1:B3]111           
+	BIT U8 B        | $CB %01[1:B3]000           
+	BIT U8 C        | $CB %01[1:B3]001           
+	BIT U8 D        | $CB %01[1:B3]010           
+	BIT U8 E        | $CB %01[1:B3]011           
+	BIT U8 H        | $CB %01[1:B3]100           
+	BIT U8 L        | $CB %01[1:B3]101           
+	BIT U8 HL_IND   | $CB %01[1:B3]110           
+	BIT U8 IXPD_IND | $DD $CB [2:S8] %01[1:B3]110
+	BIT U8 IYPD_IND | $FD $CB [2:S8] %01[1:B3]110
+	SET U8 A        | $CB %11[1:B3]111           
+	SET U8 B        | $CB %11[1:B3]000           
+	SET U8 C        | $CB %11[1:B3]001           
+	SET U8 D        | $CB %11[1:B3]010           
+	SET U8 E        | $CB %11[1:B3]011           
+	SET U8 H        | $CB %11[1:B3]100           
+	SET U8 L        | $CB %11[1:B3]101           
+	SET U8 HL_IND   | $CB %11[1:B3]110           
+	SET U8 IXPD_IND | $DD $CB [2:S8] %11[1:B3]110
+	SET U8 IYPD_IND | $FD $CB [2:S8] %11[1:B3]110
+	RES U8 A        | $CB %10[1:B3]111           
+	RES U8 B        | $CB %10[1:B3]000           
+	RES U8 C        | $CB %10[1:B3]001           
+	RES U8 D        | $CB %10[1:B3]010           
+	RES U8 E        | $CB %10[1:B3]011           
+	RES U8 H        | $CB %10[1:B3]100           
+	RES U8 L        | $CB %10[1:B3]101           
+	RES U8 HL_IND   | $CB %10[1:B3]110           
+	RES U8 IXPD_IND | $DD $CB [2:S8] %10[1:B3]110
+	RES U8 IYPD_IND | $FD $CB [2:S8] %10[1:B3]110
+
+	;
+	; Z80 - Jump group
+	;
+
+	JP U16          | $C3 [1:U16]                
+	JP NZ U16       | $C2 [2:U16]                
+	JP Z U16        | $CA [2:U16]                
+	JP NC U16       | $D2 [2:U16]                
+	JP C U16        | $DA [2:U16]                
+	JP PO U16       | $E2 [2:U16]                
+	JP PE U16       | $EA [2:U16]                
+	JP P U16        | $F2 [2:U16]                
+	JP M U16        | $FA [2:U16]                
+	JR U16          | $18 [1:R8]                 
+	JR C U16        | $38 [2:R8]                 
+	JR NC U16       | $30 [2:R8]                 
+	JR Z U16        | $28 [2:R8]                 
+	JR NZ U16       | $20 [2:R8]                 
+	JP HL_IND       | $E9                        
+	JP IX_IND       | $DD $E9                    
+	JP IY_IND       | $FD $E9                    
+	DJNZ U16        | $10 [1:R8]                 
+
+	;
+	; Z80 - Call and return group
+	;
+
+	CALL U16        | $CD [1:U16]                
+	CALL NZ U16     | $C4 [2:U16]                
+	CALL Z U16      | $CC [2:U16]                
+	CALL NC U16     | $D4 [2:U16]                
+	CALL C U16      | $DC [2:U16]                
+	CALL PO U16     | $E4 [2:U16]                
+	CALL PE U16     | $EC [2:U16]                
+	CALL P U16      | $F4 [2:U16]                
+	CALL M U16      | $FC [2:U16]                
+	RET             | $C9                        
+	RET NZ          | $C0                        
+	RET Z           | $C8                        
+	RET NC          | $D0                        
+	RET C           | $D8                        
+	RET PO          | $E0                        
+	RET PE          | $E8                        
+	RET P           | $F0                        
+	RET M           | $F8                        
+	RETI            | $ED $4D                    
+	RETN            | $ED $45                    
+	RST U8          | %11[1:RST]111             
+
+	;
+	; Z80 - Input and output group
+	;
+
+	IN A U8_IND     | $DB [2:U8]                 
+	IN B C_IND      | $ED $40                    
+	IN C C_IND      | $ED $48                    
+	IN D C_IND      | $ED $50                    
+	IN E C_IND      | $ED $58                    
+	IN H C_IND      | $ED $60                    
+	IN L C_IND      | $ED $68                    
+	IN A C_IND      | $ED $78                    
+	INI             | $ED $A2                    
+	INIR            | $ED $B2                    
+	IND             | $ED $AA                    
+	INDR            | $ED $BA                    
+	OUT U8_IND A    | $D3 [1:U8]                 
+	OUT C_IND B     | $ED $41                    
+	OUT C_IND C     | $ED $49                    
+	OUT C_IND D     | $ED $51                    
+	OUT C_IND E     | $ED $59                    
+	OUT C_IND H     | $ED $61                    
+	OUT C_IND L     | $ED $69                    
+	OUT C_IND A     | $ED $79                    
+	OUTI            | $ED $A3                    
+	OTIR            | $ED $B3                    
+	OUTD            | $ED $AB                    
+	OTDR            | $ED $BB                    

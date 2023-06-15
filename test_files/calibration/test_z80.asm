@@ -881,7 +881,100 @@ DISPL	EQU		57				// Displacement value
 		OUTI            		// $ED $A3                    
 		OTIR            		// $ED $B3                    
 		OUTD            		// $ED $AB                    
-		OTDR            		// $ED $BB                    
+		OTDR            		// $ED $BB             
+
+;
+; Z80 - Test the pseudo instructions where XXX (IX) --> XXX (IX+0) as there
+;       is no official (IX) or (IY) option other than JP (IX) or JP (IY)
+;
+
+		ADC		A,(IX)			// $DD $8E $00	
+		ADC		A,(IY)			// $FD $8E $00	
+		ADC		(IX) 			// $DD $8E $00	
+		ADC		(IY)			// $FD $8E $00	
+		ADD		A,(IX)			// $DD $86 $00	
+		ADD		A,(IY)			// $FD $86 $00	
+		ADD		(IX)			// $DD $86 $00	
+		ADD		(IY)			// $FD $86 $00	
+		AND		A,(IX)			// $DD $A6 $00	
+		AND		A,(IY)			// $FD $A6 $00	
+		AND		(IX)			// $DD $A6 $00	
+		AND		(IY)			// $FD $A6 $00	
+		BIT		U8,(IX)			// $DD $CB $00 %01[1:B3]110
+		BIT		U8,(IY)			// $FD $CB $00 %01[1:B3]110
+		CP		A,(IX)			// $DD $BE $00	
+		CP		A,(IY)			// $FD $BE $00	
+		CP		(IX)			// $DD $BE $00	
+		CP		(IY)			// $FD $BE $00	
+		DEC		(IX)			// $DD $35 $00	
+		DEC		(IY)			// $FD $35 $00	
+		INC		(IX)			// $DD $34 $00	
+		INC		(IY)			// $FD $34 $00	
+		LD		A,(IX)			// $DD $7E $00	
+		LD		A,(IY)			// $FD $7E $00	
+		LD		B,(IX)			// $DD $46 $00	
+		LD		B,(IY)			// $FD $46 $00	
+		LD		C,(IX)			// $DD $4E $00	
+		LD		C,(IY)			// $FD $4E $00	
+		LD		D,(IX)			// $DD $56 $00	
+		LD		D,(IY)			// $FD $56 $00	
+		LD		E,(IX)			// $DD $5E $00	
+		LD		E,(IY)			// $FD $5E $00	
+		LD		H,(IX)			// $DD $66 $00	
+		LD		H,(IY)			// $FD $66 $00	
+		LD		(IX),A			// $DD $77 $00	
+		LD		(IX),B			// $DD $70 $00	
+		LD		(IX),C			// $DD $71 $00	
+		LD		(IX),D			// $DD $72 $00	
+		LD		(IX),E			// $DD $73 $00	
+		LD		(IX),H			// $DD $74 $00	
+		LD		(IX),L			// $DD $75 $00	
+		LD		(IX),U8			// $DD $36 $00 [2:U8]
+		LD		(IY),A			// $FD $77 $00	
+		LD		(IY),B			// $FD $70 $00	
+		LD		(IY),C			// $FD $71 $00	
+		LD		(IY),D			// $FD $72 $00	
+		LD		(IY),E			// $FD $73 $00	
+		LD		(IY),H			// $FD $74 $00	
+		LD		(IY),L			// $FD $75 $00	
+		LD		(IY),U8			// $FD $36 $00 [2:U8]
+		LD		L,(IX)			// $DD $6E $00	
+		LD		L,(IY)			// $FD $6E $00	
+		OR		A,(IX)			// $DD $B6 $00	
+		OR		A,(IY)			// $FD $B6 $00	
+		OR		(IX)			// $DD $B6 $00	
+		OR		(IY)			// $FD $B6 $00	
+		RES		U8,(IX)			// $DD $CB $00 %10[1:B3]110
+		RES		U8,(IY)			// $FD $CB $00 %10[1:B3]110
+		RL		(IX)			// $DD $CB $00 $16
+		RL		(IY)			// $FD $CB $00 $16
+		RLC		(IX)			// $DD $CB $00 $06
+		RLC		(IY)			// $FD $CB $00 $06
+		RR		(IX)			// $DD $CB $00 $1E
+		RR		(IY)			// $FD $CB $00 $1E
+		RRC		(IX)			// $DD $CB $00 $0E
+		RRC		(IY)			// $FD $CB $00 $0E
+		SBC		A,(IX)			// $DD $9E $00	
+		SBC		A,(IY)			// $FD $9E $00	
+		SBC		(IX)			// $DD $9E $00	
+		SBC		(IY)			// $FD $9E $00	
+		SET		U8,(IX)			// $DD $CB $00 %11[1:B3]110
+		SET		U8,(IY)			// $FD $CB $00 %11[1:B3]110
+		SLA		(IX)			// $DD $CB $00 $26
+		SLA		(IY)			// $FD $CB $00 $26
+		SRA		(IX)			// $DD $CB $00 $2E
+		SRA		(IY)			// $FD $CB $00 $2E
+		SRL		(IX)			// $DD $CB $00 $3E
+		SRL		(IY)			// $FD $CB $00 $3E
+		SUB		A,(IX)			// $DD $96 $00	
+		SUB		A,(IY)			// $FD $96 $00	
+		SUB		(IX)			// $DD $96 $00	
+		SUB		(IY)			// $FD $96 $00	
+		XOR		A,(IX)			// $DD $AE $00	
+		XOR		A,(IY)			// $FD $AE $00	
+		XOR		(IX)			// $DD $AE $00	
+		XOR		(IY)			// $FD $AE $00
+				
 
 
 ;----------------------------------------------------------------------------

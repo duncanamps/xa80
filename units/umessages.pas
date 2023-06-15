@@ -135,6 +135,7 @@ type
                      E2056_MACRO_IN_MACRO_DEFINE,
                      E2057_MACRO_NOT_FOUND,
                      E2058_NO_LABEL_ON_ENDM,
+                     E2059_COMMAND_LINE_DEFINE,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -269,6 +270,7 @@ var
     'Cannot define a macro within another macro',
     'Macro %s not found',
     'Cannot place a label on an ENDM directive',
+    'Command line define error, could not process %s',
 
     'Unhandled case option at %s',
     'Preparser peeek error',

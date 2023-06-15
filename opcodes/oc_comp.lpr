@@ -119,6 +119,7 @@ begin
       sl.LoadFromFile(FSrcName);
       Compile(sl,1);
       Compile(sl,2);
+      FInstructionList.Sort;
       FInstructionList.ConstructHashTable;
       FInstructionList.SaveToFile(FDstName);
     finally

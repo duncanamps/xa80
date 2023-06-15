@@ -209,6 +209,7 @@ begin
     sl.DelimitedText := EnvObject.GetValue('SourceFiles');
 
     // Set up the environment
+    Asm80.OptionDefines := AcquireParam('Defines');
     Asm80.OptionError   := AcquireParam('FilenameError');
     Asm80.OptionCom     := AcquireParam('FilenameCom');
     Asm80.OptionHex     := AcquireParam('FilenameHex');

@@ -64,6 +64,7 @@ type
     FMemoryUsed: array[word] of boolean;
     FNextInclude: string;
     FOptionCom: string;
+    FOptionDefines: string;
     FOptionError: string;
     FOptionHex: string;
     FOptionListing: string;
@@ -144,6 +145,7 @@ type
     function ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
     function ActValueParam(_parser: TLCGParser): TLCGParserStackEntry;
     function ActValueSymbol(_parser: TLCGParser): TLCGParserStackEntry;
+    procedure ApplyCommandLineDefines;
     procedure AsmProcessLabel(const _label: string; _command_index: integer);
     procedure CheckNoLabel(const _label: string);
     procedure CheckByte(_i: integer);
@@ -251,6 +253,7 @@ type
     property InputLine:       integer read FInputLine;
     property InputCol:        integer read FInputCol;
     property OptionCom:       string  read FOptionCom         write FOptionCom;
+    property OptionDefines:   string  read FOptionDefines     write FOptionDefines;
     property OptionError:     string  read FOptionError       write FOptionError;
     property OptionHex:       string  read FOptionHex         write FOptionHex;
     property OptionListing:   string  read FOptionListing     write FOptionListing;
@@ -284,6 +287,7 @@ begin
   FPreparser.ForceColon := False;
   FSymbolTable := TSymbolTable.Create;
   FSymbolTable.MixedCase := False;
+  FOptionDefines := '';
   FIncludeStack := TIncludeStack.Create;
   FIncludeList := EnvObject.GetValue('Includes');
   FAsmStack := TAsmStack.Create;
@@ -951,6 +955,48 @@ begin
     end;
 end;
 
+procedure TAssembler80.ApplyCommandLineDefines;
+var sl: TStringList;
+    sl2: TStringList;
+    i:  integer;
+    s:  string;
+begin
+  if FOptionDefines <> '' then
+    begin
+      sl := TStringList.Create;
+      try
+        sl.Delimiter := ';';
+        sl.DelimitedText := FOptionDefines;
+        for i := 0 to sl.Count-1 do
+          begin
+            s := sl[i];
+            if Pos('=',s) = 0 then
+              begin // Simple define with no assigment
+                FSymbolTable.Add(s,stWord,0,'',True,False);
+              end
+            else
+              begin
+                sl2 := TStringList.Create;
+                try
+                  sl2.Delimiter := '=';
+                  sl2.DelimitedText := s;
+                  if sl2.Count <> 2 then
+                    ErrorObj.Show(ltError,E2059_COMMAND_LINE_DEFINE,[s]);
+                  if (sl2[1] <> '') and (not (sl2[1][1] in ['0'..'9'])) then
+                    FSymbolTable.Add(sl2[0],stString,0,StripQuotes(sl2[1]),True,False)
+                  else
+                    FSymbolTable.Add(sl2[0],stWord,StrToInt(sl2[1]),'',True,False);
+                finally
+                  FreeAndNil(sl2);
+                end;
+              end;
+          end;
+      finally
+        FreeAndNil(sl);
+      end;
+    end;
+end;
+
 procedure TAssembler80.AsmProcessLabel(const _label: string; _command_index: integer);
 var
   equate_or_macro: boolean;
@@ -1017,6 +1063,7 @@ begin
   FilenameError := MakeFilename(FilenameAsm, OptionError, '.log');
   if FilenameError <> '' then
     ErrorObj.Show(ltVerbose, I0004_FILENAME_ASSIGNMENT, ['error log', FilenameError]);
+  ApplyCommandLineDefines;
   ErrorObj.SetLogFilename(FilenameError);
   ErrorObj.Show(ltInfo, I0003_ASSEMBLING_FILE, [filename]);
   AssemblePass(1, filename);

@@ -251,7 +251,10 @@ begin
       end;
       if not Items[i].Defined then
         t_ch := '?';
-      s := Format('$%4.4X %5d %s %s',[Items[i].IValue,Items[i].IValue,t_ch,Items[i].Name]);
+      if Items[i].SymType = stString then
+        s := Format('$%4.4X %5d %s %s "%s"',[Items[i].IValue,Items[i].IValue,t_ch,Items[i].Name,Items[i].SValue])
+      else
+        s := Format('$%4.4X %5d %s %s',[Items[i].IValue,Items[i].IValue,t_ch,Items[i].Name]);
       MyWrite(s + LINE_TERMINATOR);
       Inc(line);
     end;

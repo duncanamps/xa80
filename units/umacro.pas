@@ -73,11 +73,14 @@ function TMacroList.IndexOf(const _s: string): integer;
 var i: integer;
     ss: string;
 begin
-  Result := -1;
-  i := 0;
 {$IFDEF DEBUG_LOGX}
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['IndexOf('+_s+')']);
 {$ENDIF}
+  Result := -1;
+  i := 0;
+  while (i < Count) and (Items[i].Name <> _s) do
+    Inc(i);
+  {
   if i >= 0 then
     ss := Self.Items[i].Name
   else
@@ -90,6 +93,7 @@ begin
       else
         ss := '';
     end;
+  }
 {
   while (i < Count) and (Items[i].Name <> _s) do
     Inc(i);
