@@ -160,6 +160,7 @@ type
     procedure CmdCPU(const _label: string; _preparser: TPreparserBase);
     procedure CmdDATA(const _label: string; _preparser: TPreparserBase);
     procedure CmdDB(const _label: string; _preparser: TPreparserBase);
+    procedure CmdDC(const _label: string; _preparser: TPreparserBase);
     procedure CmdDS(const _label: string; _preparser: TPreparserBase);
     procedure CmdDW(const _label: string; _preparser: TPreparserBase);
     procedure CmdELSE(const _label: string; _preparser: TPreparserBase);
@@ -187,6 +188,7 @@ type
     procedure CmdUDATA(const _label: string; _preparser: TPreparserBase);
     procedure CmdWARNON(const _label: string; _preparser: TPreparserBase);
     procedure CmdWHILE(const _label: string; _preparser: TPreparserBase);
+    procedure CommonDB(_preparser: TPreparserBase; _highbit: boolean = False);
     function CompareGeneric(_comparer: TCompareMode): TLCGParserStackEntry;
     procedure ConvertOperandToOrd(_index: integer);
     procedure EQUCore(const _label: string; _preparser: TPreparserBase; _allow_redefine: boolean);
@@ -1391,38 +1393,13 @@ begin
 end;
 
 procedure TAssembler80.CmdDB(const _label: string; _preparser: TPreparserBase);
-var
-  itm: TParserProp;
-  i: integer;
-  j: integer;
-  s: string;
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
-  // Define bytes
-  // There should be one or more operands
-  CheckOperandCount(1, 9999);
-  // Go through the operands populating the code buffer
-  for i := 0 to _preparser.Count - 1 do
-  begin
-    itm := _preparser[i];
-    ErrorObj.ColNumber := itm.Column;
-    case itm.DataType of
-      pstNone: ErrorObj.Show(ltError, E2018_OPERAND_NO_DATA_TYPE, [i + 1]);
-      pstINT32: begin
-        CheckByte(itm.IntValue);
-        FCodeBuffer.Push((itm.IntValue and $FF));
-      end;
-      pstString: begin
-        s := _preparser[i].StrValue;
-        CheckStringNotEmpty(s);
-        for j := 1 to Length(s) do
-          FCodeBuffer.Push(Ord(s[j]));
-      end;
-    end;
-  end;
+  CommonDB(_preparser,False);
+end;
+
+procedure TAssembler80.CmdDC(const _label: string; _preparser: TPreparserBase);
+begin
+  CommonDB(_preparser,True);
 end;
 
 procedure TAssembler80.CmdDS(const _label: string; _preparser: TPreparserBase);
@@ -1899,6 +1876,45 @@ begin
   FAsmStack.Add(entry);
 end;
 
+procedure TAssembler80.CommonDB(_preparser: TPreparserBase; _highbit: boolean);
+var
+  itm: TParserProp;
+  i: integer;
+  j: integer;
+  s: string;
+begin
+  {
+  if (not FSolGenerate) or FDefiningMacro then
+    Exit;
+  }
+  // Define bytes
+  // There should be one or more operands
+  CheckOperandCount(1, 9999);
+  // Go through the operands populating the code buffer
+  for i := 0 to _preparser.Count - 1 do
+  begin
+    itm := _preparser[i];
+    ErrorObj.ColNumber := itm.Column;
+    case itm.DataType of
+      pstNone: ErrorObj.Show(ltError, E2018_OPERAND_NO_DATA_TYPE, [i + 1]);
+      pstINT32: begin
+        CheckByte(itm.IntValue);
+        FCodeBuffer.Push((itm.IntValue and $FF));
+      end;
+      pstString:
+        begin
+          s := _preparser[i].StrValue;
+          CheckStringNotEmpty(s);
+          for j := 1 to Length(s) do
+            if (j < Length(s)) or (not _highbit) then
+              FCodeBuffer.Push(Ord(s[j]))
+            else
+              FCodeBuffer.Push(Ord(s[j]) or $80);
+        end;
+    end;
+  end;
+end;
+
 function TAssembler80.CompareGeneric(_comparer: TCompareMode): TLCGParserStackEntry;
 var
   compare: boolean;
@@ -1946,7 +1962,7 @@ end;
 procedure TAssembler80.ConvertOperandToOrd(_index: integer);
 begin
   ParserStack[ParserSP + _index].BufType := pstInt32;
-  ParserStack[ParserSP + _index].BufInt := Ord(ParserStack[ParserSP + _index].Buf[2]);
+  ParserStack[ParserSP + _index].BufInt := Ord(ParserStack[ParserSP + _index].Buf[1]);
 end;
 
 procedure TAssembler80.DumpInstructions;
@@ -2103,8 +2119,7 @@ begin
   if ParserStack[ParserSP + _index].BufType <> pstINT32 then
   begin
     if (ParserStack[ParserSP + _index].BufType = pstString) and
-      (Length(ParserStack[ParserSP + _index].Buf) = 3) and
-      (ParserStack[ParserSP + _index].Buf[1] = '''') then
+      (Length(ParserStack[ParserSP + _index].Buf) = 1) then
       ConvertOperandToOrd(_index)
     else
       ShowErrorToken(ParserStack[ParserSP + _index].Token, ltError,
@@ -2550,7 +2565,9 @@ begin
   FCmdList.RegisterCommand('CPU',        [],                        @CmdCPU);
   FCmdList.RegisterCommand('DATA',       [],                        @CmdDATA);
   FCmdList.RegisterCommand('DB',         [cfLabel],                 @CmdDB);
+  FCmdList.RegisterCommand('DC',         [cfLabel],                 @CmdDC);
   FCmdList.RegisterCommand('DEFB',       [cfLabel],                 @CmdDB);
+  FCmdList.RegisterCommand('DEFC',       [cfLabel],                 @CmdDC);
   FCmdList.RegisterCommand('DEFS',       [cfLabel],                 @CmdDS);
   FCmdList.RegisterCommand('DEFW',       [cfLabel],                 @CmdDW);
   FCmdList.RegisterCommand('DS',         [cfLabel],                 @CmdDS);

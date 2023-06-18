@@ -3,7 +3,7 @@
   <ProjectSession>
     <PathDelim Value="\"/>
     <Version Value="12"/>
-    <BuildModes Active="Release"/>
+    <BuildModes Active="Debug"/>
     <Units>
       <Unit>
         <Filename Value="oc_comp.lpr"/>
@@ -19,7 +19,7 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <TopLine Value="744"/>
-        <CursorPos Y="767"/>
+        <CursorPos X="29" Y="754"/>
         <UsageCount Value="35"/>
         <Loaded Value="True"/>
       </Unit>
@@ -226,7 +226,6 @@
         <Item2 Value="source\z80.opcode"/>
         <Item3 Value="source/z80.opcode"/>
       </List>
-      <List Name="WorkingDirectory" Type="File" Count="1"/>
     </HistoryLists>
   </ProjectSession>
   <Debugging>
@@ -237,13 +236,6 @@
         <WatchKind Value="wpkWrite"/>
         <Source Value="oc_comp.lpr"/>
         <Line Value="113"/>
-      </Item>
-      <Item>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="..\units\uinstruction.pas"/>
-        <Line Value="759"/>
       </Item>
     </BreakPoints>
     <Watches>

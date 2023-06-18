@@ -25,3 +25,5 @@ publish.bat
 test_files/z80/test.z80
 calibrate.bat
 *.docx
+test_files/z80/hello.bat
+test_files/z80/sieve.bat

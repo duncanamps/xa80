@@ -17,6 +17,8 @@ MSG: 	DB      'Hello World',13,10
 		DB		'Created with XA80 cross assembler',13,10
 		DB		'---------------------------------',13,10,10
 		DB		'Assembled:       ',DATE(),' ',TIME(),13,10
+		DB		"Version:         ",VERSION(),13,10
+		DB		"Build:           ",BUILD(),13,10
 		
 		DB		'$'
 

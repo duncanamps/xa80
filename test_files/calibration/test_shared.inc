@@ -153,6 +153,14 @@ FULL	=		FIRST + "/" + LAST
 		DB		RIGHT(FULL,2) + LEFT(FULL,2)	// 44 43 41 43 
 
 ;
+; Strings with bit 7 set in last character
+;
+
+KEYWDS	DC		'SGN', 'TAN', 'COS'
+TABLK	DEFC	'END', 'FOR', 'NEXT', 0, 'PLOT', "VLIN"
+		DC		LEFT("ENDING",3), LEFT("FORTRAN",3), RIGHT("INNEXT",4)
+
+;
 ; IF / ELSE / ENDIF
 ;
 

@@ -434,18 +434,19 @@ end;
 
 function StripQuotes(const _s: string): string;
 var l: integer;
+    quote_char: char;
 begin
   Result := _s;
   l := Length(_s);
-  if (l > 0) and (LeftStr(_s,1) = CHR(34)) then
+  if (l >= 2) and (_s[1] in ['"','''']) then
     begin
-      if l < 2 then
-        raise Exception.Create('Trying to strip quotes from string which is too short ' + _s);
-      if (LeftStr(_s,1) <> Chr(34)) or
-         (RightStr(_s,1) <> Chr(34)) then
+      quote_char := _s[1];
+      if RightStr(_s,1) <> quote_char then
         raise Exception.Create('Trying to strip quotes which are not present ' + _s);
       Result := Copy(_s,2,Length(_s)-2);
-    end;
+    end
+  else
+    Result := _s; // Wasn't a quoted string
 end;
 
 function StripQuotesAndEscaped(const _s: string): string;

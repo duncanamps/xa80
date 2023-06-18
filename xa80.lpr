@@ -79,6 +79,7 @@ const
 type
 
   { TVersion }
+  {
   TVersion = class (TPersistent)
   private
     FBuild: Integer;
@@ -91,6 +92,7 @@ type
     property Minor: Integer read FMinor write FMinor;
     property Build: Integer read FBuild write FBuild;
   end;
+  }
 
   { TXA80 }
 
@@ -185,11 +187,6 @@ end;
 procedure TXA80.Assemble;
 var sl: TStringList;
     filename: string;
-    comfile:  string;
-    hexfile:  string;
-    errorlog: string;
-    listing: string;
-    map:     string;
     verbose: integer;
 
   function AcquireParam(const envname: string): string;
