@@ -150,6 +150,7 @@ type
     procedure CheckNoLabel(const _label: string);
     procedure CheckByte(_i: integer);
     procedure CheckInteger(_i, _min, _max: integer);
+    procedure CheckLabelsDefined;
     procedure CheckMacroDone;
     procedure CheckOperandByte(_index: integer);
     procedure CheckOperandCount(_minop, _maxop: integer);
@@ -1008,7 +1009,9 @@ begin
   equate_or_macro := (_command_index >= 0) and
     ((FCmdList[_command_index].CommandName = '=') or
     (FCmdList[_command_index].CommandName = 'EQU') or
-    (FCmdList[_command_index].CommandName = 'MACRO'));
+    (FCmdList[_command_index].CommandName = 'MACRO') or
+    (FCmdList[_command_index].CommandName = '.EQU') or
+    (FCmdList[_command_index].CommandName = '.MACRO'));
   if (_label <> '') and not equate_or_macro then
   begin // Must be an ordinary program label, cannot already be assigned
     if FPreparser.ForceColon and (not HasColon(_label)) then
@@ -1072,6 +1075,10 @@ begin
   AssemblePass(2, filename);
   CheckStack;
   CheckMacroDone;
+  ErrorObj.ColNumber  := 0;
+  ErrorObj.LineNumber := 0;
+  ErrorObj.Filename   := '';
+  CheckLabelsDefined;
   OutputMemoryToCom(FilenameCom);
   OutputMemoryToHex(FilenameHex);
   FSymbolTable.DumpByBoth(FFilenameMap);
@@ -1112,7 +1119,7 @@ begin
   opcode_index := FPreparser.OpcodeIndex;
   command_index := FPreparser.CommandIndex;
   macro_index   := FPreparser.MacroIndex;
-  if not FDefiningMacro then
+  if (not FDefiningMacro) and FSolGenerate then
     AsmProcessLabel(labelx, command_index);
   // Check for end
   if FEnded and ((command_index > 0) or (opcode_index > 0)) then
@@ -1265,6 +1272,7 @@ begin
   FPreparser.Pass := _pass;
   FSymbolTable.Pass := _pass;
   FAsmStack.Clear;
+  FListing.Listing := True;
 
   ErrorObj.Filename := filename;
   DefiningMacro := False;
@@ -1283,7 +1291,7 @@ end;
 
 procedure TAssembler80.CheckNoLabel(const _label: string);
 begin
-  if _label <> '' then
+  if (_label <> '') and (Pass = 1) then
     ErrorObj.Show(ltWarning, E2020_UNEXPECTED_LABEL, [_label]);
 end;
 
@@ -1291,6 +1299,14 @@ procedure TAssembler80.CheckInteger(_i, _min, _max: integer);
 begin
   if (_i < _min) or (_i > _max) then
     ErrorObj.Show(ltError, E2026_INTEGER_RANGE_ERROR, [_min, _max]);
+end;
+
+procedure TAssembler80.CheckLabelsDefined;
+var sym: TSymbol;
+begin
+  for sym in FSymbolTable do
+    if (not sym.Defined) and (sym.Area in [saInternal,saExported]) then
+      ErrorObj.Show(ltWarning,W1005_SYMBOL_UNDEFINED,[sym.Name]);
 end;
 
 procedure TAssembler80.CheckMacroDone;
@@ -2238,7 +2254,7 @@ var
 begin
   FPreparser.Parse(_s);
   // Now parse all the operands where needed
-  if not FDefiningMacro then
+  if (not FDefiningMacro) and (FSolGenerate or (cfBypass in FPreparser.CmdFlags)) then
     for i := 0 to FPreparser.Count - 1 do
       begin
         itm := FPreparser.Items[i];
@@ -2560,10 +2576,43 @@ end;
 
 procedure TAssembler80.RegisterCommands;
 begin
+  FCmdList.RegisterCommand('.BYTE',      [cfLabel],                 @CmdDB);
+  FCmdList.RegisterCommand('.CPU',       [],                        @CmdCPU);
+  FCmdList.RegisterCommand('.DB',        [cfLabel],                 @CmdDB);
+  FCmdList.RegisterCommand('.DC',        [cfLabel],                 @CmdDC);
+  FCmdList.RegisterCommand('.DEFB',      [cfLabel],                 @CmdDB);
+  FCmdList.RegisterCommand('.DEFC',      [cfLabel],                 @CmdDC);
+  FCmdList.RegisterCommand('.DEFS',      [cfLabel],                 @CmdDS);
+  FCmdList.RegisterCommand('.DEFW',      [cfLabel],                 @CmdDW);
+  FCmdList.RegisterCommand('.DS',        [cfLabel],                 @CmdDS);
+  FCmdList.RegisterCommand('.DW',        [cfLabel],                 @CmdDW);
+  FCmdList.RegisterCommand('.ELSE',      [cfBypass],                @CmdELSE);
+  FCmdList.RegisterCommand('.END',       [],                        @CmdEND);
+  FCmdList.RegisterCommand('.ENDIF',     [cfBypass],                @CmdENDIF);
+  FCmdList.RegisterCommand('.ENDM',      [cfDuringMD],              @CmdENDM);
+  FCmdList.RegisterCommand('.ENDR',      [cfBypass],                @CmdENDR);
+  FCmdList.RegisterCommand('.ENDW',      [cfBypass],                @CmdENDW);
+  FCmdList.RegisterCommand('.EQU',       [cfLabel,cfEQU],           @CmdEQU);
+  FCmdList.RegisterCommand('.EXTERN',    [],                        @CmdEXTERN);
+  FCmdList.RegisterCommand('.GLOBAL',    [],                        @CmdGLOBAL);
+  FCmdList.RegisterCommand('.IF',        [cfNoPlaceholder,cfBypass],@CmdIF);
+  FCmdList.RegisterCommand('.INCLUDE',   [],                        @CmdINCLUDE);
+  FCmdList.RegisterCommand('.LISTOFF',   [],                        @CmdLISTOFF);
+  FCmdList.RegisterCommand('.LISTON',    [],                        @CmdLISTON);
+  FCmdList.RegisterCommand('.MACRO',     [cfNoPlaceholder,cfLabel,cfDuringMD], @CmdMACRO);
+  FCmdList.RegisterCommand('.MSGINFO',   [],                        @CmdMSGINFO);
+  FCmdList.RegisterCommand('.MSGERROR',  [],                        @CmdMSGERROR);
+  FCmdList.RegisterCommand('.MSGWARNING',[],                        @CmdMSGWARNING);
+  FCmdList.RegisterCommand('.ORG',       [],                        @CmdORG);
+  FCmdList.RegisterCommand('.REPEAT',    [cfNoPlaceholder,cfBypass],@CmdREPEAT);
+  FCmdList.RegisterCommand('.TEXT',      [cfLabel],                 @CmdDB);
+  FCmdList.RegisterCommand('.TITLE',     [],                        @CmdTITLE);
+  FCmdList.RegisterCommand('.WHILE',     [cfNoPlaceholder,cfBypass],@CmdWHILE);
+  FCmdList.RegisterCommand('.WARNOFF',   [],                        @CmdWARNOFF);
+  FCmdList.RegisterCommand('.WARNON',    [],                        @CmdWARNON);
+  FCmdList.RegisterCommand('.WORD',      [cfLabel],                 @CmdDW);
   FCmdList.RegisterCommand('=',          [cfLabel,cfEQU],           @CmdEQU2);
-  FCmdList.RegisterCommand('CODE',       [],                        @CmdCODE);
   FCmdList.RegisterCommand('CPU',        [],                        @CmdCPU);
-  FCmdList.RegisterCommand('DATA',       [],                        @CmdDATA);
   FCmdList.RegisterCommand('DB',         [cfLabel],                 @CmdDB);
   FCmdList.RegisterCommand('DC',         [cfLabel],                 @CmdDC);
   FCmdList.RegisterCommand('DEFB',       [cfLabel],                 @CmdDB);
@@ -2592,7 +2641,6 @@ begin
   FCmdList.RegisterCommand('ORG',        [],                        @CmdORG);
   FCmdList.RegisterCommand('REPEAT',     [cfNoPlaceholder,cfBypass],@CmdREPEAT);
   FCmdList.RegisterCommand('TITLE',      [],                        @CmdTITLE);
-  FCmdList.RegisterCommand('UDATA',      [],                        @CmdUDATA);
   FCmdList.RegisterCommand('WHILE',      [cfNoPlaceholder,cfBypass],@CmdWHILE);
   FCmdList.RegisterCommand('WARNOFF',    [],                        @CmdWARNOFF);
   FCmdList.RegisterCommand('WARNON',     [],                        @CmdWARNON);

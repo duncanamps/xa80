@@ -453,10 +453,13 @@ function StripQuotesAndEscaped(const _s: string): string;
 begin
   Result := StripQuotes(_s);
   Result := StringReplace(Result,'\"','"',[rfReplaceAll]);
+  Result := StringReplace(Result,'\''','''',[rfReplaceAll]);
   Result := StringReplace(Result,'\\','\',[rfReplaceAll]);
+  Result := StringReplace(Result,'\a',#7, [rfReplaceAll]);
   Result := StringReplace(Result,'\t',#9, [rfReplaceAll]);
   Result := StringReplace(Result,'\n',#10,[rfReplaceAll]);
   Result := StringReplace(Result,'\r',#13,[rfReplaceAll]);
+  Result := StringReplace(Result,'\e',#27,[rfReplaceAll]);
 end;
 
 procedure UnderlinedText(_sl: TStringList; _text: string; _blank_after: boolean = True; _underline_char: char = '-');

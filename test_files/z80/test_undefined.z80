@@ -1,0 +1,25 @@
+;
+; TEST_UNDEFINED.Z80
+;
+; Test for handling of undefined symbols
+; Symbols which are referenced but don't have a value
+; formally set.
+;
+; Duncan Munro
+; 21/06/2023
+;
+
+			ORG		0x200
+
+; Some defined symbols
+
+TABSIZE		EQU		16
+QUOTA		EQU		128
+BUFFERS		EQU		4
+
+; Some defined symbols that reference undefined symbols
+
+TABLE		DS		QUOTA*BUFFERS*WORDSIZE	; WORDSIZE not defined
+INBUF		DW		SANDWICK<<2
+			
+			END

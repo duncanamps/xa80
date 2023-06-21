@@ -75,6 +75,7 @@ type
                      W1002_DIRECTIVE_IGNORED,
                      W1003_LABEL_REDEFINED,
                      W1004_END_OPERANDS_IGNORED,
+                     W1005_SYMBOL_UNDEFINED,
 
                      E2000_USER_ERROR,
                      E2001_ILLEGAL_ESCAPE_CHARACTER,
@@ -136,6 +137,7 @@ type
                      E2057_MACRO_NOT_FOUND,
                      E2058_NO_LABEL_ON_ENDM,
                      E2059_COMMAND_LINE_DEFINE,
+                     E2060_UNEXPECTED_DIRECTIVE,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -208,8 +210,9 @@ var
     '%s',
     'Code wrapped around back to zero',
     'Directive %s ignored',
-    'Label %s has been redefined',
+    'Symbol %s has been redefined',
     'Operands after END directive ignored',
+    'Symbol %s is undefined',
 
     '%s',
     'Illegal escape character %s, valid are %s',
@@ -271,6 +274,7 @@ var
     'Macro %s not found',
     'Cannot place a label on an ENDM directive',
     'Command line define error, could not process %s',
+    'Unexpected directive %s, have already processed directive for %s',
 
     'Unhandled case option at %s',
     'Preparser peeek error',

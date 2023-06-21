@@ -141,7 +141,9 @@ var i: integer;
     rec: TParserProp;
     cmd: string;
     token: TNFAToken;
+    directive: string;
 begin
+  directive := '';
   for i := 0 to Count-1 do
     if Items[i].State = psGlob then
       begin
@@ -159,8 +161,14 @@ begin
                   end
                 else
                   begin
+                    if directive <> '' then
+                      begin
+                        ErrorObj.ColNumber := Items[i].Column;
+                        ErrorObj.Show(ltError,E2060_UNEXPECTED_DIRECTIVE,[cmd,directive]);
+                      end;
                     rec.State := ppCommand;
                     FCmdFlags := FCommandList[token - FDFA.OffsetCommand].CommandFlags;
+                    directive := cmd;
                   end;
               end
             else
@@ -519,6 +527,7 @@ begin
             SQ:  if UpperCase(payload) <> 'AF' then
                    NewState(psSQChr);
             DQ:  NewState(psDQStr);
+            ':': NewState(psUnknown);
             ';': NewState(psComment);
             '/': if prev_ch = '/' then
                    NewState(psComment);

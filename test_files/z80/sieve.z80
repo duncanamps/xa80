@@ -34,13 +34,14 @@
 
 BDOS        	EQU     0005H   		; BDOS entry address
 C_WRITESTR  	EQU     9       		; BDOS command to write $ terminated string
-MAX_PRIMES		EQU		62751  			; Maximum number of primes to check (max 62751)
-SQRT_PRIMES		EQU		250				; Square root of MAX_PRIMES
+MAX_PRIMES		EQU		1000  			; Maximum number of primes to check (max 62751)
+SQRT_PRIMES		EQU		31				; Square root of MAX_PRIMES
 BITBUF_SIZE		EQU		(MAX_PRIMES+7) / 8
 
 SCREEN_WIDTH 	EQU		80				; Width of the display screen
 NUM_WIDTH		EQU		6				; Width of a 5 digit number followed by a space
 NUM_PER_LINE	EQU		SCREEN_WIDTH / NUM_WIDTH  ; 5 digit numbers per line
+CSI				EQU		CHR(0x1B)+"["	; Control Sequence Introducer for terminal
 			
 ; Some error checking to ensure that SQRT_PRIMES has been set correctly!
 
@@ -300,7 +301,8 @@ BITMASKS:	DB		%00000001
 
 ; Text strings
 
-MSG: 		DB      "Sieve",13,10
+MSG: 		DB		CSI,"2J"	; Clear the screen
+			DB      "Sieve",13,10
 			DB		"Created with XA80 cross assembler",13,10
 			DB		DATE() + " " + TIME(),13,10
 			DB		VERSION() + " Build "

@@ -1,0 +1,40 @@
+			TITLE   'FLOAT.Z80 - Floating Point Test'
+		
+			INCLUDE "dmfpmacro.inc"
+
+			ORG     0100H
+
+BDOS            EQU     0005H   ; BDOS entry address
+C_WRITESTR      EQU     9       ; BDOS command to write $ terminated string
+
+HELLO:
+			LD      DE,MSG      	; Get address of msg
+			LD      C,C_WRITESTR    ; Write string function
+			CALL    BDOS            ; Go to BDOS to write the string
+
+			M_COPY	FPCONSTTEN,FPACC1
+			M_COPY	FPCONSTPI,FPACC2
+			CALL	FPDEBUG
+			CALL	FPADD
+			CALL	FPDEBUG
+			RET
+			
+;
+			
+			M_COPY FPCONSTZERO,FPACC1	;Get the value 0.0
+			
+			LD		A,0x26		
+			JP		FPOUT			; and print it
+
+			INCLUDE "dmfpprint.inc"
+			INCLUDE "dmfpbase.inc"			
+
+			
+; Text strings
+
+MSG: 		DB      'Floating Point Test',13,10
+			DB		'Duncan Munro 19-Jun-2023',13,10
+			DB		'$'
+
+			END
+		

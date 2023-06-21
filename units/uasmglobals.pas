@@ -73,7 +73,7 @@ const
 const DIGITS:  set of char = ['0'..'9'];
       ALPHA:   set of char = ['A'..'Z','a'..'z'];
       DEFAULT_ESCAPE = '\'; // Escape character
-      DEFAULT_ESCAPED: set of char = [#34,#39,'a','n','r','t','\'];
+      DEFAULT_ESCAPED: set of char = [#34,#39,'a','e','n','r','t','\'];
       BAD:     set of char = [#0..#31,#127];
       LABELX:  set of char = ['.','?','@','_'];
       TAB = #9;     // Tab
