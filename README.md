@@ -87,6 +87,11 @@ Folders are organised as follows:
 * Object files and debug files are not currently being generated, however .hex and .com files can be generated to provide usable output
 * ~~Only 8080 and Z80 are being catered for at this time but hoping to include 8085 and Z180 soon~~
 
+#### Development roadmap
+
+V0.2 (WIP) - Get documented Macro assembler working for 8080/8085/Z80/Z180
+V0.3 - Introduce segmented architecture, object files, debug info generation
+
 #### Author
 
 Duncan Munro  <duncan@duncanamps.com>

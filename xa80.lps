@@ -3,7 +3,7 @@
   <ProjectSession>
     <PathDelim Value="\"/>
     <Version Value="12"/>
-    <BuildModes Active="Release"/>
+    <BuildModes Active="Debug"/>
     <Units>
       <Unit>
         <Filename Value="xa80.lpr"/>
@@ -43,8 +43,8 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
-        <TopLine Value="2549"/>
-        <CursorPos X="75" Y="2570"/>
+        <TopLine Value="2624"/>
+        <CursorPos X="10" Y="2634"/>
         <UsageCount Value="134"/>
         <Loaded Value="True"/>
       </Unit>

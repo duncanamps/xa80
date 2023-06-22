@@ -2640,10 +2640,12 @@ begin
   FCmdList.RegisterCommand('MSGWARNING', [],                        @CmdMSGWARNING);
   FCmdList.RegisterCommand('ORG',        [],                        @CmdORG);
   FCmdList.RegisterCommand('REPEAT',     [cfNoPlaceholder,cfBypass],@CmdREPEAT);
+  FCmdList.RegisterCommand('TEXT',       [cfLabel],                 @CmdDB);
   FCmdList.RegisterCommand('TITLE',      [],                        @CmdTITLE);
   FCmdList.RegisterCommand('WHILE',      [cfNoPlaceholder,cfBypass],@CmdWHILE);
   FCmdList.RegisterCommand('WARNOFF',    [],                        @CmdWARNOFF);
   FCmdList.RegisterCommand('WARNON',     [],                        @CmdWARNON);
+  FCmdList.RegisterCommand('WORD',       [cfLabel],                 @CmdDW);
 end;
 
 procedure TAssembler80.RegisterProcs;
