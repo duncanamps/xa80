@@ -175,6 +175,8 @@ type
     procedure CmdEXTERN(const _label: string; _preparser: TPreparserBase);
     procedure CmdGLOBAL(const _label: string; _preparser: TPreparserBase);
     procedure CmdIF(const _label: string; _preparser: TPreparserBase);
+    procedure CmdIFDEF(const _label: string; _preparser: TPreparserBase);
+    procedure CmdIFNDEF(const _label: string; _preparser: TPreparserBase);
     procedure CmdINCLUDE(const _label: string; _preparser: TPreparserBase);
     procedure CmdLISTON(const _label: string; _preparser: TPreparserBase);
     procedure CmdMACRO(const _label: string; _preparser: TPreparserBase);
@@ -1653,6 +1655,38 @@ begin
   FAsmStack.Add(entry);
 end;
 
+procedure TAssembler80.CmdIFDEF(const _label: string; _preparser: TPreparserBase);
+var
+  entry: TAsmStackEntry;
+begin
+  // Should only be one operand
+  CheckOperandCount(1, 1);
+  entry.EntryType := setIf;
+  entry.ElseDoneAlready := False;
+  entry.EvalResult := FSymbolTable.Defined(FPreparser[0].Payload);
+  entry.ParentGen := FSolGenerate;
+  entry.Filename := FCurrentFile;
+  entry.LineNumber := FInputLine;
+  entry.RepeatRemain := 0;
+  FAsmStack.Add(entry);
+end;
+
+procedure TAssembler80.CmdIFNDEF(const _label: string; _preparser: TPreparserBase);
+var
+  entry: TAsmStackEntry;
+begin
+  // Should only be one operand
+  CheckOperandCount(1, 1);
+  entry.EntryType := setIf;
+  entry.ElseDoneAlready := False;
+  entry.EvalResult := not FSymbolTable.Defined(FPreparser[0].Payload);
+  entry.ParentGen := FSolGenerate;
+  entry.Filename := FCurrentFile;
+  entry.LineNumber := FInputLine;
+  entry.RepeatRemain := 0;
+  FAsmStack.Add(entry);
+end;
+
 procedure TAssembler80.CmdINCLUDE(const _label: string; _preparser: TPreparserBase);
 begin
   {
@@ -2263,7 +2297,9 @@ begin
         if itm.Index < 0 then
         begin // We need to use the main parser to sort this out
           s := itm.Payload;
-          if (s <> '') and (Indirected(s, DEFAULT_ESCAPE, DEFAULT_ESCAPED)) then
+          if (s <> '') and
+             (Indirected(s, DEFAULT_ESCAPE, DEFAULT_ESCAPED)) and
+             ((Processor <> '8080') and (Processor <> '8085')) then
           begin
             s[1] := '[';
             s[Length(s)] := ']';
@@ -2598,6 +2634,8 @@ begin
   FCmdList.RegisterCommand('.EXTERN',    [],                        @CmdEXTERN);
   FCmdList.RegisterCommand('.GLOBAL',    [],                        @CmdGLOBAL);
   FCmdList.RegisterCommand('.IF',        [cfNoPlaceholder,cfBypass],@CmdIF);
+  FCmdList.RegisterCommand('.IFDEF',     [cfNoPlaceholder,cfBypass],@CmdIFDEF);
+  FCmdList.RegisterCommand('.IFNDEF',    [cfNoPlaceholder,cfBypass],@CmdIFNDEF);
   FCmdList.RegisterCommand('.INCLUDE',   [],                        @CmdINCLUDE);
   FCmdList.RegisterCommand('.LISTOFF',   [],                        @CmdLISTOFF);
   FCmdList.RegisterCommand('.LISTON',    [],                        @CmdLISTON);
@@ -2612,7 +2650,6 @@ begin
   FCmdList.RegisterCommand('.WHILE',     [cfNoPlaceholder,cfBypass],@CmdWHILE);
   FCmdList.RegisterCommand('.WARNOFF',   [],                        @CmdWARNOFF);
   FCmdList.RegisterCommand('.WARNON',    [],                        @CmdWARNON);
-  FCmdList.RegisterCommand('.WORD',      [cfLabel],                 @CmdDW);
   FCmdList.RegisterCommand('=',          [cfLabel,cfEQU],           @CmdEQU2);
   FCmdList.RegisterCommand('CPU',        [],                        @CmdCPU);
   FCmdList.RegisterCommand('DB',         [cfLabel],                 @CmdDB);
@@ -2633,6 +2670,8 @@ begin
   FCmdList.RegisterCommand('EXTERN',     [],                        @CmdEXTERN);
   FCmdList.RegisterCommand('GLOBAL',     [],                        @CmdGLOBAL);
   FCmdList.RegisterCommand('IF',         [cfNoPlaceholder,cfBypass],@CmdIF);
+  FCmdList.RegisterCommand('IFDEF',      [cfNoPlaceholder,cfBypass],@CmdIFDEF);
+  FCmdList.RegisterCommand('IFNDEF',     [cfNoPlaceholder,cfBypass],@CmdIFNDEF);
   FCmdList.RegisterCommand('INCLUDE',    [],                        @CmdINCLUDE);
   FCmdList.RegisterCommand('LISTOFF',    [],                        @CmdLISTOFF);
   FCmdList.RegisterCommand('LISTON',     [],                        @CmdLISTON);
@@ -2647,7 +2686,11 @@ begin
   FCmdList.RegisterCommand('WHILE',      [cfNoPlaceholder,cfBypass],@CmdWHILE);
   FCmdList.RegisterCommand('WARNOFF',    [],                        @CmdWARNOFF);
   FCmdList.RegisterCommand('WARNON',     [],                        @CmdWARNON);
-  FCmdList.RegisterCommand('WORD',       [cfLabel],                 @CmdDW);
+  if (Processor = '8080') or (Processor = '8085') then
+    begin
+      FCmdList.RegisterCommand('.SET',   [cfLabel,cfEQU],           @CmdEQU2);
+      FCmdList.RegisterCommand('SET',    [cfLabel,cfEQU],           @CmdEQU2);
+    end;
 end;
 
 procedure TAssembler80.RegisterProcs;
