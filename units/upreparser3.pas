@@ -392,7 +392,7 @@ begin
     Inc(i);
   if (i < Count) then
     begin
-      FLabelX := Items[i].Payload;
+      FLabelX := StripColon(Items[i].Payload);
       Delete(i);
     end;
 end;

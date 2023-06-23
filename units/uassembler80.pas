@@ -1285,6 +1285,8 @@ end;
 
 procedure TAssembler80.CheckByte(_i: integer);
 begin
+  if (_i > 255) then
+    _i := _i - 65536;
   if (_i < -128) or (_i > 255) then
     ErrorObj.Show(ltError, E2023_BYTE_RANGE_ERROR);
 end;
@@ -2037,9 +2039,9 @@ begin
   end
   else
   begin  // Label exists
-    if (Pass = 1) and not _allow_redefine then
-      ErrorObj.Show(ltWarning, W1003_LABEL_REDEFINED, [_label]);
     sym := FSymbolTable[_index];
+    if (Pass = 1) and (not _allow_redefine) and (sym.Defined = True) then
+      ErrorObj.Show(ltWarning, W1003_LABEL_REDEFINED, [_label]);
     sym.Defined := True;
     case _preparser[0].DataType of
       pstNone: ErrorObj.Show(ltError, E2018_OPERAND_NO_DATA_TYPE, [1]);

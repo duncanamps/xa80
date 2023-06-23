@@ -3,14 +3,14 @@
   <ProjectSession>
     <PathDelim Value="\"/>
     <Version Value="12"/>
-    <BuildModes Active="Debug"/>
+    <BuildModes Active="Release"/>
     <Units>
       <Unit>
         <Filename Value="xa80.lpr"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="75"/>
-        <CursorPos X="3" Y="96"/>
-        <UsageCount Value="163"/>
+        <TopLine Value="253"/>
+        <CursorPos X="62" Y="262"/>
+        <UsageCount Value="170"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -19,7 +19,7 @@
         <EditorIndex Value="1"/>
         <TopLine Value="227"/>
         <CursorPos X="17" Y="244"/>
-        <UsageCount Value="163"/>
+        <UsageCount Value="170"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -27,7 +27,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="6"/>
         <CursorPos X="23" Y="5"/>
-        <UsageCount Value="163"/>
+        <UsageCount Value="170"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -36,16 +36,15 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="451"/>
         <CursorPos X="32" Y="476"/>
-        <UsageCount Value="150"/>
+        <UsageCount Value="157"/>
       </Unit>
       <Unit>
         <Filename Value="units\uassembler80.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
-        <TopLine Value="2624"/>
-        <CursorPos X="10" Y="2634"/>
-        <UsageCount Value="134"/>
+        <TopLine Value="1599"/>
+        <CursorPos Y="1615"/>
+        <UsageCount Value="141"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -55,7 +54,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="131"/>
+        <UsageCount Value="138"/>
       </Unit>
       <Unit>
         <Filename Value="lexer_parser\units\udmnfa.pas"/>
@@ -64,7 +63,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="131"/>
+        <UsageCount Value="138"/>
       </Unit>
       <Unit>
         <Filename Value="lexer_parser\units\udmset.pas"/>
@@ -73,7 +72,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="131"/>
+        <UsageCount Value="138"/>
       </Unit>
       <Unit>
         <Filename Value="lexer_parser\units\udmyala.pas"/>
@@ -82,7 +81,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="131"/>
+        <UsageCount Value="138"/>
       </Unit>
       <Unit>
         <Filename Value="units\uprocessors.pas"/>
@@ -90,7 +89,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="15"/>
         <CursorPos X="3" Y="41"/>
-        <UsageCount Value="130"/>
+        <UsageCount Value="137"/>
       </Unit>
       <Unit>
         <Filename Value="lac\lacogen_module.pas"/>
@@ -98,7 +97,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="56"/>
         <CursorPos X="3" Y="85"/>
-        <UsageCount Value="129"/>
+        <UsageCount Value="136"/>
       </Unit>
       <Unit>
         <Filename Value="lac\lacogen_types.pas"/>
@@ -106,42 +105,43 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="84"/>
         <CursorPos X="3" Y="49"/>
-        <UsageCount Value="129"/>
+        <UsageCount Value="136"/>
       </Unit>
       <Unit>
         <Filename Value="units\umessages.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="202"/>
-        <CursorPos X="6" Y="218"/>
-        <UsageCount Value="129"/>
+        <TopLine Value="375"/>
+        <CursorPos Y="393"/>
+        <UsageCount Value="136"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="units\uutility.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
         <TopLine Value="427"/>
-        <CursorPos X="26" Y="443"/>
-        <UsageCount Value="127"/>
+        <CursorPos X="22" Y="436"/>
+        <UsageCount Value="134"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="units\usymboltable.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="7"/>
-        <TopLine Value="233"/>
-        <CursorPos Y="253"/>
-        <UsageCount Value="127"/>
+        <TopLine Value="340"/>
+        <CursorPos Y="355"/>
+        <UsageCount Value="134"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="units\upreparser3.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="8"/>
-        <TopLine Value="341"/>
-        <CursorPos Y="352"/>
-        <UsageCount Value="127"/>
+        <TopLine Value="385"/>
+        <CursorPos Y="396"/>
+        <UsageCount Value="134"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -151,7 +151,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="127"/>
+        <UsageCount Value="134"/>
       </Unit>
       <Unit>
         <Filename Value="units\ucommand.pas"/>
@@ -159,7 +159,7 @@
         <EditorIndex Value="9"/>
         <TopLine Value="32"/>
         <CursorPos X="68" Y="53"/>
-        <UsageCount Value="127"/>
+        <UsageCount Value="134"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -169,14 +169,14 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="127"/>
+        <UsageCount Value="134"/>
       </Unit>
       <Unit>
         <Filename Value="units\uinclude.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="17" Y="14"/>
-        <UsageCount Value="127"/>
+        <UsageCount Value="134"/>
       </Unit>
       <Unit>
         <Filename Value="units\uinstruction.pas"/>
@@ -184,7 +184,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="241"/>
         <CursorPos X="20" Y="256"/>
-        <UsageCount Value="127"/>
+        <UsageCount Value="134"/>
       </Unit>
       <Unit>
         <Filename Value="units\ulisting.pas"/>
@@ -192,7 +192,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="59"/>
         <CursorPos Y="94"/>
-        <UsageCount Value="127"/>
+        <UsageCount Value="134"/>
       </Unit>
       <Unit>
         <Filename Value="units\upreparser3_defs.pas"/>
@@ -200,7 +200,7 @@
         <EditorIndex Value="10"/>
         <TopLine Value="14"/>
         <CursorPos X="3" Y="40"/>
-        <UsageCount Value="127"/>
+        <UsageCount Value="134"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -209,7 +209,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="33"/>
         <CursorPos Y="49"/>
-        <UsageCount Value="95"/>
+        <UsageCount Value="102"/>
       </Unit>
       <Unit>
         <Filename Value="units\umacro.pas"/>
@@ -217,7 +217,7 @@
         <EditorIndex Value="5"/>
         <TopLine Value="67"/>
         <CursorPos Y="76"/>
-        <UsageCount Value="81"/>
+        <UsageCount Value="88"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -225,13 +225,13 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="127"/>
         <CursorPos Y="152"/>
-        <UsageCount Value="34"/>
+        <UsageCount Value="33"/>
       </Unit>
       <Unit>
         <Filename Value="units\ugrammar.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="4"/>
-        <UsageCount Value="14"/>
+        <UsageCount Value="13"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\..\core\lexer_parser\units\udmdfa.pas"/>
@@ -239,7 +239,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="10"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\..\core\lexer_parser\units\udmnfa.pas"/>
@@ -247,7 +247,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="10"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\..\core\lexer_parser\units\udmset.pas"/>
@@ -255,7 +255,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="10"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\..\core\lexer_parser\units\udmyala.pas"/>
@@ -263,7 +263,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="10"/>
       </Unit>
       <Unit>
         <Filename Value="C:\lazarus\fpc\3.2.2\source\packages\rtl-generics\src\generics.collections.pas"/>
@@ -271,7 +271,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="1422"/>
         <CursorPos Y="1439"/>
-        <UsageCount Value="30"/>
+        <UsageCount Value="29"/>
       </Unit>
       <Unit>
         <Filename Value="C:\lazarus\fpc\3.2.2\source\packages\rtl-generics\src\generics.defaults.pas"/>
@@ -279,20 +279,20 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="1062"/>
         <CursorPos Y="1077"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="10"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\..\lacogen1\lac\core\deployment_parser_module_12.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="959"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="9"/>
       </Unit>
       <Unit>
         <Filename Value="C:\lazarus\fpc\3.2.2\source\rtl\objpas\classes\classesh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="47"/>
         <CursorPos X="3" Y="62"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="7"/>
       </Unit>
       <Unit>
         <Filename Value="C:\lazarus\fpc\3.2.2\source\rtl\objpas\types.pp"/>
@@ -300,7 +300,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="152"/>
         <CursorPos X="3" Y="167"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="7"/>
       </Unit>
       <Unit>
         <Filename Value="C:\lazarus\fpc\3.2.2\source\packages\fcl-base\src\custapp.pp"/>
@@ -308,80 +308,80 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="728"/>
         <CursorPos X="3" Y="758"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="9"/>
       </Unit>
       <Unit>
         <Filename Value="C:\lazarus\fpc\3.2.2\source\rtl\objpas\objpas.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="302"/>
         <CursorPos X="3" Y="305"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="9"/>
       </Unit>
       <Unit>
         <Filename Value="C:\lazarus\fpc\3.2.2\source\rtl\win\syswinh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="38"/>
         <CursorPos X="58" Y="70"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="9"/>
       </Unit>
       <Unit>
         <Filename Value="..\xa80_old\units\unfa.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="88"/>
         <CursorPos X="27" Y="7"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="4"/>
       </Unit>
       <Unit>
         <Filename Value="..\xa80_old\units\udfa.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="112"/>
         <CursorPos X="27" Y="10"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="4"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\..\core\verinfo\VerView.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="148"/>
-        <UsageCount Value="1"/>
+        <UsageCount Value="10"/>
       </Unit>
       <Unit>
         <Filename Value="C:\lazarus\fpc\3.2.2\source\rtl\objpas\sysutils\finah.inc"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="10" Y="25"/>
-        <UsageCount Value="2"/>
+        <UsageCount Value="1"/>
       </Unit>
       <Unit>
         <Filename Value="units\ufileinfo.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="30"/>
         <CursorPos Y="60"/>
-        <UsageCount Value="13"/>
+        <UsageCount Value="12"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\..\..\..\..\AppData\Local\Temp\Temp1_xa80_0.1.zip\xa80\units\uassembler80.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1133"/>
         <CursorPos X="24" Y="1159"/>
-        <UsageCount Value="3"/>
+        <UsageCount Value="2"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\..\..\..\..\AppData\Local\Temp\Temp1_xa80_0.1.zip\xa80\units\ucoder.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="6"/>
-        <UsageCount Value="3"/>
+        <UsageCount Value="2"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\..\..\..\..\AppData\Local\Temp\Temp1_xa80_0.1.zip\xa80\units\uoutput.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="109"/>
         <CursorPos X="45" Y="133"/>
-        <UsageCount Value="3"/>
+        <UsageCount Value="2"/>
       </Unit>
       <Unit>
         <Filename Value="units\uevaluator.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="110"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="7"/>
       </Unit>
     </Units>
     <OtherDefines Count="2">
@@ -390,123 +390,124 @@
     </OtherDefines>
     <JumpHistory HistoryIndex="29">
       <Position>
-        <Filename Value="units\umacro.pas"/>
-        <Caret Line="89" TopLine="65"/>
-      </Position>
-      <Position>
-        <Filename Value="units\umacro.pas"/>
-        <Caret Line="90" TopLine="65"/>
-      </Position>
-      <Position>
-        <Filename Value="units\umacro.pas"/>
-        <Caret Line="91" TopLine="65"/>
-      </Position>
-      <Position>
-        <Filename Value="units\umacro.pas"/>
-        <Caret Line="76" TopLine="67"/>
+        <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="2018" TopLine="2002"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="963" Column="24" TopLine="948"/>
+        <Caret Line="2026" TopLine="2002"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
+        <Caret Line="2028" TopLine="2002"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="136" Column="28" TopLine="112"/>
+        <Caret Line="2029" TopLine="2003"/>
+      </Position>
+      <Position>
+        <Filename Value="units\usymboltable.pas"/>
+        <Caret Line="332" TopLine="316"/>
+      </Position>
+      <Position>
+        <Filename Value="units\usymboltable.pas"/>
+        <Caret Line="343" TopLine="317"/>
+      </Position>
+      <Position>
+        <Filename Value="units\usymboltable.pas"/>
+        <Caret Line="344" TopLine="318"/>
+      </Position>
+      <Position>
+        <Filename Value="units\usymboltable.pas"/>
+        <Caret Line="345" TopLine="319"/>
+      </Position>
+      <Position>
+        <Filename Value="units\usymboltable.pas"/>
+        <Caret Line="346" TopLine="320"/>
+      </Position>
+      <Position>
+        <Filename Value="units\usymboltable.pas"/>
+        <Caret Line="347" TopLine="321"/>
+      </Position>
+      <Position>
+        <Filename Value="units\usymboltable.pas"/>
+        <Caret Line="354" TopLine="339"/>
+      </Position>
+      <Position>
+        <Filename Value="units\usymboltable.pas"/>
+        <Caret Line="332" TopLine="316"/>
+      </Position>
+      <Position>
+        <Filename Value="units\usymboltable.pas"/>
+        <Caret Line="355" TopLine="340"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="788" Column="25" TopLine="775"/>
+        <Caret Line="2030" TopLine="2004"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="2590" Column="48" TopLine="2564"/>
+        <Caret Line="2032" TopLine="2006"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="84" Column="26" TopLine="69"/>
+        <Caret Line="2034" TopLine="2008"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="343" Column="35" TopLine="312"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uutility.pas"/>
-        <Caret Line="55" Column="11" TopLine="39"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uutility.pas"/>
-        <Caret Line="454" Column="3" TopLine="451"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uutility.pas"/>
-        <Caret Line="450" TopLine="433"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uutility.pas"/>
-        <Caret Line="441" Column="25" TopLine="425"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uutility.pas"/>
-        <Caret Line="443" Column="26" TopLine="427"/>
+        <Caret Line="2036" TopLine="2010"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="94" Column="19" TopLine="89"/>
+        <Caret Line="2018" TopLine="2010"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="402" Column="3" TopLine="398"/>
+        <Caret Line="2061" TopLine="2046"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="197" Column="15" TopLine="183"/>
+        <Caret Line="1616" TopLine="1600"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="2106" Column="54" TopLine="2095"/>
+        <Caret Line="1133" TopLine="1112"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="191" Column="15" TopLine="177"/>
+        <Caret Line="206" Column="15" TopLine="192"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1949" Column="84" TopLine="1944"/>
+        <Caret Line="2257" Column="3" TopLine="2245"/>
       </Position>
       <Position>
-        <Filename Value="xa80.lpr"/>
-        <Caret Line="188" TopLine="172"/>
+        <Filename Value="units\upreparser3.pas"/>
+        <Caret Line="60" Column="17" TopLine="48"/>
       </Position>
       <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1949" Column="84" TopLine="1944"/>
+        <Filename Value="units\upreparser3.pas"/>
+        <Caret Line="595" Column="12" TopLine="572"/>
       </Position>
       <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="162" Column="71" TopLine="147"/>
+        <Filename Value="units\upreparser3.pas"/>
+        <Caret Line="47" Column="17" TopLine="33"/>
       </Position>
       <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1396" TopLine="1391"/>
-      </Position>
-      <Position>
-        <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="162" Column="15" TopLine="159"/>
+        <Filename Value="units\upreparser3.pas"/>
+        <Caret Line="397" Column="55" TopLine="385"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1430" TopLine="1399"/>
+        <Caret Line="1615" TopLine="1599"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="1396" Column="61" TopLine="1392"/>
+        <Caret Line="2018" TopLine="2002"/>
       </Position>
       <Position>
         <Filename Value="units\uassembler80.pas"/>
-        <Caret Line="191" Column="16" TopLine="182"/>
+        <Caret Line="1615" TopLine="1599"/>
       </Position>
     </JumpHistory>
     <RunParams>
@@ -514,7 +515,7 @@
       <Modes ActiveMode="default">
         <Mode Name="default">
           <local>
-            <CommandLineParams Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\calibration\test_8080.asm&quot; --com --hex --listing --map --processor=8080 --verbose=2"/>
+            <CommandLineParams Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\box80\g_searle\source\test.asm&quot; --com --hex --listing --map --processor=z80 --verbose=4"/>
             <LaunchingApplication PathPlusParams="C:\Windows\system32\cmd.exe \C ${TargetCmdLine}"/>
           </local>
         </Mode>
@@ -526,26 +527,26 @@
         <Item2 Value="C:\Windows\system32\cmd.exe /C ${TargetCmdLine}"/>
       </List>
       <List Name="CommandLineParameters" Count="20">
-        <Item1 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\calibration\test_8080.asm&quot; --com --hex --listing --map --processor=8080 --verbose=2"/>
-        <Item2 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\calibration\test_z80.asm&quot; --com --hex --listing --map --processor=z80 --verbose=2"/>
-        <Item3 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\calibration\test_z180.asm&quot; --com --hex --listing --map --processor=z180 --verbose=2"/>
-        <Item4 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\hello.z80&quot; --com --define=DEBUG_FLAG;BUFSIZE=128;MYSTRING=&quot;Hello&quot; --hex --listing --map --processor=Z80 --verbose=2"/>
-        <Item5 Value="--show=Instructions --processor=Z80"/>
-        <Item6 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_defined.z80&quot; --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
-        <Item7 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_colon_optional.z80&quot; --case-sensitive=1 --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
-        <Item8 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_colon_mandatory.z80&quot; --case-sensitive=1 --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
-        <Item9 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_case.z80&quot; --case-sensitive=1 --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
-        <Item10 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_case.z80&quot; --case-sensitive=0 --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
-        <Item11 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_macro.z80&quot; --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
-        <Item12 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_if.z80&quot; --verbose=5 --listing --map --include=C:\temp --processor=z80 --case-sensitive=1"/>
-        <Item13 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\binaries\debug\win64-x86_64\test.asm&quot; --verbose=5 --listing --map --include=C:\temp --processor=z80 --case-sensitive=1"/>
-        <Item14 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\binaries\debug\win64-x86_64\test.asm&quot; --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item15 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_repeat.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item16 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\calibration\test_z80.asm&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item17 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_ifdef.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item18 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_while.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item19 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_if.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
-        <Item20 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\if_test.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item1 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\box80\g_searle\source\test.asm&quot; --com --hex --listing --map --processor=z80 --verbose=4"/>
+        <Item2 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\calibration\test_8080.asm&quot; --com --hex --listing --map --processor=8080 --verbose=2"/>
+        <Item3 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\calibration\test_z80.asm&quot; --com --hex --listing --map --processor=z80 --verbose=2"/>
+        <Item4 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\calibration\test_z180.asm&quot; --com --hex --listing --map --processor=z180 --verbose=2"/>
+        <Item5 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\hello.z80&quot; --com --define=DEBUG_FLAG;BUFSIZE=128;MYSTRING=&quot;Hello&quot; --hex --listing --map --processor=Z80 --verbose=2"/>
+        <Item6 Value="--show=Instructions --processor=Z80"/>
+        <Item7 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_defined.z80&quot; --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
+        <Item8 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_colon_optional.z80&quot; --case-sensitive=1 --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
+        <Item9 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_colon_mandatory.z80&quot; --case-sensitive=1 --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
+        <Item10 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_case.z80&quot; --case-sensitive=1 --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
+        <Item11 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_case.z80&quot; --case-sensitive=0 --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
+        <Item12 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_macro.z80&quot; --com --errorlog --hex --listing --map --processor=z80 --verbose=5 --include=c:\temp;c:\users"/>
+        <Item13 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_if.z80&quot; --verbose=5 --listing --map --include=C:\temp --processor=z80 --case-sensitive=1"/>
+        <Item14 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\binaries\debug\win64-x86_64\test.asm&quot; --verbose=5 --listing --map --include=C:\temp --processor=z80 --case-sensitive=1"/>
+        <Item15 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\binaries\debug\win64-x86_64\test.asm&quot; --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item16 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_repeat.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item17 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\calibration\test_z80.asm&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item18 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_ifdef.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item19 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_while.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
+        <Item20 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\test_files\z80\test_if.z80&quot; --com --hex --verbose=5 --listing --map --include=C:\temp --processor=z80"/>
       </List>
     </HistoryLists>
   </ProjectSession>

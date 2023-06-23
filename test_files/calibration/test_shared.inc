@@ -103,8 +103,8 @@ HIGHNUM	EQU		19
 		DB		IIF(1<2,0x12,0x99)		// 12
 		DW		LENGTH("Duncan Munro")	// 0C Length of a string
 		DB		LOW(0x1234)				// 34 Low byte of word
-		DW		ORG						// ?? ?? The origin
 		DW		$						// ?? ?? The origin
+		DW		ORG()					// ?? ?? The origin
 		DB		POS("N","DUNCAN")		// 03 Pos of substring in string
 		DB		POS("Z","DUNCAN")		// 00
 		DB		VALUE("123")			// 7B Convert string to number
