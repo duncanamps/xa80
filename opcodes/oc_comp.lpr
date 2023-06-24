@@ -26,8 +26,8 @@ uses
   {$IFDEF UNIX}
   cthreads,
   {$ENDIF}
-  Classes, SysUtils, CustApp, deployment_parser_types_12,
-  deployment_parser_module_12, uinstruction;
+  Classes, SysUtils, CustApp,
+  uinstruction, lacogen_module, lacogen_types;
 
 type
   TMyReduceFunc = function (Parser: TLCGParser): TLCGParserStackEntry of object;

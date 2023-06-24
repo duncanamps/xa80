@@ -64,11 +64,11 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="lac\deployment_parser_module_12.pas"/>
+        <Filename Value="lac\lacogen_module.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="lac\deployment_parser_types_12.pas"/>
+        <Filename Value="lac\lacogen_types.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
