@@ -2686,7 +2686,7 @@ begin
   FCmdList.RegisterCommand('WHILE',      [cfNoPlaceholder,cfBypass],@CmdWHILE);
   FCmdList.RegisterCommand('WARNOFF',    [],                        @CmdWARNOFF);
   FCmdList.RegisterCommand('WARNON',     [],                        @CmdWARNON);
-  if (Processor = '8080') or (Processor = '8085') then
+  if not FSymbolTable.Defined('SET') then
     begin
       FCmdList.RegisterCommand('.SET',   [cfLabel,cfEQU],           @CmdEQU2);
       FCmdList.RegisterCommand('SET',    [cfLabel,cfEQU],           @CmdEQU2);

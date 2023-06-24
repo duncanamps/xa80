@@ -3,7 +3,7 @@
   <ProjectSession>
     <PathDelim Value="\"/>
     <Version Value="12"/>
-    <BuildModes Active="Release"/>
+    <BuildModes Active="Debug"/>
     <Units>
       <Unit>
         <Filename Value="xa80.lpr"/>
@@ -43,9 +43,15 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
+<<<<<<< HEAD
         <TopLine Value="1642"/>
         <CursorPos X="45" Y="1654"/>
         <UsageCount Value="143"/>
+=======
+        <TopLine Value="2674"/>
+        <CursorPos Y="2690"/>
+        <UsageCount Value="144"/>
+>>>>>>> #41_Auto_SET_directive
         <Loaded Value="True"/>
       </Unit>
       <Unit>
