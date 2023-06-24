@@ -1,7 +1,8 @@
 # XA80
 
 XA80 - X-Assembler for x80 processors
-WARNING - THIS IS VERY MUCH WORK IN PROGRESS
+
+This is V0.2 which is a stable and supported version of the software. This is the version that should be used for any day to day activities. There is also a version V0.3 which is under development; this is likely to have major gaps in functionality and may not be stable. It can be accessed from [XA80 V0.3 GitHub](https://github.com/duncanamps/xa80/tree/V0.3).
 
 #### Synopsis
 
@@ -11,9 +12,8 @@ XA80 is a command line tool that allows the cross assembly of source files aimed
 * .lst file containing a listing of the assembler output
 * .log file containing errors encountered during the assembly
 * .map file containing the symbol information
-* .com file containing the actual machine code which can be executed on, for example, CP/M machines
-* .obj80 file which creates the object code and symbol information suitable for use with a linker (NOT IMPLEMENTED)
-* .dbg80 file containing debug information such as symbols, source lines, etc. (NOT IMPLEMENTED)
+* .com/.bin file containing the actual machine code which can be executed on, for example, CP/M machines
+
 
 #### Key features
 
@@ -83,14 +83,12 @@ Folders are organised as follows:
 
 #### Known Issues 
 
-* Object files and debug files are not currently being generated, however .hex and .com files can be generated to provide usable output
-* ~~The software is anything but complete and doesn't correspond with the user manual~~
-* ~~Only 8080 and Z80 are being catered for at this time but hoping to include 8085 and Z180 soon~~
+* No major issues identified at this time
 
 #### Development roadmap
 
-* ~~V0.2 - Get documented Macro assembler working for 8080/8085/Z80/Z180~~ Completed, maintained current version
 * V0.3 - Introduce segmented architecture, object files, debug info generation
+* V0.4 - Likely to be tagged as V1.0
 
 #### Author
 
