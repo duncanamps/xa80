@@ -138,6 +138,7 @@ type
                      E2058_NO_LABEL_ON_ENDM,
                      E2059_COMMAND_LINE_DEFINE,
                      E2060_UNEXPECTED_DIRECTIVE,
+                     E2061_PROCESSOR_NOT_LOADED,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -275,6 +276,7 @@ var
     'Cannot place a label on an ENDM directive',
     'Command line define error, could not process %s',
     'Unexpected directive %s, have already processed directive for %s',
+    'Could not load processor details from %s',
 
     'Unhandled case option at %s',
     'Preparser peeek error',

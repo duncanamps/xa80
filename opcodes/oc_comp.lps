@@ -8,8 +8,8 @@
       <Unit>
         <Filename Value="oc_comp.lpr"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="101"/>
-        <CursorPos Y="113"/>
+        <TopLine Value="261"/>
+        <CursorPos Y="276"/>
         <UsageCount Value="38"/>
         <Loaded Value="True"/>
       </Unit>
@@ -17,23 +17,27 @@
         <Filename Value="..\units\uinstruction.pas"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <EditorIndex Value="1"/>
-        <TopLine Value="744"/>
-        <CursorPos X="29" Y="754"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="459"/>
+        <CursorPos Y="474"/>
         <UsageCount Value="35"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="lac\deployment_parser_module_12.pas"/>
+        <Filename Value="lac\lacogen_module.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="833"/>
+        <CursorPos Y="848"/>
         <UsageCount Value="22"/>
+        <Loaded Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="lac\deployment_parser_types_12.pas"/>
+        <Filename Value="lac\lacogen_types.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="2"/>
         <UsageCount Value="22"/>
+        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\..\..\lacogen1\lac\core\deployment_parser_module_12.pas"/>
@@ -83,127 +87,143 @@
         <EditorIndex Value="-1"/>
         <UsageCount Value="10"/>
       </Unit>
+      <Unit>
+        <Filename Value="..\lac\lacogen_module.pas"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\lac\lacogen_types.pas"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="825" TopLine="808"/>
+        <Caret Line="836" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="827" TopLine="808"/>
+        <Caret Line="835" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="828" TopLine="808"/>
+        <Caret Line="837" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="829" TopLine="808"/>
+        <Caret Line="830" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="830" TopLine="808"/>
+        <Caret Line="832" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="823" TopLine="808"/>
+        <Caret Line="833" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="825" TopLine="808"/>
+        <Caret Line="834" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="827" TopLine="808"/>
+        <Caret Line="833" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="828" TopLine="808"/>
+        <Caret Line="834" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="829" TopLine="808"/>
+        <Caret Line="833" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="830" TopLine="808"/>
+        <Caret Line="834" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="823" TopLine="808"/>
+        <Caret Line="833" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="825" TopLine="808"/>
+        <Caret Line="834" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="823" TopLine="808"/>
+        <Caret Line="833" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="825" TopLine="808"/>
+        <Caret Line="834" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="823" TopLine="808"/>
+        <Caret Line="833" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="833" TopLine="808"/>
+        <Caret Line="834" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="820" TopLine="808"/>
+        <Caret Line="833" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="822" TopLine="808"/>
+        <Caret Line="834" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="833" TopLine="808"/>
+        <Caret Line="833" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="820" TopLine="808"/>
+        <Caret Line="834" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="833" TopLine="807"/>
-      </Position>
-      <Position>
-        <Filename Value="oc_comp.lpr"/>
-        <Caret Line="113" TopLine="101"/>
+        <Caret Line="833" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="759" TopLine="744"/>
+        <Caret Line="834" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="760" TopLine="744"/>
+        <Caret Line="833" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="762" TopLine="744"/>
+        <Caret Line="835" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="763" TopLine="744"/>
+        <Caret Line="836" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="764" TopLine="744"/>
+        <Caret Line="835" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="765" TopLine="744"/>
+        <Caret Line="836" TopLine="815"/>
       </Position>
       <Position>
         <Filename Value="..\units\uinstruction.pas"/>
-        <Caret Line="766" TopLine="744"/>
+        <Caret Line="835" TopLine="815"/>
+      </Position>
+      <Position>
+        <Filename Value="..\units\uinstruction.pas"/>
+        <Caret Line="833" Column="10" TopLine="818"/>
       </Position>
     </JumpHistory>
     <RunParams>
@@ -211,7 +231,7 @@
       <Modes ActiveMode="default">
         <Mode Name="default">
           <local>
-            <CommandLineParams Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\opcodes\source\z80.opcode&quot;"/>
+            <CommandLineParams Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\opcodes\source\z80x.opcode&quot; --verbose"/>
             <LaunchingApplication PathPlusParams="C:\Windows\system32\cmd.exe /C ${TargetCmdLine}"/>
           </local>
         </Mode>
@@ -221,23 +241,16 @@
       <List Name="LaunchingApplication" Type="File" Count="1">
         <Item1 Value="C:\Windows\system32\cmd.exe /C ${TargetCmdLine}"/>
       </List>
-      <List Name="CommandLineParameters" Count="3">
-        <Item1 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\opcodes\source\z80.opcode&quot;"/>
-        <Item2 Value="source\z80.opcode"/>
-        <Item3 Value="source/z80.opcode"/>
+      <List Name="CommandLineParameters" Count="5">
+        <Item1 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\opcodes\source\z80x.opcode&quot; --verbose"/>
+        <Item2 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\opcodes\source\z80x.opcode&quot;"/>
+        <Item3 Value="&quot;C:\Users\Duncan Munro\Dropbox\dev\lazarus\computing\z80\xa80\opcodes\source\z80.opcode&quot;"/>
+        <Item4 Value="source\z80.opcode"/>
+        <Item5 Value="source/z80.opcode"/>
       </List>
     </HistoryLists>
   </ProjectSession>
   <Debugging>
-    <BreakPoints>
-      <Item>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="oc_comp.lpr"/>
-        <Line Value="113"/>
-      </Item>
-    </BreakPoints>
     <Watches>
       <Item>
         <Expression Value="ra"/>

@@ -53,9 +53,13 @@ type
   	            OPER_HL_IND,
   	            OPER_I,
   	            OPER_IX,
+                    OPER_IXH,
+                    OPER_IXL,
   	            OPER_IX_IND,
   	            OPER_IXPD_IND,
   	            OPER_IY,
+                    OPER_IYH,
+                    OPER_IYL,
   	            OPER_IY_IND,
   	            OPER_IYPD_IND,
   	            OPER_L,
@@ -79,10 +83,10 @@ const
   CODE_ELEMENT_COUNT_MINIMUM = 1;
   CODE_ELEMENT_COUNT_MAXIMUM = 4;
   INSTRUCTION_COUNT_MINIMUM = 128;
-  INSTRUCTION_COUNT_MAXIMUM = 1024;
+  INSTRUCTION_COUNT_MAXIMUM = 2048;
   OPCODE_COUNT_MINIMUM = 50;
-  OPCODE_COUNT_MAXIMUM = 100;
-  OPCODE_LENGTH_MAXIMUM = 5;
+  OPCODE_COUNT_MAXIMUM = 512;
+  OPCODE_LENGTH_MAXIMUM = 8;
   OPCODE_MAP_MAGIC = $4D43504F;
 
   OperandStrings: array[TOperandOption] of string =  ('',
@@ -104,9 +108,13 @@ const
   	                                        'HL_IND',
   	                                        'I',
   	                                        'IX',
+                                                'IXH',
+                                                'IXL',
   	                                        'IX_IND',
   	                                        'IXPD_IND',
   	                                        'IY',
+                                                'IYH',
+                                                'IYL',
   	                                        'IY_IND',
   	                                        'IYPD_IND',
   	                                        'L',
@@ -145,9 +153,13 @@ const
   	                                        '(HL)',
   	                                        'I',
   	                                        'IX',
+                                                'IXH',
+                                                'IXL',
   	                                        '(IX)',
   	                                        '', // IXPD_IND
   	                                        'IY',
+                                                'IYH',
+                                                'IYL',
   	                                        '(IY)',
   	                                        '', // IYPD_IND
   	                                        'L',
@@ -186,9 +198,13 @@ const
   	                                        '(HL)',
   	                                        'I',
   	                                        'IX',
+                                                'IXH',
+                                                'IXL',
   	                                        '(IX)',
   	                                        '(IX+NN)', // IXPD_IND
   	                                        'IY',
+                                                'IYH',
+                                                'IYL',
   	                                        '(IY)',
   	                                        '(IY+NN)', // IYPD_IND
   	                                        'L',
@@ -228,9 +244,13 @@ const
       True,	// OPER_HL_IND
       False,	// OPER_I
       False,	// OPER_IX
+      False,    // OPER_IXH
+      False,    // OPER_IXL
       True,	// OPER_IX_IND
       True,	// OPER_IXPD_IND
       False,	// OPER_IY
+      False,    // OPER_IYH
+      False,    // OPER_IYL
       True,	// OPER_IY_IND
       True,	// OPER_IYPD_IND
       False,	// OPER_L
@@ -315,7 +335,7 @@ uses
 {$IFDEF WINDOWS}
   Windows, // For definition of RT_RCDATA
 {$ENDIF}
-  StrUtils;
+  StrUtils, lacogen_types, umessages;
 
 { TInstructionList }
 
@@ -329,10 +349,24 @@ end;
 
 constructor TInstructionList.Create(const _processor: string);
 var _proc: string;
+    filename: string;
 begin
   Create;
   _proc := UpperCase(_processor);
-  LoadFromResource(_proc + '.OPCODE');
+  // Try and load from one of the baked in tables first
+  try
+    LoadFromResource(_proc + '.OPCODE');
+  except
+    // Try and load from a .opcode.bin file stored near the
+    // executable
+    try
+      filename := ExpandFilename(_proc+'.opcode.bin');
+      LoadFromFile(filename);
+    except
+      // Couldn't do it, re-raise exception
+      ErrorObj.Show(ltError,E2061_PROCESSOR_NOT_LOADED,[filename]);
+    end;
+  end;
 end;
 
 destructor TInstructionList.Destroy;
@@ -627,7 +661,7 @@ end;
 
 procedure TInstructionList.LoadFromStream(const _stream: TStream);
 var i, j: integer;
-    cbuf: array[0..5] of char;
+    cbuf: array[0..OPCODE_LENGTH_MAXIMUM] of char;
     s: string;
     r: TInstructionRec;
     magic: dword;
@@ -796,6 +830,8 @@ begin
   for i := 0 to OpcodeCount-1 do
     begin
       s := OpcodeAtIndex(i);
+      if Length(s) > OPCODE_LENGTH_MAXIMUM then
+        raise Exception.Create('OPCODE_LENGTH_MAXIMUM exceeded');
       for j := 0 to OPCODE_LENGTH_MAXIMUM do
         cbuf[j] := #0;
       for j := 1 to Length(s) do

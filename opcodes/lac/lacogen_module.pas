@@ -18,7 +18,7 @@
     Contact: Duncan Munro  duncan@duncanamps.com
 }
 
-unit deployment_parser_module_12;
+unit lacogen_module;
 
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
@@ -30,7 +30,7 @@ unit deployment_parser_module_12;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, deployment_parser_types_12;
+  Classes, SysUtils, Generics.Collections, lacogen_types;
 
 type
 
