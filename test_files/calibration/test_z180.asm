@@ -1026,6 +1026,51 @@ DISPL	EQU		57				// Displacement value
 
 ;----------------------------------------------------------------------------
 ;
+; Test macro definition, expansion and nesting
+;
+;----------------------------------------------------------------------------
+
+; Set up a simple macro
+
+NOP3		MACRO
+			NOP
+			NOP
+			NOP
+			ENDM
+			
+; Set up a nested macro with parameters
+			
+DELAY		MACRO 	CYCLES
+			LD		A,{CYCLES}
+			OR		A,A
+			JR		Z,DELAYX{#}
+ 			LD		B,A
+DELAY{#}:	NOP3
+			DJNZ	DELAY{#}
+DELAYX{#}:
+			ENDM
+			
+; Now invoke the macro
+
+			DELAY	123
+			DELAY	19
+			
+			
+;----------------------------------------------------------------------------
+;
+; Z80 / Z180 specific stuff
+;
+;----------------------------------------------------------------------------
+
+; Test indirection
+
+		LD 		A,(200+100)  	// $3A $2C $01 Indirection
+		LD 		A,(1+2)*(3+4)  	// $3E $15     No indirection 
+
+			
+			
+;----------------------------------------------------------------------------
+;
 ; Test expressions
 ;
 ;----------------------------------------------------------------------------
