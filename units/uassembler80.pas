@@ -2297,9 +2297,9 @@ begin
         if itm.Index < 0 then
         begin // We need to use the main parser to sort this out
           s := itm.Payload;
-          if (s <> '') and
-             (Indirected(s, DEFAULT_ESCAPE, DEFAULT_ESCAPED)) and
-             ((Processor <> '8080') and (Processor <> '8085')) then
+          if FInstructionList.IndirectAllowed and
+             (s <> '') and
+             (Indirected(s, DEFAULT_ESCAPE, DEFAULT_ESCAPED)) then
           begin
             s[1] := '[';
             s[Length(s)] := ']';

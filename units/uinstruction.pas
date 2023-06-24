@@ -208,7 +208,48 @@ const
   	                                        '(NNNN)', // U16_IND
   	                                        'Z');
 
-
+  IsIndirectArray: array[TOperandOption] of boolean = (
+      False,	// OPER_NULL
+      False,	// OPER_A
+      False,	// OPER_AF
+      False,	// OPER_AF_
+      False,	// OPER_B
+      False,	// OPER_BC
+      True,	// OPER_BC_IND
+      False,	// OPER_C
+      True,	// OPER_C_IND
+      False,	// OPER_D
+      False,	// OPER_DE
+      True,	// OPER_DE_IND
+      False,	// OPER_E
+      False,	// OPER_F
+      False,	// OPER_H
+      False,	// OPER_HL
+      True,	// OPER_HL_IND
+      False,	// OPER_I
+      False,	// OPER_IX
+      True,	// OPER_IX_IND
+      True,	// OPER_IXPD_IND
+      False,	// OPER_IY
+      True,	// OPER_IY_IND
+      True,	// OPER_IYPD_IND
+      False,	// OPER_L
+      False,	// OPER_M
+      False,	// OPER_NC
+      False,	// OPER_NZ
+      False,	// OPER_P
+      False,	// OPER_PE
+      False,	// OPER_PO
+      False,	// OPER_PSW
+      False,	// OPER_R
+      False,	// OPER_SP
+      True,	// OPER_SP_IND
+      False,	// OPER_U8
+      True,	// OPER_U8_IND
+      False,	// OPER_U16
+      True,	// OPER_U16_IND
+      False 	// OPER_Z
+    );
 
 type
   TCodeElementType = (cetNull,cetB3,cetHex,cetIM,cetR8,cetS8,cetRST,cetU8,cetU16);
@@ -233,11 +274,12 @@ type
 
   TInstructionList = class(TInstructionListBase)
     protected
-      FHashOperandMult: integer;
-      FHashOpcodeMult:  integer;
-      FHashSize:  integer;
-      FHashTable: array of integer;
-      FOpcodes:   TStringList;
+      FHashOperandMult:  integer;
+      FHashOpcodeMult:   integer;
+      FHashSize:         integer;
+      FHashTable:        array of integer;
+      FIndirectAllowed:  boolean;
+      FOpcodes:          TStringList;
       FOperandAvailable: array[TOperandOption] of boolean;
    public
       constructor Create;
@@ -264,6 +306,7 @@ type
       procedure SaveToStream(const _stream: TStream);
       procedure Sort;
       function  SimpleOpToOperandOption(const _operand: string): TOperandOption;
+      property IndirectAllowed: boolean read FIndirectAllowed;
   end;
 
 implementation
@@ -281,6 +324,7 @@ begin
   inherited Create;
   FOpcodes := TStringList.Create;
   FOpcodes.Sorted := True;
+  FIndirectAllowed := False;
 end;
 
 constructor TInstructionList.Create(const _processor: string);
@@ -610,10 +654,13 @@ var i, j: integer;
   begin
     if _op <> OPER_NULL then
       FOperandAvailable[_op] := True;
+    if IsIndirectArray[_op] then
+      FIndirectAllowed := True; // Must be > 8080/8085 processor
   end;
 
 begin
   // Some initialisation stuff
+  FIndirectAllowed := False; // Always default to False now
   for oo in TOperandOption do
     FOperandAvailable[oo] := False;
   // See TInstructionList.SaveToStream for file format
