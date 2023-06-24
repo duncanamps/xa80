@@ -30,3 +30,4 @@ test_files/z80/sieve.bat
 test_files/z80/dmfloat.bat
 binaries/release/win64-x86_64/xa80.exe
 xa80.lps
+*.exe
