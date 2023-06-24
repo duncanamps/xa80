@@ -1,7 +1,8 @@
-# XA80
+# XA80 V0.3
 
 XA80 - X-Assembler for x80 processors
-WARNING - THIS IS VERY MUCH WORK IN PROGRESS
+
+This is V0.3 which is a developing build version of the software and is largely incomplete, and in some areas, unusable. If you wish to download the day-to-day working and supported version, please access it from here -> [XA80 V0.2 GitHub](https://github.com/duncanamps/xa80/tree/V0.2).
 
 #### Synopsis
 
@@ -12,8 +13,8 @@ XA80 is a command line tool that allows the cross assembly of source files aimed
 * .log file containing errors encountered during the assembly
 * .map file containing the symbol information
 * .com file containing the actual machine code which can be executed on, for example, CP/M machines
-* .obj80 file which creates the object code and symbol information suitable for use with a linker (NOT IMPLEMENTED)
-* .dbg80 file containing debug information such as symbols, source lines, etc. (NOT IMPLEMENTED)
+* .obj80 file which creates the object code and symbol information suitable for use with a linker **(NOT IMPLEMENTED)**
+* .dbg80 file containing debug information such as symbols, source lines, etc. for use with a simulator **(NOT IMPLEMENTED)**
 
 #### Key features
 
@@ -21,7 +22,9 @@ Here are some of the key features of XA80:
 
 * Open source
 * Two pass assembler
-* Supports mnemonics from different processors (8080, 8085, Z80, Z180)
+* Supports mnemonics from different processors (8080, 8085, Z80, Z180) as a baked in standard
+* Supports 24bit code generation for the EZ80 processor **(NOT IMPLEMENTED)**
+* Ability to add additional opcode maps as external files **(NOT IMPLEMENTED)**
 * Opcode compiler so you can add your own secret/hidden instructions and extend to other processor variants in the "family"
 * Macro capability with nested expansion of macros allowed
 * Conditional assembly with IF / IFDEF / IFNDEF statements
@@ -52,8 +55,8 @@ which are supported by the Lazarus ecosystem in 32 and 64 bit flavours, includin
 * WinCE
 * Windows
 
-Tip: You don't have to download Lazarus and recompile, just use the pre-compiled binaries available from this repository if they are
-sufficient for your needs.
+**Tip**: For most people, it won't be necessary to alter or recompile the software. Just use the pre-compiled binaries available from this repository if they are
+sufficient for your needs. All you will need is **xa80** or **xa80.exe** depending on your operating system.
 
 #### Dependencies
 
@@ -64,7 +67,7 @@ the grammar file and recompiling with LaCoGen.
 
 #### Documentation
 
-The [docs/](https://github.com/duncanamps/xa80/tree/main/docs) folder contains a user guide and a technical document explaining how some of the internal features work.
+The [docs/](https://github.com/duncanamps/xa80/tree/main/docs) folder contains a user guide explaining how the assembler is used.
 
 #### Folder Structure
 
@@ -83,14 +86,13 @@ Folders are organised as follows:
 
 #### Known Issues 
 
-* Object files and debug files are not currently being generated, however .hex and .com files can be generated to provide usable output
-* ~~The software is anything but complete and doesn't correspond with the user manual~~
-* ~~Only 8080 and Z80 are being catered for at this time but hoping to include 8085 and Z180 soon~~
+* Need to get a bunch of major features working such as object files, debug files, and 24 bit code generation
+
 
 #### Development roadmap
 
-* ~~V0.2 - Get documented Macro assembler working for 8080/8085/Z80/Z180~~ Completed, maintained current version
-* V0.3 - Introduce segmented architecture, object files, debug info generation
+* V0.3 - Introduces 24 bit capability, segmented architecture, object files, debug info generation
+* V0.4 - TBA, may even become V1.0
 
 #### Author
 
