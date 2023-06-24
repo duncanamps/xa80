@@ -2145,21 +2145,25 @@ var
   filename_base: string;
   option_path: string;
   option_filename: string;
+  mfn: string;
 begin
-  MakeFilename := '';
+  mfn := '';
   option_path := ExtractFilePath(_option);
   option_filename := ExtractFilename(_option);
   filename_base := ExtractFilename(_base_asm);
   if RevPos('.', filename_base) > 0 then
     filename_base := LeftStr(filename_base, RevPos('.', filename_base) - 1);
   if _option = '' then
-    MakeFilename := ''
+    mfn := ''
   else if _option = '*' then
-    MakeFilename := ExtractFilePath(_base_asm) + filename_base + _ext
+    mfn := ExtractFilePath(_base_asm) + filename_base + _ext
   else if ExtractFilename(_option) = '' then
-    MakeFilename := ExpandFilename(_option) + filename_base + _ext
+    mfn := ExpandFilename(_option) + filename_base + _ext
+  else if LeftStr(_option,2) = '*.' then
+    mfn := ExtractFilePath(_base_asm) + filename_base + '.' + RightStr(_option,Length(_option)-2)
   else
-    MakeFilename := ExpandFilename(_option);
+    mfn := ExpandFilename(_option);
+  MakeFilename := mfn;
 end;
 
 procedure TAssembler80.NeedNumber(_index: integer; const _msg: string);
@@ -2613,7 +2617,9 @@ end;
 
 
 procedure TAssembler80.RegisterCommands;
+var ival: integer;
 begin
+  ival := 0;
   FCmdList.RegisterCommand('.BYTE',      [cfLabel],                 @CmdDB);
   FCmdList.RegisterCommand('.CPU',       [],                        @CmdCPU);
   FCmdList.RegisterCommand('.DB',        [cfLabel],                 @CmdDB);
@@ -2686,7 +2692,7 @@ begin
   FCmdList.RegisterCommand('WHILE',      [cfNoPlaceholder,cfBypass],@CmdWHILE);
   FCmdList.RegisterCommand('WARNOFF',    [],                        @CmdWARNOFF);
   FCmdList.RegisterCommand('WARNON',     [],                        @CmdWARNON);
-  if not FSymbolTable.Defined('SET') then
+  if not FInstructionList.FindOpcode('SET',ival) then
     begin
       FCmdList.RegisterCommand('.SET',   [cfLabel,cfEQU],           @CmdEQU2);
       FCmdList.RegisterCommand('SET',    [cfLabel,cfEQU],           @CmdEQU2);
