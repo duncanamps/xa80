@@ -193,9 +193,13 @@ var idx: integer;
     sym: TSymbol;
 begin
   idx := IndexOf(_name);
-  if idx >= 0 then
-    sym := Items[idx];
-  Result := (idx >= 0) and (Items[idx].Defined) and (Items[idx].DefinedPass = FPass);
+  if idx < 0 then
+    Result := False
+  else
+    begin
+      sym := Items[idx];
+      Result := sym.Defined and ((sym.DefinedPass = FPass) or (sym.DefinedPass = 0));
+    end;
 end;
 
 procedure TSymbolTable.Dump(_strm: TFileStream; const _caption: string);
@@ -329,6 +333,7 @@ end;
 function TSymbolTable.IndexOf(_name: string): integer;
 var i: integer;
     hash: integer;
+    s: string;
 begin
   {
   IndexOf := -1;
@@ -344,12 +349,14 @@ begin
     _name := UpperCase(_name);
   hash := CalcHash(_name);
   i := HashTable[hash];
+  if i>=0 then s := Items[i].Name;
   while (i <> -1) and (Items[i].Name <> _name) do
     begin
       Inc(hash);
       if hash >= HashSize then
         hash := 0;
       i := HashTable[hash];
+      if i>=0 then s := Items[i].Name;
     end;
   IndexOf := i;
 end;
