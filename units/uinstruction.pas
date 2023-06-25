@@ -335,7 +335,7 @@ uses
 {$IFDEF WINDOWS}
   Windows, // For definition of RT_RCDATA
 {$ENDIF}
-  StrUtils, lacogen_types, umessages;
+  StrUtils, lacogen_types, umessages, uasmglobals;
 
 { TInstructionList }
 
@@ -665,9 +665,13 @@ var i, j: integer;
     s: string;
     r: TInstructionRec;
     magic: dword;
-    temp_word: word;
     temp_byte: word;
     oo: TOperandOption;
+    opc_version: Word;
+    mnem_count: Word;
+    inst_count: Word;
+    checksum: Word;
+    disk_checksum: Word;
 
   function ReadByte: BYTE;
   begin
@@ -701,22 +705,36 @@ begin
   magic := ReadDword;
   if magic <> OPCODE_MAP_MAGIC then
     raise Exception.Create('File is not an Opcode Map file');
-  // Read the opcodes
+  // Read the version number
+  opc_version := ReadWord;
+  if opc_version <> OPCODE_VERSION then
+    raise Exception.Create('This .opcode.bin file is not compatible with this version of the assembler');
+  // Read the record counts
+  mnem_count := ReadWord;
+  inst_count := ReadWord;
+  // Read the checksum and test it
+  checksum := (OPCODE_MAP_MAGIC shr 16) xor
+              (OPCODE_MAP_MAGIC and $0000FFFF) xor
+              opc_version xor
+              mnem_count xor
+              inst_count;
+  disk_checksum := ReadWord;
+  if checksum <> disk_checksum then
+    raise Exception.Create('Checksum failure when loading opcode file');
+  // Read the mnemonics
   FOpcodes.Clear;
-  temp_word := ReadWord;
-  if (temp_word < OPCODE_COUNT_MINIMUM) or (temp_word > OPCODE_COUNT_MAXIMUM) then
-    raise Exception.Create(Format('Number of opcodes was not in the expected range of %d to %d',[OPCODE_COUNT_MINIMUM,OPCODE_COUNT_MAXIMUM]));
-  for i := 0 to temp_word-1 do
+  if (mnem_count < OPCODE_COUNT_MINIMUM) or (mnem_count > OPCODE_COUNT_MAXIMUM) then
+    raise Exception.Create(Format('Number of opcodes (%d) was not in the expected range of %d to %d',[mnem_count,OPCODE_COUNT_MINIMUM,OPCODE_COUNT_MAXIMUM]));
+  for i := 0 to mnem_count-1 do
     begin
       _stream.Read(cbuf,OPCODE_LENGTH_MAXIMUM+1);
       FOpcodes.Add(cbuf);
     end;
   // Read the instructions
   Clear;
-  temp_word := ReadWord;
-  if (temp_word < INSTRUCTION_COUNT_MINIMUM) or (temp_word > INSTRUCTION_COUNT_MAXIMUM) then
-    raise Exception.Create(Format('Number of instructions was not in the expected range of %d to %d',[INSTRUCTION_COUNT_MINIMUM,INSTRUCTION_COUNT_MAXIMUM]));
-  for i := 0 to temp_word-1 do
+  if (inst_count < INSTRUCTION_COUNT_MINIMUM) or (inst_count > INSTRUCTION_COUNT_MAXIMUM) then
+    raise Exception.Create(Format('Number of instructions (%d) was not in the expected range of %d to %d',[inst_count,INSTRUCTION_COUNT_MINIMUM,INSTRUCTION_COUNT_MAXIMUM]));
+  for i := 0 to inst_count-1 do
     begin
       for j := 0 to CODE_ELEMENT_COUNT_MAXIMUM-1 do
         begin
@@ -784,6 +802,7 @@ var i, j: integer;
     cbuf: array[0..OPCODE_LENGTH_MAXIMUM] of char;
     s: string;
     r: TInstructionRec;
+    checksum: word;
 
   procedure WriteByte(_v: BYTE);
   begin
@@ -804,12 +823,16 @@ begin
   // Saved format is:
   //
   //  Magic number $4D43504F (reversed = OPCM = OPCode Map)
+  //  File version (U16) currently 2
   //  Number of opcode records (U16)
+  //  Number of instruction records (U16)
+  //  Checksum - XOR of all of the above
+  //
   //  Opcode record 0: Six bytes containing 2-5 characters followed by NUL
   //  Opcode record 1:   "   "
   //     :     :
   //  Opcode record n-1: "   "
-  //  Number of instruction records (U16)
+  //
   //  Instr record 0: Opcode index U16
   //                  Operand1 index U8
   //                  Operand2 index U8
@@ -825,8 +848,17 @@ begin
   //    :     :
   //  Instr record n-1: "      "
   WriteDword(OPCODE_MAP_MAGIC);
-  // Write the opcodes
+  // Write the file format number
+  WriteWord(OPCODE_VERSION);
+  // Write the counts
   WriteWord(OpcodeCount);
+  WriteWord(Count);
+  checksum := (OPCODE_MAP_MAGIC shr 16) xor
+              (OPCODE_MAP_MAGIC and $0000FFFF) xor
+              OPCODE_VERSION xor
+              Word(OpcodeCount) xor
+              Word(Count);
+  WriteWord(checksum);
   for i := 0 to OpcodeCount-1 do
     begin
       s := OpcodeAtIndex(i);
@@ -839,7 +871,6 @@ begin
       _stream.Write(cbuf,OPCODE_LENGTH_MAXIMUM+1);
     end;
   // Write the instructions
-  WriteWord(Count);
   for i := 0 to Count-1 do
     begin
       r := Items[i];

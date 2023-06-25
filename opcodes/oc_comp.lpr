@@ -27,7 +27,7 @@ uses
   cthreads,
   {$ENDIF}
   Classes, SysUtils, CustApp,
-  uinstruction, lacogen_module, lacogen_types;
+  uinstruction, uasmglobals, lacogen_module, lacogen_types;
 
 type
   TMyReduceFunc = function (Parser: TLCGParser): TLCGParserStackEntry of object;
@@ -98,6 +98,7 @@ begin
     Terminate;
     Exit;
   end;
+
   FVerbose := HasOption('v', 'verbose');
   if ParamCount = 0 then
     begin
@@ -115,6 +116,7 @@ begin
     InitCompiler;
     sl := TStringList.Create;
     try
+      WriteLn(Format('XA80 Opcode Compiler, format version %d',[OPCODE_VERSION]));
       WriteLn('Loading file ' + FSrcName);
       sl.LoadFromFile(FSrcName);
       Compile(sl,1);
@@ -420,8 +422,9 @@ var fn: string;
 begin
   { add your help code here }
   fn := ExtractFileName(ExeName);
-  writeln('Usage: ', fn, ' -h');
+  writeln('Usage: ', fn, ' --help');
   writeln('       ', fn, ' myname.opcode');
+  writeln('       ', fn, ' myname.opcode --verbose');
   WriteLn;
 end;
 

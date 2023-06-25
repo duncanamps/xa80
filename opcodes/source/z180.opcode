@@ -6,7 +6,7 @@
 ; Author:  Duncan Munro @duncanamps
 ; Notes:   Original Zilog Z180
 ; Created: 2022-08-16 00:00:00
-; Amended: 2023-06-24 17:22:11
+; Amended: 2023-06-25 20:34:23
 ;
 ; Each line consists of 2 fields seperated by the vertical brace "|"
 ;
@@ -28,9 +28,9 @@
 ;
 ; Operand1 and Operand2 if present, can be one of:
 ;
-;   A AF AF_ B BC BC_IND C C_IND D DE DE_IND E H HL HL_IND I IX IXPD_IND 
-;   IX_IND IY IYPD_IND IY_IND L M NC NZ P PE PO PSW R SP SP_IND U16 U16_IND
-;   U8 U8_IND Z
+;   A AF AF_ B BC BC_IND C C_IND D DE DE_IND E F H HL HL_IND I IX IXH
+;   IXL IX_IND IXPD_IND IY IYH IYL IY_IND IYPD_IND L M NC NZ P PE PO
+;   PSW R SP SP_IND U8 U8_IND U16 U16_IND Z
 ;
 ; Not all operands are used with all processors.
 ;
@@ -59,7 +59,7 @@
 ; [p:R8]     An 8 bit value as a relative range from ORG+2 where p is 
 ;                Operand1 or Operand2
 ; [p:U8]     An 8 bit unsigned value
-; {p:S8]     An 8 bit signed value
+; [p:S8]     An 8 bit signed value
 ; [p:U16]    A 16 bit unsigned value output as 2 bytes with the LSB first
 ; [p:B3]     A 3 bit value which can be output on its own or embedded in a
 ;                binary value, for example %101[1:B3]10. If B3 is binary 011
