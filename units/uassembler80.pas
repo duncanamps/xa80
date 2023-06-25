@@ -137,6 +137,7 @@ type
     function ActStrLeft(_parser: TLCGParser): TLCGParserStackEntry;
     function ActStrLower(_parser: TLCGParser): TLCGParserStackEntry;
     function ActStrMid(_parser: TLCGParser): TLCGParserStackEntry;
+    function ActStrProcessor(_parser: TLCGParser): TLCGParserStackEntry;
     function ActStrRight(_parser: TLCGParser): TLCGParserStackEntry;
     function ActStrString(_parser: TLCGParser): TLCGParserStackEntry;
     function ActStrTime(_parser: TLCGParser): TLCGParserStackEntry;
@@ -836,6 +837,13 @@ begin
   Result.Buf := Copy(ParserM6.Buf, ParserM4.BufInt, ParserM2.BufInt);
   Result.BufType := pstString;
   Result.Source := SourceCombine3(-6, -4, -2);
+end;
+
+function TAssembler80.ActStrProcessor(_parser: TLCGParser): TLCGParserStackEntry;
+begin
+  Result.Buf := FProcessor;
+  Result.BufType := pstString;
+  Result.Source := pssConstant;
 end;
 
 function TAssembler80.ActStrRight(_parser: TLCGParser): TLCGParserStackEntry;
@@ -2753,6 +2761,7 @@ begin
   RegisterProc('ActStrLeft', @ActStrLeft, _procs);
   RegisterProc('ActStrLower', @ActStrLower, _procs);
   RegisterProc('ActStrMid', @ActStrMid, _procs);
+  RegisterProc('ActStrProcessor', @ActStrProcessor, _procs);
   RegisterProc('ActStrRight', @ActStrRight, _procs);
   RegisterProc('ActStrString', @ActStrString, _procs);
   RegisterProc('ActStrTime', @ActStrTime, _procs);

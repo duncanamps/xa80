@@ -25,9 +25,9 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="3"/>
-      <BuildNr Value="300"/>
+      <BuildNr Value="301"/>
       <Language Value="0809"/>
-      <StringTable LegalCopyright="Copyright 2020-2023 Duncan Munro" ProductName="XA80" ProductVersion="0.2"/>
+      <StringTable LegalCopyright="Copyright 2020-2023 Duncan Munro" ProductName="XA80" ProductVersion="0.3"/>
     </VersionInfo>
     <BuildModes>
       <Item Name="Debug" Default="True"/>
