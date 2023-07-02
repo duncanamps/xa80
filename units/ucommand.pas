@@ -56,11 +56,14 @@ type
 
   TCommandExec = procedure (const _label: string; _operandlist: TPreparserBase)  of object;
 
+  TCommandStatus = (csUnused,csUsedAsLabel,csUsedAsNormal);
+
   TCommandObj = class(TObject)
     public
-      CommandName:  string;
-      CommandFlags: TCommandFlags;
-      CommandExec:  TCommandExec;
+      CommandName:   string;
+      CommandFlags:  TCommandFlags;
+      CommandExec:   TCommandExec;
+      CommandStatus: TCommandStatus;
   end;
 
   TCommandList = class(specialize TObjectList<TCommandObj>)
@@ -69,6 +72,7 @@ type
 
     public
       constructor Create;
+      procedure InitPass;
       procedure PopulateStringList(_sl: TStringList);
       function RegisterCommand(const _cmdname: string; _cmdflags: TCommandFlags; _cmdexec: TCommandExec): integer;
       property SymbolTable: TSymbolTable read FSymbolTable write FSymbolTable;
@@ -85,6 +89,12 @@ begin
   inherited Create;
 end;
 
+procedure TCommandList.InitPass;
+var obj: TCommandObj;
+begin
+  for obj in Self do
+    obj.CommandStatus := csUnused;
+end;
 
 procedure TCommandList.PopulateStringList(_sl: TStringList);
 var obj: TCommandObj;
@@ -101,6 +111,7 @@ begin
   obj.CommandName  := _cmdname;
   obj.CommandFlags := _cmdflags;
   obj.CommandExec  := _cmdexec;
+  obj.CommandStatus  := csUnused;
   Result := Count;
   Add(obj);
 end;

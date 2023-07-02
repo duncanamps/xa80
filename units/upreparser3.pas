@@ -147,7 +147,7 @@ var i: integer;
 begin
   directive := '';
   for i := 0 to Count-1 do
-    if Items[i].State = psGlob then
+    if (Items[i].State = psGlob) and (Items[i].Column <> 1) then
       begin
         rec := Items[i];
         cmd := rec.Payload;
@@ -352,7 +352,14 @@ begin
     Inc(i);
   if (i < Count) then
     begin
+      ErrorObj.ColNumber := Items[i].Column;
       FCommandIndex := Items[i].Token - FDFA.OffsetCommand;
+      if FCommandList.Items[FCommandIndex].CommandStatus = csUsedAsLabel then
+        begin
+          ErrorObj.ColNumber := Items[i].Column;
+          ErrorObj.Show(ltError,E2062_COMMAND_ALREADY_USED_AS_LABEL,[FCommandList.Items[FCommandIndex].CommandName]);
+        end;
+      FCommandList.Items[FCommandIndex].CommandStatus := csUsedAsNormal;
       Delete(i);
     end;
 end;
@@ -365,6 +372,7 @@ begin
     Inc(i);
   if (i < Count) then
     begin
+      ErrorObj.ColNumber := Items[i].Column;
       FMacroIndex := FMacroList.IndexOf(Items[i].Payload);
       if FMacroIndex < 0 then
         ErrorObj.Show(ltError,E2057_MACRO_NOT_FOUND,[Items[i].Payload])
@@ -384,6 +392,7 @@ begin
     Inc(i);
   if (i < Count) then
     begin
+      ErrorObj.ColNumber := Items[i].Column;
       FOpcodeIndex := Items[i].Token - FDFA.OffsetOpcode;
       Delete(i);
     end;
@@ -391,13 +400,31 @@ end;
 
 procedure TPreparser.ExtractLabel;
 var i: integer;
+    token: TNFAtoken;
+    index: integer;
 begin
   i := 0;
   while (i < Count) and (Items[i].State <> ppLabel) do
     Inc(i);
   if (i < Count) then
     begin
+      ErrorObj.ColNumber := Items[i].Column;
       FLabelX := StripColon(Items[i].Payload);
+      // Check to see if the label is used as a command anywhere
+      token := FDFA.Tokenise(FLabelX);
+      if (token >= FDFA.OffsetCommand) and (token < FDFA.OffsetOperand) then
+        begin  // Label used here is already a command
+          index := token - FDFA.OffsetCommand;
+          if FCommandList.Items[Index].CommandStatus = csUsedAsNormal then
+            ErrorObj.Show(ltError,E2063_COMMAND_ALREADY_USED,[FLabelX]);
+          FCommandList.Items[Index].CommandStatus := csUsedAsLabel;
+          if FPass = 1 then
+            ErrorObj.Show(ltWarning,W1006_COMMAND_AS_SYMBOL,[FLabelX]);
+        end
+      else if token > TOKEN_WHITESPACE then
+        begin
+          ErrorObj.Show(ltError,E2030_USING_RESERVED_AS_LABEL,[FLabelX]);
+        end;
       Delete(i);
     end;
 end;
@@ -606,11 +633,13 @@ begin
       if not FMacroReference then
         ExtractOpcode;
       // Check for reserved word in position 0 - using reserved word as a label
+      {
       if (FLabelX <> '') and FDFA.IsReserved(FLabelX) then
         begin
           ErrorObj.ColNumber := 1;
           ErrorObj.Show(ltError,E2030_USING_RESERVED_AS_LABEL,[FLabelX]);
         end;
+      }
       // Check for operands without command or instruction
       // @@@@@ CHECK HERE FOR IF THE ITEM IS A MACRO
       // This probably means we are using the wrong processor / instruction set

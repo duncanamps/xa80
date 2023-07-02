@@ -76,6 +76,7 @@ type
                      W1003_LABEL_REDEFINED,
                      W1004_END_OPERANDS_IGNORED,
                      W1005_SYMBOL_UNDEFINED,
+                     W1006_COMMAND_AS_SYMBOL,
 
                      E2000_USER_ERROR,
                      E2001_ILLEGAL_ESCAPE_CHARACTER,
@@ -139,6 +140,8 @@ type
                      E2059_COMMAND_LINE_DEFINE,
                      E2060_UNEXPECTED_DIRECTIVE,
                      E2061_PROCESSOR_NOT_LOADED,
+                     E2062_COMMAND_ALREADY_USED_AS_LABEL,
+                     E2063_COMMAND_ALREADY_USED,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -214,6 +217,7 @@ var
     'Symbol %s has been redefined',
     'Operands after END directive ignored',
     'Symbol %s is undefined',
+    'Symbol %s replaces command of the same name',
 
     '%s',
     'Illegal escape character %s, valid are %s',
@@ -277,6 +281,8 @@ var
     'Command line define error, could not process %s',
     'Unexpected directive %s, have already processed directive for %s',
     'Could not load processor details from %s',
+    'Command %s has already been used as a label',
+    'Command %s cannot now be used as a label',
 
     'Unhandled case option at %s',
     'Preparser peeek error',

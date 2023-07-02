@@ -1,0 +1,19 @@
+;
+; test_label_as_command.z80
+; Duncan Munro - 02/07/2023
+;
+
+		ORG		$0200
+
+		
+WORD	DW		2			; Define word as a label
+
+		LD		HL,(WORD)	; See if we can access it
+		
+		; Force an error
+		
+
+; LABEL	WORD	6		
+		
+		END
+		

@@ -1290,6 +1290,7 @@ begin
   FNextInclude := '';
   FOrg := 0;
   FMacroList.Init;
+  FCmdList.InitPass;
   ProcessFile(filename);
 end;
 
@@ -2665,9 +2666,10 @@ begin
   FCmdList.RegisterCommand('.REPEAT',    [cfNoPlaceholder,cfBypass],@CmdREPEAT);
   FCmdList.RegisterCommand('.TEXT',      [cfLabel],                 @CmdDB);
   FCmdList.RegisterCommand('.TITLE',     [],                        @CmdTITLE);
-  FCmdList.RegisterCommand('.WHILE',     [cfNoPlaceholder,cfBypass],@CmdWHILE);
   FCmdList.RegisterCommand('.WARNOFF',   [],                        @CmdWARNOFF);
   FCmdList.RegisterCommand('.WARNON',    [],                        @CmdWARNON);
+  FCmdList.RegisterCommand('.WHILE',     [cfNoPlaceholder,cfBypass],@CmdWHILE);
+  FCmdList.RegisterCommand('.WORD',      [cfLabel],                 @CmdDW);
   FCmdList.RegisterCommand('=',          [cfLabel,cfEQU],           @CmdEQU2);
   FCmdList.RegisterCommand('CPU',        [],                        @CmdCPU);
   FCmdList.RegisterCommand('DB',         [cfLabel],                 @CmdDB);
@@ -2701,9 +2703,10 @@ begin
   FCmdList.RegisterCommand('REPEAT',     [cfNoPlaceholder,cfBypass],@CmdREPEAT);
   FCmdList.RegisterCommand('TEXT',       [cfLabel],                 @CmdDB);
   FCmdList.RegisterCommand('TITLE',      [],                        @CmdTITLE);
-  FCmdList.RegisterCommand('WHILE',      [cfNoPlaceholder,cfBypass],@CmdWHILE);
   FCmdList.RegisterCommand('WARNOFF',    [],                        @CmdWARNOFF);
   FCmdList.RegisterCommand('WARNON',     [],                        @CmdWARNON);
+  FCmdList.RegisterCommand('WHILE',      [cfNoPlaceholder,cfBypass],@CmdWHILE);
+  FCmdList.RegisterCommand('WORD',       [cfLabel],                 @CmdDW);
   if not FInstructionList.FindOpcode('SET',ival) then
     begin
       FCmdList.RegisterCommand('.SET',   [cfLabel,cfEQU],           @CmdEQU2);
