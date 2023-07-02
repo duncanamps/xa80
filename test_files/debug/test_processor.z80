@@ -1,0 +1,24 @@
+;
+;  TEST_PROCESSOR.Z80
+;  Test PROCESSOR() function
+; 
+;  Duncan Munro
+;  25/06/2023
+;
+
+		IF PROCESSOR() == "8080" || PROCESSOR() == "8085"
+			legacy = 1
+			base   = "Intel"
+		ELSE
+			legacy = 0
+			base   = "Zilog"
+		ENDIF
+		
+		has_multiply = PROCESSOR() == "Z180"
+		
+		MSGINFO "Processor:    " + PROCESSOR()
+		MSGINFO "Legacy model: " + STRING(legacy)
+		MSGINFO "Manuf base:   " + base
+		MSGINFO "Has MULT:     " + STRING(has_multiply)
+
+		END

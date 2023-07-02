@@ -58,6 +58,8 @@ T_OPCODE			= {Letter} {Letter}
 					| {Letter} {Letter} {Letter} {Zero}
 					| {Letter} {Letter} {Letter} {Letter}
 					| {Letter} {Letter} {Letter} {Letter} {Letter}
+					| {Letter} {Letter} {Letter} {Letter} {Letter} {Letter}
+					| {Letter} {Letter} {Letter} {Digit07} {Letter} {Letter} {Letter}
 					;
 T_OPERAND			= {Digit07}
 					| MIXED("A")
@@ -78,9 +80,13 @@ T_OPERAND			= {Digit07}
 					| MIXED("HL_IND")
 					| MIXED("I")
 					| MIXED("IX")
+					| MIXED("IXH")
+					| MIXED("IXL")
 					| MIXED("IX_IND")
 					| MIXED("IXPD_IND")
 					| MIXED("IY")
+					| MIXED("IYH")
+					| MIXED("IYL")
 					| MIXED("IY_IND")
 					| MIXED("IYPD_IND")
 					| MIXED("L")

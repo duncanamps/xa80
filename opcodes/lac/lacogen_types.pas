@@ -1,4 +1,4 @@
-unit deployment_parser_types_12;
+unit lacogen_types;
 
 {
     LaCoGen - LAzarus COmpiler GENerator

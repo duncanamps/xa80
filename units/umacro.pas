@@ -27,7 +27,7 @@ type
     public
       constructor Create;
       function  AllocateSerial: integer;
-      function  IndexOf(const _s: string): integer; reintroduce;
+      function  IndexOf(_s: string): integer; reintroduce;
       procedure Init;
       property CaseSensitive: boolean read FCaseSensitive write FCaseSensitive;
   end;
@@ -69,13 +69,15 @@ begin
   Inc(FStaticSerial);
 end;
 
-function TMacroList.IndexOf(const _s: string): integer;
+function TMacroList.IndexOf(_s: string): integer;
 var i: integer;
     ss: string;
 begin
 {$IFDEF DEBUG_LOGX}
   ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['IndexOf('+_s+')']);
 {$ENDIF}
+  if not FCaseSensitive then
+    _s := UpperCase(_s);
   Result := -1;
   i := 0;
   while (i < Count) and (Items[i].Name <> _s) do

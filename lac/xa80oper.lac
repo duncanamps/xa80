@@ -117,6 +117,7 @@ F_LOWER				= MIXED("LOWER(")		keyword;
 F_MID				= MIXED("MID(")			keyword;
 F_ORG				= MIXED("ORG()") 		keyword;
 F_POS				= MIXED("POS(")			keyword;
+F_PROCESSOR			= MIXED("PROCESSOR()")keyword;
 F_RIGHT				= MIXED("RIGHT(")		keyword;
 F_STRING		    = MIXED("STRING(")		keyword;
 F_TIME				= MIXED("TIME()")		keyword;
@@ -227,6 +228,7 @@ F_VERSION			= MIXED("VERSION()")	keyword;
 					| F_RIGHT <expression> "," <expression> ")"	    # ActStrRight
 					| F_STRING <expression> ")"						# ActStrString
 					| F_TIME										# ActStrTime
+					| F_PROCESSOR 									# ActStrProcessor
 					| F_UPPER <expression> ")"						# ActStrUpper
 					| F_VERSION										# ActStrVersion
 					| T_CHARCONSTANT								# ActCharConstant

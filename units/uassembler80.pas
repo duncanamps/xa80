@@ -137,6 +137,7 @@ type
     function ActStrLeft(_parser: TLCGParser): TLCGParserStackEntry;
     function ActStrLower(_parser: TLCGParser): TLCGParserStackEntry;
     function ActStrMid(_parser: TLCGParser): TLCGParserStackEntry;
+    function ActStrProcessor(_parser: TLCGParser): TLCGParserStackEntry;
     function ActStrRight(_parser: TLCGParser): TLCGParserStackEntry;
     function ActStrString(_parser: TLCGParser): TLCGParserStackEntry;
     function ActStrTime(_parser: TLCGParser): TLCGParserStackEntry;
@@ -836,6 +837,13 @@ begin
   Result.Buf := Copy(ParserM6.Buf, ParserM4.BufInt, ParserM2.BufInt);
   Result.BufType := pstString;
   Result.Source := SourceCombine3(-6, -4, -2);
+end;
+
+function TAssembler80.ActStrProcessor(_parser: TLCGParser): TLCGParserStackEntry;
+begin
+  Result.Buf := FProcessor;
+  Result.BufType := pstString;
+  Result.Source := pssConstant;
 end;
 
 function TAssembler80.ActStrRight(_parser: TLCGParser): TLCGParserStackEntry;
@@ -2101,7 +2109,9 @@ var i,j: integer;
     serial: integer;
     param:  string;
     repl_flags: TReplaceFlags;
+    parmcount_temp: integer;
 begin
+  parmcount_temp := macro_entry.Params.Count;
   serial := FMacroList.AllocateSerial;
   repl_flags := [rfReplaceAll];
   if not FCaseSensitive then
@@ -2293,6 +2303,8 @@ var
   s: string;
 begin
   FPreparser.Parse(_s);
+  if FPreparser.MacroReference then
+    exit;
   // Now parse all the operands where needed
   if (not FDefiningMacro) and (FSolGenerate or (cfBypass in FPreparser.CmdFlags)) then
     for i := 0 to FPreparser.Count - 1 do
@@ -2753,6 +2765,7 @@ begin
   RegisterProc('ActStrLeft', @ActStrLeft, _procs);
   RegisterProc('ActStrLower', @ActStrLower, _procs);
   RegisterProc('ActStrMid', @ActStrMid, _procs);
+  RegisterProc('ActStrProcessor', @ActStrProcessor, _procs);
   RegisterProc('ActStrRight', @ActStrRight, _procs);
   RegisterProc('ActStrString', @ActStrString, _procs);
   RegisterProc('ActStrTime', @ActStrTime, _procs);

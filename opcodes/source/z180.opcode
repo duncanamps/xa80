@@ -6,7 +6,7 @@
 ; Author:  Duncan Munro @duncanamps
 ; Notes:   Original Zilog Z180
 ; Created: 2022-08-16 00:00:00
-; Amended: 2023-06-19 23:58:21
+; Amended: 2023-06-25 20:34:23
 ;
 ; Each line consists of 2 fields seperated by the vertical brace "|"
 ;
@@ -28,9 +28,9 @@
 ;
 ; Operand1 and Operand2 if present, can be one of:
 ;
-;   A AF AF_ B BC BC_IND C C_IND D DE DE_IND E H HL HL_IND I IX IXPD_IND 
-;   IX_IND IY IYPD_IND IY_IND L M NC NZ P PE PO PSW R SP SP_IND U16 U16_IND
-;   U8 U8_IND Z
+;   A AF AF_ B BC BC_IND C C_IND D DE DE_IND E F H HL HL_IND I IX IXH
+;   IXL IX_IND IXPD_IND IY IYH IYL IY_IND IYPD_IND L M NC NZ P PE PO
+;   PSW R SP SP_IND U8 U8_IND U16 U16_IND Z
 ;
 ; Not all operands are used with all processors.
 ;
@@ -59,7 +59,7 @@
 ; [p:R8]     An 8 bit value as a relative range from ORG+2 where p is 
 ;                Operand1 or Operand2
 ; [p:U8]     An 8 bit unsigned value
-; {p:S8]     An 8 bit signed value
+; [p:S8]     An 8 bit signed value
 ; [p:U16]    A 16 bit unsigned value output as 2 bytes with the LSB first
 ; [p:B3]     A 3 bit value which can be output on its own or embedded in a
 ;                binary value, for example %101[1:B3]10. If B3 is binary 011
@@ -76,137 +76,137 @@
 ;
 ;-----------------------------------------------------------------------------
 
-ADC   A             | $8F                               ; Alternative version of ADC A,A
-ADC   A A           | $8F
-ADC   A B           | $88
-ADC   A C           | $89
-ADC   A D           | $8A
-ADC   A E           | $8B
-ADC   A H           | $8C
-ADC   A HL_IND      | $8E
-ADC   A IXPD_IND    | $DD $8E [2:S8]
-ADC   A IX_IND      | $DD $8E $00                       ; (IX) --> (IX+0)
-ADC   A IYPD_IND    | $FD $8E [2:S8]
-ADC   A IY_IND      | $FD $8E $00                       ; (IY) --> (IY+0)
-ADC   A L           | $8D
-ADC   A U8          | $CE [2:U8]
-ADC   B             | $88                               ; Alternative version of ADC A,B
-ADC   C             | $89                               ; Alternative version of ADC A,C
-ADC   D             | $8A                               ; Alternative version of ADC A,D
-ADC   E             | $8B                               ; Alternative version of ADC A,E
-ADC   H             | $8C                               ; Alternative version of ADC A,H
-ADC   HL BC         | $ED $4A
-ADC   HL DE         | $ED $5A
-ADC   HL HL         | $ED $6A
-ADC   HL SP         | $ED $7A
-ADC   HL_IND        | $8E                               ; Alternative version of ADC A,HL_IND
-ADC   IXPD_IND      | $DD $8E [1:S8]                    ; Alternative version of ADC A,IXPD_IND
-ADC   IX_IND        | $DD $8E $00                       ; (IX) --> (IX+0), alternative form of ADC A,(IX+0)
-ADC   IYPD_IND      | $FD $8E [1:S8]                    ; Alternative version of ADC A,IYPD_IND
-ADC   IY_IND        | $FD $8E $00                       ; (IY) --> (IY+0), alternative form of ADC A,(IY+0)
-ADC   L             | $8D                               ; Alternative version of ADC A,L
-ADC   U8            | $CE [1:U8]                        ; Alternative version of ADC A,U8
-ADD   A             | $87                               ; Alternative version of ADD A,A
-ADD   A A           | $87
-ADD   A B           | $80
-ADD   A C           | $81
-ADD   A D           | $82
-ADD   A E           | $83
-ADD   A H           | $84
-ADD   A HL_IND      | $86
-ADD   A IXPD_IND    | $DD $86 [2:S8]
-ADD   A IX_IND      | $DD $86 $00                       ; (IX) --> (IX+0)
-ADD   A IYPD_IND    | $FD $86 [2:S8]
-ADD   A IY_IND      | $FD $86 $00                       ; (IY) --> (IY+0)
-ADD   A L           | $85
-ADD   A U8          | $C6 [2:U8]
-ADD   B             | $80                               ; Alternative version of ADD A,B
-ADD   C             | $81                               ; Alternative version of ADD A,C
-ADD   D             | $82                               ; Alternative version of ADD A,D
-ADD   E             | $83                               ; Alternative version of ADD A,E
-ADD   H             | $84                               ; Alternative version of ADD A,H
-ADD   HL BC         | $09
-ADD   HL DE         | $19
-ADD   HL HL         | $29
-ADD   HL SP         | $39
-ADD   HL_IND        | $86                               ; Alternative version of ADD A,HL_IND
-ADD   IX BC         | $DD $09
-ADD   IX DE         | $DD $19
-ADD   IX IX         | $DD $29
-ADD   IX SP         | $DD $39
-ADD   IXPD_IND      | $DD $86 [1:S8]                    ; Alternative version of ADD A,IXPD_IND
-ADD   IX_IND        | $DD $86 $00                       ; (IX) --> (IX+0), alternative form of ADD A,(IX+0)
-ADD   IY BC         | $FD $09
-ADD   IY DE         | $FD $19
-ADD   IY IY         | $FD $29
-ADD   IY SP         | $FD $39
-ADD   IYPD_IND      | $FD $86 [1:S8]                    ; Alternative version of ADD A,IYPD_IND
-ADD   IY_IND        | $FD $86 $00                       ; (IY) --> (IY+0), alternative form of ADD A,(IY+0)
-ADD   L             | $85                               ; Alternative version of ADD A,L
-ADD   U8            | $C6 [1:U8]                        ; Alternative version of ADD A,U8
-CPL                 | $2F
-DAA                 | $27
-MLT   BC            | $ED $4C
-MLT   DE            | $ED $5C
-MLT   HL            | $ED $6C
-MLT   SP            | $ED $7C
-NEG                 | $ED $44
-SBC   A             | $9F                               ; Alternative version of SBC A,A
-SBC   A A           | $9F
-SBC   A B           | $98
-SBC   A C           | $99
-SBC   A D           | $9A
-SBC   A E           | $9B
-SBC   A H           | $9C
-SBC   A HL_IND      | $9E
-SBC   A IXPD_IND    | $DD $9E [2:S8]
-SBC   A IX_IND      | $DD $9E $00                       ; (IX) --> (IX+0)
-SBC   A IYPD_IND    | $FD $9E [2:S8]
-SBC   A IY_IND      | $FD $9E $00                       ; (IY) --> (IY+0)
-SBC   A L           | $9D
-SBC   A U8          | $DE [2:U8]
-SBC   B             | $98                               ; Alternative version of SBC A,B
-SBC   C             | $99                               ; Alternative version of SBC A,C
-SBC   D             | $9A                               ; Alternative version of SBC A,D
-SBC   E             | $9B                               ; Alternative version of SBC A,E
-SBC   H             | $9C                               ; Alternative version of SBC A,H
-SBC   HL BC         | $ED $42
-SBC   HL DE         | $ED $52
-SBC   HL HL         | $ED $62
-SBC   HL SP         | $ED $72
-SBC   HL_IND        | $9E                               ; Alternative version of SBC A,HL_IND
-SBC   IXPD_IND      | $DD $9E [1:S8]                    ; Alternative version of SBC A,IXPD_IND
-SBC   IX_IND        | $DD $9E $00                       ; (IX) --> (IX+0), alternative form of SBC A,(IX+0)
-SBC   IYPD_IND      | $FD $9E [1:S8]                    ; Alternative version of SBC A,IYPD_IND
-SBC   IY_IND        | $FD $9E $00                       ; (IY) --> (IY+0), alternative form of SBC A,(IY+0)
-SBC   L             | $9D                               ; Alternative version of SBC A,L
-SBC   U8            | $DE [1:U8]                        ; Alternative version of SBC A,U8
-SUB   A             | $97                               ; Alternative version of SUB A,A
-SUB   A A           | $97
-SUB   A B           | $90
-SUB   A C           | $91
-SUB   A D           | $92
-SUB   A E           | $93
-SUB   A H           | $94
-SUB   A HL_IND      | $96
-SUB   A IXPD_IND    | $DD $96 [2:S8]
-SUB   A IX_IND      | $DD $96 $00                       ; (IX) --> (IX+0)
-SUB   A IYPD_IND    | $FD $96 [2:S8]
-SUB   A IY_IND      | $FD $96 $00                       ; (IY) --> (IY+0)
-SUB   A L           | $95
-SUB   A U8          | $D6 [2:U8]
-SUB   B             | $90                               ; Alternative version of SUB A,B
-SUB   C             | $91                               ; Alternative version of SUB A,C
-SUB   D             | $92                               ; Alternative version of SUB A,D
-SUB   E             | $93                               ; Alternative version of SUB A,E
-SUB   H             | $94                               ; Alternative version of SUB A,H
-SUB   HL_IND        | $96                               ; Alternative version of SUB A,HL_IND
-SUB   IXPD_IND      | $DD $96 [1:S8]                    ; Alternative version of SUB A,IXPD_IND
-SUB   IX_IND        | $DD $96 $00                       ; (IX) --> (IX+0), alternative form of SUB A,(IX+0)
-SUB   IYPD_IND      | $FD $96 [1:S8]                    ; Alternative version of SUB A,IYPD_IND
-SUB   IY_IND        | $FD $96 $00                       ; (IY) --> (IY+0), alternative form of SUB A,(IY+0)
-SUB   L             | $95                               ; Alternative version of SUB A,L
-SUB   U8            | $D6 [1:U8]                        ; Alternative version of SUB A,U8
+ADC     A             | $8F                               ; Alternative version of ADC A,A
+ADC     A A           | $8F
+ADC     A B           | $88
+ADC     A C           | $89
+ADC     A D           | $8A
+ADC     A E           | $8B
+ADC     A H           | $8C
+ADC     A HL_IND      | $8E
+ADC     A IXPD_IND    | $DD $8E [2:S8]
+ADC     A IX_IND      | $DD $8E $00                       ; (IX) --> (IX+0)
+ADC     A IYPD_IND    | $FD $8E [2:S8]
+ADC     A IY_IND      | $FD $8E $00                       ; (IY) --> (IY+0)
+ADC     A L           | $8D
+ADC     A U8          | $CE [2:U8]
+ADC     B             | $88                               ; Alternative version of ADC A,B
+ADC     C             | $89                               ; Alternative version of ADC A,C
+ADC     D             | $8A                               ; Alternative version of ADC A,D
+ADC     E             | $8B                               ; Alternative version of ADC A,E
+ADC     H             | $8C                               ; Alternative version of ADC A,H
+ADC     HL BC         | $ED $4A
+ADC     HL DE         | $ED $5A
+ADC     HL HL         | $ED $6A
+ADC     HL SP         | $ED $7A
+ADC     HL_IND        | $8E                               ; Alternative version of ADC A,HL_IND
+ADC     IXPD_IND      | $DD $8E [1:S8]                    ; Alternative version of ADC A,IXPD_IND
+ADC     IX_IND        | $DD $8E $00                       ; (IX) --> (IX+0), alternative form of ADC A,(IX+0)
+ADC     IYPD_IND      | $FD $8E [1:S8]                    ; Alternative version of ADC A,IYPD_IND
+ADC     IY_IND        | $FD $8E $00                       ; (IY) --> (IY+0), alternative form of ADC A,(IY+0)
+ADC     L             | $8D                               ; Alternative version of ADC A,L
+ADC     U8            | $CE [1:U8]                        ; Alternative version of ADC A,U8
+ADD     A             | $87                               ; Alternative version of ADD A,A
+ADD     A A           | $87
+ADD     A B           | $80
+ADD     A C           | $81
+ADD     A D           | $82
+ADD     A E           | $83
+ADD     A H           | $84
+ADD     A HL_IND      | $86
+ADD     A IXPD_IND    | $DD $86 [2:S8]
+ADD     A IX_IND      | $DD $86 $00                       ; (IX) --> (IX+0)
+ADD     A IYPD_IND    | $FD $86 [2:S8]
+ADD     A IY_IND      | $FD $86 $00                       ; (IY) --> (IY+0)
+ADD     A L           | $85
+ADD     A U8          | $C6 [2:U8]
+ADD     B             | $80                               ; Alternative version of ADD A,B
+ADD     C             | $81                               ; Alternative version of ADD A,C
+ADD     D             | $82                               ; Alternative version of ADD A,D
+ADD     E             | $83                               ; Alternative version of ADD A,E
+ADD     H             | $84                               ; Alternative version of ADD A,H
+ADD     HL BC         | $09
+ADD     HL DE         | $19
+ADD     HL HL         | $29
+ADD     HL SP         | $39
+ADD     HL_IND        | $86                               ; Alternative version of ADD A,HL_IND
+ADD     IX BC         | $DD $09
+ADD     IX DE         | $DD $19
+ADD     IX IX         | $DD $29
+ADD     IX SP         | $DD $39
+ADD     IXPD_IND      | $DD $86 [1:S8]                    ; Alternative version of ADD A,IXPD_IND
+ADD     IX_IND        | $DD $86 $00                       ; (IX) --> (IX+0), alternative form of ADD A,(IX+0)
+ADD     IY BC         | $FD $09
+ADD     IY DE         | $FD $19
+ADD     IY IY         | $FD $29
+ADD     IY SP         | $FD $39
+ADD     IYPD_IND      | $FD $86 [1:S8]                    ; Alternative version of ADD A,IYPD_IND
+ADD     IY_IND        | $FD $86 $00                       ; (IY) --> (IY+0), alternative form of ADD A,(IY+0)
+ADD     L             | $85                               ; Alternative version of ADD A,L
+ADD     U8            | $C6 [1:U8]                        ; Alternative version of ADD A,U8
+CPL                   | $2F
+DAA                   | $27
+MLT     BC            | $ED $4C
+MLT     DE            | $ED $5C
+MLT     HL            | $ED $6C
+MLT     SP            | $ED $7C
+NEG                   | $ED $44
+SBC     A             | $9F                               ; Alternative version of SBC A,A
+SBC     A A           | $9F
+SBC     A B           | $98
+SBC     A C           | $99
+SBC     A D           | $9A
+SBC     A E           | $9B
+SBC     A H           | $9C
+SBC     A HL_IND      | $9E
+SBC     A IXPD_IND    | $DD $9E [2:S8]
+SBC     A IX_IND      | $DD $9E $00                       ; (IX) --> (IX+0)
+SBC     A IYPD_IND    | $FD $9E [2:S8]
+SBC     A IY_IND      | $FD $9E $00                       ; (IY) --> (IY+0)
+SBC     A L           | $9D
+SBC     A U8          | $DE [2:U8]
+SBC     B             | $98                               ; Alternative version of SBC A,B
+SBC     C             | $99                               ; Alternative version of SBC A,C
+SBC     D             | $9A                               ; Alternative version of SBC A,D
+SBC     E             | $9B                               ; Alternative version of SBC A,E
+SBC     H             | $9C                               ; Alternative version of SBC A,H
+SBC     HL BC         | $ED $42
+SBC     HL DE         | $ED $52
+SBC     HL HL         | $ED $62
+SBC     HL SP         | $ED $72
+SBC     HL_IND        | $9E                               ; Alternative version of SBC A,HL_IND
+SBC     IXPD_IND      | $DD $9E [1:S8]                    ; Alternative version of SBC A,IXPD_IND
+SBC     IX_IND        | $DD $9E $00                       ; (IX) --> (IX+0), alternative form of SBC A,(IX+0)
+SBC     IYPD_IND      | $FD $9E [1:S8]                    ; Alternative version of SBC A,IYPD_IND
+SBC     IY_IND        | $FD $9E $00                       ; (IY) --> (IY+0), alternative form of SBC A,(IY+0)
+SBC     L             | $9D                               ; Alternative version of SBC A,L
+SBC     U8            | $DE [1:U8]                        ; Alternative version of SBC A,U8
+SUB     A             | $97                               ; Alternative version of SUB A,A
+SUB     A A           | $97
+SUB     A B           | $90
+SUB     A C           | $91
+SUB     A D           | $92
+SUB     A E           | $93
+SUB     A H           | $94
+SUB     A HL_IND      | $96
+SUB     A IXPD_IND    | $DD $96 [2:S8]
+SUB     A IX_IND      | $DD $96 $00                       ; (IX) --> (IX+0)
+SUB     A IYPD_IND    | $FD $96 [2:S8]
+SUB     A IY_IND      | $FD $96 $00                       ; (IY) --> (IY+0)
+SUB     A L           | $95
+SUB     A U8          | $D6 [2:U8]
+SUB     B             | $90                               ; Alternative version of SUB A,B
+SUB     C             | $91                               ; Alternative version of SUB A,C
+SUB     D             | $92                               ; Alternative version of SUB A,D
+SUB     E             | $93                               ; Alternative version of SUB A,E
+SUB     H             | $94                               ; Alternative version of SUB A,H
+SUB     HL_IND        | $96                               ; Alternative version of SUB A,HL_IND
+SUB     IXPD_IND      | $DD $96 [1:S8]                    ; Alternative version of SUB A,IXPD_IND
+SUB     IX_IND        | $DD $96 $00                       ; (IX) --> (IX+0), alternative form of SUB A,(IX+0)
+SUB     IYPD_IND      | $FD $96 [1:S8]                    ; Alternative version of SUB A,IYPD_IND
+SUB     IY_IND        | $FD $96 $00                       ; (IY) --> (IY+0), alternative form of SUB A,(IY+0)
+SUB     L             | $95                               ; Alternative version of SUB A,L
+SUB     U8            | $D6 [1:U8]                        ; Alternative version of SUB A,U8
 
 
 ;-----------------------------------------------------------------------------
@@ -215,42 +215,42 @@ SUB   U8            | $D6 [1:U8]                        ; Alternative version of
 ;
 ;-----------------------------------------------------------------------------
 
-BIT   U8 A          | $CB %01[1:B3]111
-BIT   U8 B          | $CB %01[1:B3]000
-BIT   U8 C          | $CB %01[1:B3]001
-BIT   U8 D          | $CB %01[1:B3]010
-BIT   U8 E          | $CB %01[1:B3]011
-BIT   U8 H          | $CB %01[1:B3]100
-BIT   U8 HL_IND     | $CB %01[1:B3]110
-BIT   U8 IXPD_IND   | $DD $CB [2:S8] %01[1:B3]110
-BIT   U8 IX_IND     | $DD $CB $00 %01[1:B3]110          ; (IX) --> (IX+0)
-BIT   U8 IYPD_IND   | $FD $CB [2:S8] %01[1:B3]110
-BIT   U8 IY_IND     | $FD $CB $00 %01[1:B3]110          ; (IY) --> (IY+0)
-BIT   U8 L          | $CB %01[1:B3]101
-RES   U8 A          | $CB %10[1:B3]111
-RES   U8 B          | $CB %10[1:B3]000
-RES   U8 C          | $CB %10[1:B3]001
-RES   U8 D          | $CB %10[1:B3]010
-RES   U8 E          | $CB %10[1:B3]011
-RES   U8 H          | $CB %10[1:B3]100
-RES   U8 HL_IND     | $CB %10[1:B3]110
-RES   U8 IXPD_IND   | $DD $CB [2:S8] %10[1:B3]110
-RES   U8 IX_IND     | $DD $CB $00 %10[1:B3]110          ; (IX) --> (IX+0)
-RES   U8 IYPD_IND   | $FD $CB [2:S8] %10[1:B3]110
-RES   U8 IY_IND     | $FD $CB $00 %10[1:B3]110          ; (IY) --> (IY+0)
-RES   U8 L          | $CB %10[1:B3]101
-SET   U8 A          | $CB %11[1:B3]111
-SET   U8 B          | $CB %11[1:B3]000
-SET   U8 C          | $CB %11[1:B3]001
-SET   U8 D          | $CB %11[1:B3]010
-SET   U8 E          | $CB %11[1:B3]011
-SET   U8 H          | $CB %11[1:B3]100
-SET   U8 HL_IND     | $CB %11[1:B3]110
-SET   U8 IXPD_IND   | $DD $CB [2:S8] %11[1:B3]110
-SET   U8 IX_IND     | $DD $CB $00 %11[1:B3]110          ; (IX) --> (IX+0)
-SET   U8 IYPD_IND   | $FD $CB [2:S8] %11[1:B3]110
-SET   U8 IY_IND     | $FD $CB $00 %11[1:B3]110          ; (IY) --> (IY+0)
-SET   U8 L          | $CB %11[1:B3]101
+BIT     U8 A          | $CB %01[1:B3]111
+BIT     U8 B          | $CB %01[1:B3]000
+BIT     U8 C          | $CB %01[1:B3]001
+BIT     U8 D          | $CB %01[1:B3]010
+BIT     U8 E          | $CB %01[1:B3]011
+BIT     U8 H          | $CB %01[1:B3]100
+BIT     U8 HL_IND     | $CB %01[1:B3]110
+BIT     U8 IXPD_IND   | $DD $CB [2:S8] %01[1:B3]110
+BIT     U8 IX_IND     | $DD $CB $00 %01[1:B3]110          ; (IX) --> (IX+0)
+BIT     U8 IYPD_IND   | $FD $CB [2:S8] %01[1:B3]110
+BIT     U8 IY_IND     | $FD $CB $00 %01[1:B3]110          ; (IY) --> (IY+0)
+BIT     U8 L          | $CB %01[1:B3]101
+RES     U8 A          | $CB %10[1:B3]111
+RES     U8 B          | $CB %10[1:B3]000
+RES     U8 C          | $CB %10[1:B3]001
+RES     U8 D          | $CB %10[1:B3]010
+RES     U8 E          | $CB %10[1:B3]011
+RES     U8 H          | $CB %10[1:B3]100
+RES     U8 HL_IND     | $CB %10[1:B3]110
+RES     U8 IXPD_IND   | $DD $CB [2:S8] %10[1:B3]110
+RES     U8 IX_IND     | $DD $CB $00 %10[1:B3]110          ; (IX) --> (IX+0)
+RES     U8 IYPD_IND   | $FD $CB [2:S8] %10[1:B3]110
+RES     U8 IY_IND     | $FD $CB $00 %10[1:B3]110          ; (IY) --> (IY+0)
+RES     U8 L          | $CB %10[1:B3]101
+SET     U8 A          | $CB %11[1:B3]111
+SET     U8 B          | $CB %11[1:B3]000
+SET     U8 C          | $CB %11[1:B3]001
+SET     U8 D          | $CB %11[1:B3]010
+SET     U8 E          | $CB %11[1:B3]011
+SET     U8 H          | $CB %11[1:B3]100
+SET     U8 HL_IND     | $CB %11[1:B3]110
+SET     U8 IXPD_IND   | $DD $CB [2:S8] %11[1:B3]110
+SET     U8 IX_IND     | $DD $CB $00 %11[1:B3]110          ; (IX) --> (IX+0)
+SET     U8 IYPD_IND   | $FD $CB [2:S8] %11[1:B3]110
+SET     U8 IY_IND     | $FD $CB $00 %11[1:B3]110          ; (IY) --> (IY+0)
+SET     U8 L          | $CB %11[1:B3]101
 
 
 ;-----------------------------------------------------------------------------
@@ -259,36 +259,36 @@ SET   U8 L          | $CB %11[1:B3]101
 ;
 ;-----------------------------------------------------------------------------
 
-CP    A             | $BF
-CP    A A           | $BF
-CP    A B           | $B8
-CP    A C           | $B9
-CP    A D           | $BA
-CP    A E           | $BB
-CP    A H           | $BC
-CP    A HL_IND      | $BE
-CP    A IXPD_IND    | $DD $BE [2:S8]
-CP    A IX_IND      | $DD $BE $00                       ; (IX) --> (IX+0)
-CP    A IYPD_IND    | $FD $BE [2:S8]
-CP    A IY_IND      | $FD $BE $00                       ; (IY) --> (IY+0)
-CP    A L           | $BD
-CP    A U8          | $FE [2:U8]
-CP    B             | $B8
-CP    C             | $B9
-CP    D             | $BA
-CP    E             | $BB
-CP    H             | $BC
-CP    HL_IND        | $BE
-CP    IXPD_IND      | $DD $BE [1:S8]
-CP    IX_IND        | $DD $BE $00                       ; (IX) --> (IX+0), alternative form of CP A,(IX+0)
-CP    IYPD_IND      | $FD $BE [1:S8]
-CP    IY_IND        | $FD $BE $00                       ; (IY) --> (IY+0), alternative form of CP A,(IY+0)
-CP    L             | $BD
-CP    U8            | $FE [1:U8]
-CPD                 | $ED $A9
-CPDR                | $ED $B9
-CPI                 | $ED $A1
-CPIR                | $ED $B1
+CP      A             | $BF
+CP      A A           | $BF
+CP      A B           | $B8
+CP      A C           | $B9
+CP      A D           | $BA
+CP      A E           | $BB
+CP      A H           | $BC
+CP      A HL_IND      | $BE
+CP      A IXPD_IND    | $DD $BE [2:S8]
+CP      A IX_IND      | $DD $BE $00                       ; (IX) --> (IX+0)
+CP      A IYPD_IND    | $FD $BE [2:S8]
+CP      A IY_IND      | $FD $BE $00                       ; (IY) --> (IY+0)
+CP      A L           | $BD
+CP      A U8          | $FE [2:U8]
+CP      B             | $B8
+CP      C             | $B9
+CP      D             | $BA
+CP      E             | $BB
+CP      H             | $BC
+CP      HL_IND        | $BE
+CP      IXPD_IND      | $DD $BE [1:S8]
+CP      IX_IND        | $DD $BE $00                       ; (IX) --> (IX+0), alternative form of CP A,(IX+0)
+CP      IYPD_IND      | $FD $BE [1:S8]
+CP      IY_IND        | $FD $BE $00                       ; (IY) --> (IY+0), alternative form of CP A,(IY+0)
+CP      L             | $BD
+CP      U8            | $FE [1:U8]
+CPD                   | $ED $A9
+CPDR                  | $ED $B9
+CPI                   | $ED $A1
+CPIR                  | $ED $B1
 
 
 ;-----------------------------------------------------------------------------
@@ -297,178 +297,178 @@ CPIR                | $ED $B1
 ;
 ;-----------------------------------------------------------------------------
 
-EX    AF AF_        | $08
-EX    DE HL         | $EB
-EX    SP_IND HL     | $E3
-EX    SP_IND IX     | $DD $E3
-EX    SP_IND IY     | $FD $E3
-EXX                 | $D9
-LD    A A           | $7F
-LD    A B           | $78
-LD    A BC_IND      | $0A
-LD    A C           | $79
-LD    A D           | $7A
-LD    A DE_IND      | $1A
-LD    A E           | $7B
-LD    A H           | $7C
-LD    A HL_IND      | $7E
-LD    A I           | $ED $57
-LD    A IXPD_IND    | $DD $7E [2:S8]
-LD    A IX_IND      | $DD $7E $00                       ; (IX) --> (IX+0)
-LD    A IYPD_IND    | $FD $7E [2:S8]
-LD    A IY_IND      | $FD $7E $00                       ; (IY) --> (IY+0)
-LD    A L           | $7D
-LD    A R           | $ED $5F
-LD    A U16_IND     | $3A [2:U16]
-LD    A U8          | $3E [2:U8]
-LD    B A           | $47
-LD    B B           | $40
-LD    B C           | $41
-LD    B D           | $42
-LD    B E           | $43
-LD    B H           | $44
-LD    B HL_IND      | $46
-LD    B IXPD_IND    | $DD $46 [2:S8]
-LD    B IX_IND      | $DD $46 $00                       ; (IX) --> (IX+0)
-LD    B IYPD_IND    | $FD $46 [2:S8]
-LD    B IY_IND      | $FD $46 $00                       ; (IY) --> (IY+0)
-LD    B L           | $45
-LD    B U8          | $06 [2:U8]
-LD    BC U16        | $01 [2:U16]
-LD    BC U16_IND    | $ED $4B [2:U16]
-LD    BC_IND A      | $02
-LD    C A           | $4F
-LD    C B           | $48
-LD    C C           | $49
-LD    C D           | $4A
-LD    C E           | $4B
-LD    C H           | $4C
-LD    C HL_IND      | $4E
-LD    C IXPD_IND    | $DD $4E [2:S8]
-LD    C IX_IND      | $DD $4E $00                       ; (IX) --> (IX+0)
-LD    C IYPD_IND    | $FD $4E [2:S8]
-LD    C IY_IND      | $FD $4E $00                       ; (IY) --> (IY+0)
-LD    C L           | $4D
-LD    C U8          | $0E [2:U8]
-LD    D A           | $57
-LD    D B           | $50
-LD    D C           | $51
-LD    D D           | $52
-LD    D E           | $53
-LD    D H           | $54
-LD    D HL_IND      | $56
-LD    D IXPD_IND    | $DD $56 [2:S8]
-LD    D IX_IND      | $DD $56 $00                       ; (IX) --> (IX+0)
-LD    D IYPD_IND    | $FD $56 [2:S8]
-LD    D IY_IND      | $FD $56 $00                       ; (IY) --> (IY+0)
-LD    D L           | $55
-LD    D U8          | $16 [2:U8]
-LD    DE U16        | $11 [2:U16]
-LD    DE U16_IND    | $ED $5B [2:U16]
-LD    DE_IND A      | $12
-LD    E A           | $5F
-LD    E B           | $58
-LD    E C           | $59
-LD    E D           | $5A
-LD    E E           | $5B
-LD    E H           | $5C
-LD    E HL_IND      | $5E
-LD    E IXPD_IND    | $DD $5E [2:S8]
-LD    E IX_IND      | $DD $5E $00                       ; (IX) --> (IX+0)
-LD    E IYPD_IND    | $FD $5E [2:S8]
-LD    E IY_IND      | $FD $5E $00                       ; (IY) --> (IY+0)
-LD    E L           | $5D
-LD    E U8          | $1E [2:U8]
-LD    H A           | $67
-LD    H B           | $60
-LD    H C           | $61
-LD    H D           | $62
-LD    H E           | $63
-LD    H H           | $64
-LD    H HL_IND      | $66
-LD    H IXPD_IND    | $DD $66 [2:S8]
-LD    H IX_IND      | $DD $66 $00                       ; (IX) --> (IX+0)
-LD    H IYPD_IND    | $FD $66 [2:S8]
-LD    H IY_IND      | $FD $66 $00                       ; (IY) --> (IY+0)
-LD    H L           | $65
-LD    H U8          | $26 [2:U8]
-LD    HL U16        | $21 [2:U16]
-LD    HL U16_IND    | $2A [2:U16]
-LD    HL_IND A      | $77
-LD    HL_IND B      | $70
-LD    HL_IND C      | $71
-LD    HL_IND D      | $72
-LD    HL_IND E      | $73
-LD    HL_IND H      | $74
-LD    HL_IND L      | $75
-LD    HL_IND U8     | $36 [2:U8]
-LD    I A           | $ED $47
-LD    IX U16        | $DD $21 [2:U16]
-LD    IX U16_IND    | $DD $2A [2:U16]
-LD    IXPD_IND A    | $DD $77 [1:S8]
-LD    IXPD_IND B    | $DD $70 [1:S8]
-LD    IXPD_IND C    | $DD $71 [1:S8]
-LD    IXPD_IND D    | $DD $72 [1:S8]
-LD    IXPD_IND E    | $DD $73 [1:S8]
-LD    IXPD_IND H    | $DD $74 [1:S8]
-LD    IXPD_IND L    | $DD $75 [1:S8]
-LD    IXPD_IND U8   | $DD $36 [1:S8] [2:U8]
-LD    IX_IND A      | $DD $77 $00                       ; (IX) --> (IX+0)
-LD    IX_IND B      | $DD $70 $00                       ; (IX) --> (IX+0)
-LD    IX_IND C      | $DD $71 $00                       ; (IX) --> (IX+0)
-LD    IX_IND D      | $DD $72 $00                       ; (IX) --> (IX+0)
-LD    IX_IND E      | $DD $73 $00                       ; (IX) --> (IX+0)
-LD    IX_IND H      | $DD $74 $00                       ; (IX) --> (IX+0)
-LD    IX_IND L      | $DD $75 $00                       ; (IX) --> (IX+0)
-LD    IX_IND U8     | $DD $36 $00 [2:U8]                ; (IX) --> (IX+0)
-LD    IY U16        | $FD $21 [2:U16]
-LD    IY U16_IND    | $FD $2A [2:U16]
-LD    IYPD_IND A    | $FD $77 [1:S8]
-LD    IYPD_IND B    | $FD $70 [1:S8]
-LD    IYPD_IND C    | $FD $71 [1:S8]
-LD    IYPD_IND D    | $FD $72 [1:S8]
-LD    IYPD_IND E    | $FD $73 [1:S8]
-LD    IYPD_IND H    | $FD $74 [1:S8]
-LD    IYPD_IND L    | $FD $75 [1:S8]
-LD    IYPD_IND U8   | $FD $36 [1:S8] [2:U8]
-LD    IY_IND A      | $FD $77 $00                       ; (IY) --> (IY+0)
-LD    IY_IND B      | $FD $70 $00                       ; (IY) --> (IY+0)
-LD    IY_IND C      | $FD $71 $00                       ; (IY) --> (IY+0)
-LD    IY_IND D      | $FD $72 $00                       ; (IY) --> (IY+0)
-LD    IY_IND E      | $FD $73 $00                       ; (IY) --> (IY+0)
-LD    IY_IND H      | $FD $74 $00                       ; (IY) --> (IY+0)
-LD    IY_IND L      | $FD $75 $00                       ; (IY) --> (IY+0)
-LD    IY_IND U8     | $FD $36 $00 [2:U8]                ; (IY) --> (IY+0)
-LD    L A           | $6F
-LD    L B           | $68
-LD    L C           | $69
-LD    L D           | $6A
-LD    L E           | $6B
-LD    L H           | $6C
-LD    L HL_IND      | $6E
-LD    L IXPD_IND    | $DD $6E [2:S8]
-LD    L IX_IND      | $DD $6E $00                       ; (IX) --> (IX+0)
-LD    L IYPD_IND    | $FD $6E [2:S8]
-LD    L IY_IND      | $FD $6E $00                       ; (IY) --> (IY+0)
-LD    L L           | $6D
-LD    L U8          | $2E [2:U8]
-LD    R A           | $ED $4F
-LD    SP HL         | $F9
-LD    SP IX         | $DD $F9
-LD    SP IY         | $FD $F9
-LD    SP U16        | $31 [2:U16]
-LD    SP U16_IND    | $ED $7B [2:U16]
-LD    U16_IND A     | $32 [1:U16]
-LD    U16_IND BC    | $ED $43 [1:U16]
-LD    U16_IND DE    | $ED $53 [1:U16]
-LD    U16_IND HL    | $22 [1:U16]
-LD    U16_IND IX    | $DD $22 [1:U16]
-LD    U16_IND IY    | $FD $22 [1:U16]
-LD    U16_IND SP    | $ED $73 [1:U16]
-LDD                 | $ED $A8
-LDDR                | $ED $B8
-LDI                 | $ED $A0
-LDIR                | $ED $B0
+EX      AF AF_        | $08
+EX      DE HL         | $EB
+EX      SP_IND HL     | $E3
+EX      SP_IND IX     | $DD $E3
+EX      SP_IND IY     | $FD $E3
+EXX                   | $D9
+LD      A A           | $7F
+LD      A B           | $78
+LD      A BC_IND      | $0A
+LD      A C           | $79
+LD      A D           | $7A
+LD      A DE_IND      | $1A
+LD      A E           | $7B
+LD      A H           | $7C
+LD      A HL_IND      | $7E
+LD      A I           | $ED $57
+LD      A IXPD_IND    | $DD $7E [2:S8]
+LD      A IX_IND      | $DD $7E $00                       ; (IX) --> (IX+0)
+LD      A IYPD_IND    | $FD $7E [2:S8]
+LD      A IY_IND      | $FD $7E $00                       ; (IY) --> (IY+0)
+LD      A L           | $7D
+LD      A R           | $ED $5F
+LD      A U16_IND     | $3A [2:U16]
+LD      A U8          | $3E [2:U8]
+LD      B A           | $47
+LD      B B           | $40
+LD      B C           | $41
+LD      B D           | $42
+LD      B E           | $43
+LD      B H           | $44
+LD      B HL_IND      | $46
+LD      B IXPD_IND    | $DD $46 [2:S8]
+LD      B IX_IND      | $DD $46 $00                       ; (IX) --> (IX+0)
+LD      B IYPD_IND    | $FD $46 [2:S8]
+LD      B IY_IND      | $FD $46 $00                       ; (IY) --> (IY+0)
+LD      B L           | $45
+LD      B U8          | $06 [2:U8]
+LD      BC U16        | $01 [2:U16]
+LD      BC U16_IND    | $ED $4B [2:U16]
+LD      BC_IND A      | $02
+LD      C A           | $4F
+LD      C B           | $48
+LD      C C           | $49
+LD      C D           | $4A
+LD      C E           | $4B
+LD      C H           | $4C
+LD      C HL_IND      | $4E
+LD      C IXPD_IND    | $DD $4E [2:S8]
+LD      C IX_IND      | $DD $4E $00                       ; (IX) --> (IX+0)
+LD      C IYPD_IND    | $FD $4E [2:S8]
+LD      C IY_IND      | $FD $4E $00                       ; (IY) --> (IY+0)
+LD      C L           | $4D
+LD      C U8          | $0E [2:U8]
+LD      D A           | $57
+LD      D B           | $50
+LD      D C           | $51
+LD      D D           | $52
+LD      D E           | $53
+LD      D H           | $54
+LD      D HL_IND      | $56
+LD      D IXPD_IND    | $DD $56 [2:S8]
+LD      D IX_IND      | $DD $56 $00                       ; (IX) --> (IX+0)
+LD      D IYPD_IND    | $FD $56 [2:S8]
+LD      D IY_IND      | $FD $56 $00                       ; (IY) --> (IY+0)
+LD      D L           | $55
+LD      D U8          | $16 [2:U8]
+LD      DE U16        | $11 [2:U16]
+LD      DE U16_IND    | $ED $5B [2:U16]
+LD      DE_IND A      | $12
+LD      E A           | $5F
+LD      E B           | $58
+LD      E C           | $59
+LD      E D           | $5A
+LD      E E           | $5B
+LD      E H           | $5C
+LD      E HL_IND      | $5E
+LD      E IXPD_IND    | $DD $5E [2:S8]
+LD      E IX_IND      | $DD $5E $00                       ; (IX) --> (IX+0)
+LD      E IYPD_IND    | $FD $5E [2:S8]
+LD      E IY_IND      | $FD $5E $00                       ; (IY) --> (IY+0)
+LD      E L           | $5D
+LD      E U8          | $1E [2:U8]
+LD      H A           | $67
+LD      H B           | $60
+LD      H C           | $61
+LD      H D           | $62
+LD      H E           | $63
+LD      H H           | $64
+LD      H HL_IND      | $66
+LD      H IXPD_IND    | $DD $66 [2:S8]
+LD      H IX_IND      | $DD $66 $00                       ; (IX) --> (IX+0)
+LD      H IYPD_IND    | $FD $66 [2:S8]
+LD      H IY_IND      | $FD $66 $00                       ; (IY) --> (IY+0)
+LD      H L           | $65
+LD      H U8          | $26 [2:U8]
+LD      HL U16        | $21 [2:U16]
+LD      HL U16_IND    | $2A [2:U16]
+LD      HL_IND A      | $77
+LD      HL_IND B      | $70
+LD      HL_IND C      | $71
+LD      HL_IND D      | $72
+LD      HL_IND E      | $73
+LD      HL_IND H      | $74
+LD      HL_IND L      | $75
+LD      HL_IND U8     | $36 [2:U8]
+LD      I A           | $ED $47
+LD      IX U16        | $DD $21 [2:U16]
+LD      IX U16_IND    | $DD $2A [2:U16]
+LD      IXPD_IND A    | $DD $77 [1:S8]
+LD      IXPD_IND B    | $DD $70 [1:S8]
+LD      IXPD_IND C    | $DD $71 [1:S8]
+LD      IXPD_IND D    | $DD $72 [1:S8]
+LD      IXPD_IND E    | $DD $73 [1:S8]
+LD      IXPD_IND H    | $DD $74 [1:S8]
+LD      IXPD_IND L    | $DD $75 [1:S8]
+LD      IXPD_IND U8   | $DD $36 [1:S8] [2:U8]
+LD      IX_IND A      | $DD $77 $00                       ; (IX) --> (IX+0)
+LD      IX_IND B      | $DD $70 $00                       ; (IX) --> (IX+0)
+LD      IX_IND C      | $DD $71 $00                       ; (IX) --> (IX+0)
+LD      IX_IND D      | $DD $72 $00                       ; (IX) --> (IX+0)
+LD      IX_IND E      | $DD $73 $00                       ; (IX) --> (IX+0)
+LD      IX_IND H      | $DD $74 $00                       ; (IX) --> (IX+0)
+LD      IX_IND L      | $DD $75 $00                       ; (IX) --> (IX+0)
+LD      IX_IND U8     | $DD $36 $00 [2:U8]                ; (IX) --> (IX+0)
+LD      IY U16        | $FD $21 [2:U16]
+LD      IY U16_IND    | $FD $2A [2:U16]
+LD      IYPD_IND A    | $FD $77 [1:S8]
+LD      IYPD_IND B    | $FD $70 [1:S8]
+LD      IYPD_IND C    | $FD $71 [1:S8]
+LD      IYPD_IND D    | $FD $72 [1:S8]
+LD      IYPD_IND E    | $FD $73 [1:S8]
+LD      IYPD_IND H    | $FD $74 [1:S8]
+LD      IYPD_IND L    | $FD $75 [1:S8]
+LD      IYPD_IND U8   | $FD $36 [1:S8] [2:U8]
+LD      IY_IND A      | $FD $77 $00                       ; (IY) --> (IY+0)
+LD      IY_IND B      | $FD $70 $00                       ; (IY) --> (IY+0)
+LD      IY_IND C      | $FD $71 $00                       ; (IY) --> (IY+0)
+LD      IY_IND D      | $FD $72 $00                       ; (IY) --> (IY+0)
+LD      IY_IND E      | $FD $73 $00                       ; (IY) --> (IY+0)
+LD      IY_IND H      | $FD $74 $00                       ; (IY) --> (IY+0)
+LD      IY_IND L      | $FD $75 $00                       ; (IY) --> (IY+0)
+LD      IY_IND U8     | $FD $36 $00 [2:U8]                ; (IY) --> (IY+0)
+LD      L A           | $6F
+LD      L B           | $68
+LD      L C           | $69
+LD      L D           | $6A
+LD      L E           | $6B
+LD      L H           | $6C
+LD      L HL_IND      | $6E
+LD      L IXPD_IND    | $DD $6E [2:S8]
+LD      L IX_IND      | $DD $6E $00                       ; (IX) --> (IX+0)
+LD      L IYPD_IND    | $FD $6E [2:S8]
+LD      L IY_IND      | $FD $6E $00                       ; (IY) --> (IY+0)
+LD      L L           | $6D
+LD      L U8          | $2E [2:U8]
+LD      R A           | $ED $4F
+LD      SP HL         | $F9
+LD      SP IX         | $DD $F9
+LD      SP IY         | $FD $F9
+LD      SP U16        | $31 [2:U16]
+LD      SP U16_IND    | $ED $7B [2:U16]
+LD      U16_IND A     | $32 [1:U16]
+LD      U16_IND BC    | $ED $43 [1:U16]
+LD      U16_IND DE    | $ED $53 [1:U16]
+LD      U16_IND HL    | $22 [1:U16]
+LD      U16_IND IX    | $DD $22 [1:U16]
+LD      U16_IND IY    | $FD $22 [1:U16]
+LD      U16_IND SP    | $ED $73 [1:U16]
+LDD                   | $ED $A8
+LDDR                  | $ED $B8
+LDI                   | $ED $A0
+LDIR                  | $ED $B0
 
 
 ;-----------------------------------------------------------------------------
@@ -477,10 +477,10 @@ LDIR                | $ED $B0
 ;
 ;-----------------------------------------------------------------------------
 
-CCF                 | $3F
-DI                  | $F3
-EI                  | $FB
-SCF                 | $37
+CCF                   | $3F
+DI                    | $F3
+EI                    | $FB
+SCF                   | $37
 
 
 ;-----------------------------------------------------------------------------
@@ -489,42 +489,42 @@ SCF                 | $37
 ;
 ;-----------------------------------------------------------------------------
 
-DEC   A             | $3D
-DEC   B             | $05
-DEC   BC            | $0B
-DEC   C             | $0D
-DEC   D             | $15
-DEC   DE            | $1B
-DEC   E             | $1D
-DEC   H             | $25
-DEC   HL            | $2B
-DEC   HL_IND        | $35
-DEC   IX            | $DD $2B
-DEC   IXPD_IND      | $DD $35 [1:S8]
-DEC   IX_IND        | $DD $35 $00                       ; (IX) --> (IX+0)
-DEC   IY            | $FD $2B
-DEC   IYPD_IND      | $FD $35 [1:S8]
-DEC   IY_IND        | $FD $35 $00                       ; (IY) --> (IY+0)
-DEC   L             | $2D
-DEC   SP            | $3B
-INC   A             | $3C
-INC   B             | $04
-INC   BC            | $03
-INC   C             | $0C
-INC   D             | $14
-INC   DE            | $13
-INC   E             | $1C
-INC   H             | $24
-INC   HL            | $23
-INC   HL_IND        | $34
-INC   IX            | $DD $23
-INC   IXPD_IND      | $DD $34 [1:S8]
-INC   IX_IND        | $DD $34 $00                       ; (IX) --> (IX+0)
-INC   IY            | $FD $23
-INC   IYPD_IND      | $FD $34 [1:S8]
-INC   IY_IND        | $FD $34 $00                       ; (IY) --> (IY+0)
-INC   L             | $2C
-INC   SP            | $33
+DEC     A             | $3D
+DEC     B             | $05
+DEC     BC            | $0B
+DEC     C             | $0D
+DEC     D             | $15
+DEC     DE            | $1B
+DEC     E             | $1D
+DEC     H             | $25
+DEC     HL            | $2B
+DEC     HL_IND        | $35
+DEC     IX            | $DD $2B
+DEC     IXPD_IND      | $DD $35 [1:S8]
+DEC     IX_IND        | $DD $35 $00                       ; (IX) --> (IX+0)
+DEC     IY            | $FD $2B
+DEC     IYPD_IND      | $FD $35 [1:S8]
+DEC     IY_IND        | $FD $35 $00                       ; (IY) --> (IY+0)
+DEC     L             | $2D
+DEC     SP            | $3B
+INC     A             | $3C
+INC     B             | $04
+INC     BC            | $03
+INC     C             | $0C
+INC     D             | $14
+INC     DE            | $13
+INC     E             | $1C
+INC     H             | $24
+INC     HL            | $23
+INC     HL_IND        | $34
+INC     IX            | $DD $23
+INC     IXPD_IND      | $DD $34 [1:S8]
+INC     IX_IND        | $DD $34 $00                       ; (IX) --> (IX+0)
+INC     IY            | $FD $23
+INC     IYPD_IND      | $FD $34 [1:S8]
+INC     IY_IND        | $FD $34 $00                       ; (IY) --> (IY+0)
+INC     L             | $2C
+INC     SP            | $33
 
 
 ;-----------------------------------------------------------------------------
@@ -533,94 +533,94 @@ INC   SP            | $33
 ;
 ;-----------------------------------------------------------------------------
 
-AND   A             | $A7                               ; Alternative version of AND A,A
-AND   A A           | $A7
-AND   A B           | $A0
-AND   A C           | $A1
-AND   A D           | $A2
-AND   A E           | $A3
-AND   A H           | $A4
-AND   A HL_IND      | $A6
-AND   A IXPD_IND    | $DD $A6 [2:S8]
-AND   A IX_IND      | $DD $A6 $00                       ; (IX) --> (IX+0)
-AND   A IYPD_IND    | $FD $A6 [2:S8]
-AND   A IY_IND      | $FD $A6 $00                       ; (IY) --> (IY+0)
-AND   A L           | $A5
-AND   A U8          | $E6 [2:U8]
-AND   B             | $A0                               ; Alternative version of AND A,B
-AND   C             | $A1                               ; Alternative version of AND A,C
-AND   D             | $A2                               ; Alternative version of AND A,D
-AND   E             | $A3                               ; Alternative version of AND A,E
-AND   H             | $A4                               ; Alternative version of AND A,H
-AND   HL_IND        | $A6                               ; Alternative version of AND A,HL_IND
-AND   IXPD_IND      | $DD $A6 [1:S8]                    ; Alternative version of AND A,IXPD_IND
-AND   IX_IND        | $DD $A6 $00                       ; (IX) --> (IX+0), alternative form of AND A,(IX+0)
-AND   IYPD_IND      | $FD $A6 [1:S8]                    ; Alternative version of AND A,IYPD_IND
-AND   IY_IND        | $FD $A6 $00                       ; (IY) --> (IY+0), alternative form of AND A,(IY+0)
-AND   L             | $A5                               ; Alternative version of AND A,L
-AND   U8            | $E6 [1:U8]                        ; Alternative version of AND A,U8
-OR    A             | $B7                               ; Alternative version of OR A,A
-OR    A A           | $B7
-OR    A B           | $B0
-OR    A C           | $B1
-OR    A D           | $B2
-OR    A E           | $B3
-OR    A H           | $B4
-OR    A HL_IND      | $B6
-OR    A IXPD_IND    | $DD $B6 [2:S8]
-OR    A IX_IND      | $DD $B6 $00                       ; (IX) --> (IX+0)
-OR    A IYPD_IND    | $FD $B6 [2:S8]
-OR    A IY_IND      | $FD $B6 $00                       ; (IY) --> (IY+0)
-OR    A L           | $B5
-OR    A U8          | $F6 [2:U8]
-OR    B             | $B0                               ; Alternative version of OR A,B
-OR    C             | $B1                               ; Alternative version of OR A,C
-OR    D             | $B2                               ; Alternative version of OR A,D
-OR    E             | $B3                               ; Alternative version of OR A,E
-OR    H             | $B4                               ; Alternative version of OR A,H
-OR    HL_IND        | $B6                               ; Alternative version of OR A,HL_IND
-OR    IXPD_IND      | $DD $B6 [1:S8]                    ; Alternative version of OR A,IXPD_IND
-OR    IX_IND        | $DD $B6 $00                       ; (IX) --> (IX+0), alternative form of OR A,(IX+0)
-OR    IYPD_IND      | $FD $B6 [1:S8]                    ; Alternative version of OR A,IYPD_IND
-OR    IY_IND        | $FD $B6 $00                       ; (IY) --> (IY+0), alternative form of OR A,(IY+0)
-OR    L             | $B5                               ; Alternative version of OR A,L
-OR    U8            | $F6 [1:U8]                        ; Alternative version of OR A,U8
-TST   A             | $ED $3C
-TST   B             | $ED $04
-TST   C             | $ED $0C
-TST   D             | $ED $14
-TST   E             | $ED $1C
-TST   H             | $ED $24
-TST   HL_IND        | $ED $34
-TST   L             | $ED $2C
-TST   U8            | $ED $64 [1:U8]
-TSTIO U8            | $ED $74 [1:U8]
-XOR   A             | $AF                               ; Alternative version of XOR A,A
-XOR   A A           | $AF
-XOR   A B           | $A8
-XOR   A C           | $A9
-XOR   A D           | $AA
-XOR   A E           | $AB
-XOR   A H           | $AC
-XOR   A HL_IND      | $AE
-XOR   A IXPD_IND    | $DD $AE [2:S8]
-XOR   A IX_IND      | $DD $AE $00                       ; (IX) --> (IX+0)
-XOR   A IYPD_IND    | $FD $AE [2:S8]
-XOR   A IY_IND      | $FD $AE $00                       ; (IY) --> (IY+0)
-XOR   A L           | $AD
-XOR   A U8          | $EE [2:U8]
-XOR   B             | $A8                               ; Alternative version of XOR A,B
-XOR   C             | $A9                               ; Alternative version of XOR A,C
-XOR   D             | $AA                               ; Alternative version of XOR A,D
-XOR   E             | $AB                               ; Alternative version of XOR A,E
-XOR   H             | $AC                               ; Alternative version of XOR A,H
-XOR   HL_IND        | $AE                               ; Alternative version of XOR A,HL_IND
-XOR   IXPD_IND      | $DD $AE [1:S8]                    ; Alternative version of XOR A,IXPD_IND
-XOR   IX_IND        | $DD $AE $00                       ; (IX) --> (IX+0), alternative form of XOR A,(IX+0)
-XOR   IYPD_IND      | $FD $AE [1:S8]                    ; Alternative version of XOR A,IYPD_IND
-XOR   IY_IND        | $FD $AE $00                       ; (IY) --> (IY+0), alternative form of XOR A,(IY+0)
-XOR   L             | $AD                               ; Alternative version of XOR A,L
-XOR   U8            | $EE [1:U8]                        ; Alternative version of XOR A,U8
+AND     A             | $A7                               ; Alternative version of AND A,A
+AND     A A           | $A7
+AND     A B           | $A0
+AND     A C           | $A1
+AND     A D           | $A2
+AND     A E           | $A3
+AND     A H           | $A4
+AND     A HL_IND      | $A6
+AND     A IXPD_IND    | $DD $A6 [2:S8]
+AND     A IX_IND      | $DD $A6 $00                       ; (IX) --> (IX+0)
+AND     A IYPD_IND    | $FD $A6 [2:S8]
+AND     A IY_IND      | $FD $A6 $00                       ; (IY) --> (IY+0)
+AND     A L           | $A5
+AND     A U8          | $E6 [2:U8]
+AND     B             | $A0                               ; Alternative version of AND A,B
+AND     C             | $A1                               ; Alternative version of AND A,C
+AND     D             | $A2                               ; Alternative version of AND A,D
+AND     E             | $A3                               ; Alternative version of AND A,E
+AND     H             | $A4                               ; Alternative version of AND A,H
+AND     HL_IND        | $A6                               ; Alternative version of AND A,HL_IND
+AND     IXPD_IND      | $DD $A6 [1:S8]                    ; Alternative version of AND A,IXPD_IND
+AND     IX_IND        | $DD $A6 $00                       ; (IX) --> (IX+0), alternative form of AND A,(IX+0)
+AND     IYPD_IND      | $FD $A6 [1:S8]                    ; Alternative version of AND A,IYPD_IND
+AND     IY_IND        | $FD $A6 $00                       ; (IY) --> (IY+0), alternative form of AND A,(IY+0)
+AND     L             | $A5                               ; Alternative version of AND A,L
+AND     U8            | $E6 [1:U8]                        ; Alternative version of AND A,U8
+OR      A             | $B7                               ; Alternative version of OR A,A
+OR      A A           | $B7
+OR      A B           | $B0
+OR      A C           | $B1
+OR      A D           | $B2
+OR      A E           | $B3
+OR      A H           | $B4
+OR      A HL_IND      | $B6
+OR      A IXPD_IND    | $DD $B6 [2:S8]
+OR      A IX_IND      | $DD $B6 $00                       ; (IX) --> (IX+0)
+OR      A IYPD_IND    | $FD $B6 [2:S8]
+OR      A IY_IND      | $FD $B6 $00                       ; (IY) --> (IY+0)
+OR      A L           | $B5
+OR      A U8          | $F6 [2:U8]
+OR      B             | $B0                               ; Alternative version of OR A,B
+OR      C             | $B1                               ; Alternative version of OR A,C
+OR      D             | $B2                               ; Alternative version of OR A,D
+OR      E             | $B3                               ; Alternative version of OR A,E
+OR      H             | $B4                               ; Alternative version of OR A,H
+OR      HL_IND        | $B6                               ; Alternative version of OR A,HL_IND
+OR      IXPD_IND      | $DD $B6 [1:S8]                    ; Alternative version of OR A,IXPD_IND
+OR      IX_IND        | $DD $B6 $00                       ; (IX) --> (IX+0), alternative form of OR A,(IX+0)
+OR      IYPD_IND      | $FD $B6 [1:S8]                    ; Alternative version of OR A,IYPD_IND
+OR      IY_IND        | $FD $B6 $00                       ; (IY) --> (IY+0), alternative form of OR A,(IY+0)
+OR      L             | $B5                               ; Alternative version of OR A,L
+OR      U8            | $F6 [1:U8]                        ; Alternative version of OR A,U8
+TST     A             | $ED $3C
+TST     B             | $ED $04
+TST     C             | $ED $0C
+TST     D             | $ED $14
+TST     E             | $ED $1C
+TST     H             | $ED $24
+TST     HL_IND        | $ED $34
+TST     L             | $ED $2C
+TST     U8            | $ED $64 [1:U8]
+TSTIO   U8            | $ED $74 [1:U8]
+XOR     A             | $AF                               ; Alternative version of XOR A,A
+XOR     A A           | $AF
+XOR     A B           | $A8
+XOR     A C           | $A9
+XOR     A D           | $AA
+XOR     A E           | $AB
+XOR     A H           | $AC
+XOR     A HL_IND      | $AE
+XOR     A IXPD_IND    | $DD $AE [2:S8]
+XOR     A IX_IND      | $DD $AE $00                       ; (IX) --> (IX+0)
+XOR     A IYPD_IND    | $FD $AE [2:S8]
+XOR     A IY_IND      | $FD $AE $00                       ; (IY) --> (IY+0)
+XOR     A L           | $AD
+XOR     A U8          | $EE [2:U8]
+XOR     B             | $A8                               ; Alternative version of XOR A,B
+XOR     C             | $A9                               ; Alternative version of XOR A,C
+XOR     D             | $AA                               ; Alternative version of XOR A,D
+XOR     E             | $AB                               ; Alternative version of XOR A,E
+XOR     H             | $AC                               ; Alternative version of XOR A,H
+XOR     HL_IND        | $AE                               ; Alternative version of XOR A,HL_IND
+XOR     IXPD_IND      | $DD $AE [1:S8]                    ; Alternative version of XOR A,IXPD_IND
+XOR     IX_IND        | $DD $AE $00                       ; (IX) --> (IX+0), alternative form of XOR A,(IX+0)
+XOR     IYPD_IND      | $FD $AE [1:S8]                    ; Alternative version of XOR A,IYPD_IND
+XOR     IY_IND        | $FD $AE $00                       ; (IY) --> (IY+0), alternative form of XOR A,(IY+0)
+XOR     L             | $AD                               ; Alternative version of XOR A,L
+XOR     U8            | $EE [1:U8]                        ; Alternative version of XOR A,U8
 
 
 ;-----------------------------------------------------------------------------
@@ -629,50 +629,50 @@ XOR   U8            | $EE [1:U8]                        ; Alternative version of
 ;
 ;-----------------------------------------------------------------------------
 
-IN    A C_IND       | $ED $78
-IN    A U8_IND      | $DB [2:U8]
-IN    B C_IND       | $ED $40
-IN    C C_IND       | $ED $48
-IN    D C_IND       | $ED $50
-IN    E C_IND       | $ED $58
-IN    H C_IND       | $ED $60
-IN    L C_IND       | $ED $68
-IN0   A U8_IND      | $ED $38 [2:U8]
-IN0   B U8_IND      | $ED $00 [2:U8]
-IN0   C U8_IND      | $ED $08 [2:U8]
-IN0   D U8_IND      | $ED $10 [2:U8]
-IN0   E U8_IND      | $ED $18 [2:U8]
-IN0   H U8_IND      | $ED $20 [2:U8]
-IN0   HL_IND U8_IND | $ED $30 [2:U8]
-IN0   L U8_IND      | $ED $28 [2:U8]
-IND                 | $ED $AA
-INDR                | $ED $BA
-INI                 | $ED $A2
-INIR                | $ED $B2
-OTDM                | $ED $8B
-OTDMR               | $ED $9B
-OTDR                | $ED $BB
-OTIM                | $ED $83
-OTIMR               | $ED $93
-OTIR                | $ED $B3
-OUT   C_IND A       | $ED $79
-OUT   C_IND B       | $ED $41
-OUT   C_IND C       | $ED $49
-OUT   C_IND D       | $ED $51
-OUT   C_IND E       | $ED $59
-OUT   C_IND H       | $ED $61
-OUT   C_IND L       | $ED $69
-OUT   U8_IND A      | $D3 [1:U8]
-OUT0  U8_IND A      | $ED $39 [1:U8]
-OUT0  U8_IND B      | $ED $01 [1:U8]
-OUT0  U8_IND C      | $ED $09 [1:U8]
-OUT0  U8_IND D      | $ED $11 [1:U8]
-OUT0  U8_IND E      | $ED $19 [1:U8]
-OUT0  U8_IND H      | $ED $21 [1:U8]
-OUT0  U8_IND HL_IND | $ED $31 [1:U8]
-OUT0  U8_IND L      | $ED $29 [1:U8]
-OUTD                | $ED $AB
-OUTI                | $ED $A3
+IN      A C_IND       | $ED $78
+IN      A U8_IND      | $DB [2:U8]
+IN      B C_IND       | $ED $40
+IN      C C_IND       | $ED $48
+IN      D C_IND       | $ED $50
+IN      E C_IND       | $ED $58
+IN      H C_IND       | $ED $60
+IN      L C_IND       | $ED $68
+IN0     A U8_IND      | $ED $38 [2:U8]
+IN0     B U8_IND      | $ED $00 [2:U8]
+IN0     C U8_IND      | $ED $08 [2:U8]
+IN0     D U8_IND      | $ED $10 [2:U8]
+IN0     E U8_IND      | $ED $18 [2:U8]
+IN0     H U8_IND      | $ED $20 [2:U8]
+IN0     HL_IND U8_IND | $ED $30 [2:U8]
+IN0     L U8_IND      | $ED $28 [2:U8]
+IND                   | $ED $AA
+INDR                  | $ED $BA
+INI                   | $ED $A2
+INIR                  | $ED $B2
+OTDM                  | $ED $8B
+OTDMR                 | $ED $9B
+OTDR                  | $ED $BB
+OTIM                  | $ED $83
+OTIMR                 | $ED $93
+OTIR                  | $ED $B3
+OUT     C_IND A       | $ED $79
+OUT     C_IND B       | $ED $41
+OUT     C_IND C       | $ED $49
+OUT     C_IND D       | $ED $51
+OUT     C_IND E       | $ED $59
+OUT     C_IND H       | $ED $61
+OUT     C_IND L       | $ED $69
+OUT     U8_IND A      | $D3 [1:U8]
+OUT0    U8_IND A      | $ED $39 [1:U8]
+OUT0    U8_IND B      | $ED $01 [1:U8]
+OUT0    U8_IND C      | $ED $09 [1:U8]
+OUT0    U8_IND D      | $ED $11 [1:U8]
+OUT0    U8_IND E      | $ED $19 [1:U8]
+OUT0    U8_IND H      | $ED $21 [1:U8]
+OUT0    U8_IND HL_IND | $ED $31 [1:U8]
+OUT0    U8_IND L      | $ED $29 [1:U8]
+OUTD                  | $ED $AB
+OUTI                  | $ED $A3
 
 
 ;-----------------------------------------------------------------------------
@@ -681,47 +681,47 @@ OUTI                | $ED $A3
 ;
 ;-----------------------------------------------------------------------------
 
-CALL  C U16         | $DC [2:U16]
-CALL  M U16         | $FC [2:U16]
-CALL  NC U16        | $D4 [2:U16]
-CALL  NZ U16        | $C4 [2:U16]
-CALL  P U16         | $F4 [2:U16]
-CALL  PE U16        | $EC [2:U16]
-CALL  PO U16        | $E4 [2:U16]
-CALL  U16           | $CD [1:U16]
-CALL  Z U16         | $CC [2:U16]
-DJNZ  U16           | $10 [1:R8]
-HALT                | $76
-JP    C U16         | $DA [2:U16]
-JP    HL_IND        | $E9
-JP    IX_IND        | $DD $E9
-JP    IY_IND        | $FD $E9
-JP    M U16         | $FA [2:U16]
-JP    NC U16        | $D2 [2:U16]
-JP    NZ U16        | $C2 [2:U16]
-JP    P U16         | $F2 [2:U16]
-JP    PE U16        | $EA [2:U16]
-JP    PO U16        | $E2 [2:U16]
-JP    U16           | $C3 [1:U16]
-JP    Z U16         | $CA [2:U16]
-JR    C U16         | $38 [2:R8]
-JR    NC U16        | $30 [2:R8]
-JR    NZ U16        | $20 [2:R8]
-JR    U16           | $18 [1:R8]
-JR    Z U16         | $28 [2:R8]
-RET                 | $C9
-RET   C             | $D8
-RET   M             | $F8
-RET   NC            | $D0
-RET   NZ            | $C0
-RET   P             | $F0
-RET   PE            | $E8
-RET   PO            | $E0
-RET   Z             | $C8
-RETI                | $ED $4D
-RETN                | $ED $45
-RST   U8            | %11[1:RST]111
-SLP                 | $ED $76
+CALL    C U16         | $DC [2:U16]
+CALL    M U16         | $FC [2:U16]
+CALL    NC U16        | $D4 [2:U16]
+CALL    NZ U16        | $C4 [2:U16]
+CALL    P U16         | $F4 [2:U16]
+CALL    PE U16        | $EC [2:U16]
+CALL    PO U16        | $E4 [2:U16]
+CALL    U16           | $CD [1:U16]
+CALL    Z U16         | $CC [2:U16]
+DJNZ    U16           | $10 [1:R8]
+HALT                  | $76
+JP      C U16         | $DA [2:U16]
+JP      HL_IND        | $E9
+JP      IX_IND        | $DD $E9
+JP      IY_IND        | $FD $E9
+JP      M U16         | $FA [2:U16]
+JP      NC U16        | $D2 [2:U16]
+JP      NZ U16        | $C2 [2:U16]
+JP      P U16         | $F2 [2:U16]
+JP      PE U16        | $EA [2:U16]
+JP      PO U16        | $E2 [2:U16]
+JP      U16           | $C3 [1:U16]
+JP      Z U16         | $CA [2:U16]
+JR      C U16         | $38 [2:R8]
+JR      NC U16        | $30 [2:R8]
+JR      NZ U16        | $20 [2:R8]
+JR      U16           | $18 [1:R8]
+JR      Z U16         | $28 [2:R8]
+RET                   | $C9
+RET     C             | $D8
+RET     M             | $F8
+RET     NC            | $D0
+RET     NZ            | $C0
+RET     P             | $F0
+RET     PE            | $E8
+RET     PO            | $E0
+RET     Z             | $C8
+RETI                  | $ED $4D
+RETN                  | $ED $45
+RST     U8            | %11[1:RST]111
+SLP                   | $ED $76
 
 
 ;-----------------------------------------------------------------------------
@@ -730,96 +730,96 @@ SLP                 | $ED $76
 ;
 ;-----------------------------------------------------------------------------
 
-RL    A             | $CB $17
-RL    B             | $CB $10
-RL    C             | $CB $11
-RL    D             | $CB $12
-RL    E             | $CB $13
-RL    H             | $CB $14
-RL    HL_IND        | $CB $16
-RL    IXPD_IND      | $DD $CB [1:S8] $16
-RL    IX_IND        | $DD $CB $00 $16                   ; (IX) --> (IX+0)
-RL    IYPD_IND      | $FD $CB [1:S8] $16
-RL    IY_IND        | $FD $CB $00 $16                   ; (IY) --> (IY+0)
-RL    L             | $CB $15
-RLA                 | $17
-RLC   A             | $CB $07
-RLC   B             | $CB $00
-RLC   C             | $CB $01
-RLC   D             | $CB $02
-RLC   E             | $CB $03
-RLC   H             | $CB $04
-RLC   HL_IND        | $CB $06
-RLC   IXPD_IND      | $DD $CB [1:S8] $06
-RLC   IX_IND        | $DD $CB $00 $06                   ; (IX) --> (IX+0)
-RLC   IYPD_IND      | $FD $CB [1:S8] $06
-RLC   IY_IND        | $FD $CB $00 $06                   ; (IY) --> (IY+0)
-RLC   L             | $CB $05
-RLCA                | $07
-RLD                 | $ED $6F
-RR    A             | $CB $1F
-RR    B             | $CB $18
-RR    C             | $CB $19
-RR    D             | $CB $1A
-RR    E             | $CB $1B
-RR    H             | $CB $1C
-RR    HL_IND        | $CB $1E
-RR    IXPD_IND      | $DD $CB [1:S8] $1E
-RR    IX_IND        | $DD $CB $00 $1E                   ; (IX) --> (IX+0)
-RR    IYPD_IND      | $FD $CB [1:S8] $1E
-RR    IY_IND        | $FD $CB $00 $1E                   ; (IY) --> (IY+0)
-RR    L             | $CB $1D
-RRA                 | $1F
-RRC   A             | $CB $0F
-RRC   B             | $CB $08
-RRC   C             | $CB $09
-RRC   D             | $CB $0A
-RRC   E             | $CB $0B
-RRC   H             | $CB $0C
-RRC   HL_IND        | $CB $0E
-RRC   IXPD_IND      | $DD $CB [1:S8] $0E
-RRC   IX_IND        | $DD $CB $00 $0E                   ; (IX) --> (IX+0)
-RRC   IYPD_IND      | $FD $CB [1:S8] $0E
-RRC   IY_IND        | $FD $CB $00 $0E                   ; (IY) --> (IY+0)
-RRC   L             | $CB $0D
-RRCA                | $0F
-RRD                 | $ED $67
-SLA   A             | $CB $27
-SLA   B             | $CB $20
-SLA   C             | $CB $21
-SLA   D             | $CB $22
-SLA   E             | $CB $23
-SLA   H             | $CB $24
-SLA   HL_IND        | $CB $26
-SLA   IXPD_IND      | $DD $CB [1:S8] $26
-SLA   IX_IND        | $DD $CB $00 $26                   ; (IX) --> (IX+0)
-SLA   IYPD_IND      | $FD $CB [1:S8] $26
-SLA   IY_IND        | $FD $CB $00 $26                   ; (IY) --> (IY+0)
-SLA   L             | $CB $25
-SRA   A             | $CB $2F
-SRA   B             | $CB $28
-SRA   C             | $CB $29
-SRA   D             | $CB $2A
-SRA   E             | $CB $2B
-SRA   H             | $CB $2C
-SRA   HL_IND        | $CB $2E
-SRA   IXPD_IND      | $DD $CB [1:S8] $2E
-SRA   IX_IND        | $DD $CB $00 $2E                   ; (IX) --> (IX+0)
-SRA   IYPD_IND      | $FD $CB [1:S8] $2E
-SRA   IY_IND        | $FD $CB $00 $2E                   ; (IY) --> (IY+0)
-SRA   L             | $CB $2D
-SRL   A             | $CB $3F
-SRL   B             | $CB $38
-SRL   C             | $CB $39
-SRL   D             | $CB $3A
-SRL   E             | $CB $3B
-SRL   H             | $CB $3C
-SRL   HL_IND        | $CB $3E
-SRL   IXPD_IND      | $DD $CB [1:S8] $3E
-SRL   IX_IND        | $DD $CB $00 $3E                   ; (IX) --> (IX+0)
-SRL   IYPD_IND      | $FD $CB [1:S8] $3E
-SRL   IY_IND        | $FD $CB $00 $3E                   ; (IY) --> (IY+0)
-SRL   L             | $CB $3D
+RL      A             | $CB $17
+RL      B             | $CB $10
+RL      C             | $CB $11
+RL      D             | $CB $12
+RL      E             | $CB $13
+RL      H             | $CB $14
+RL      HL_IND        | $CB $16
+RL      IXPD_IND      | $DD $CB [1:S8] $16
+RL      IX_IND        | $DD $CB $00 $16                   ; (IX) --> (IX+0)
+RL      IYPD_IND      | $FD $CB [1:S8] $16
+RL      IY_IND        | $FD $CB $00 $16                   ; (IY) --> (IY+0)
+RL      L             | $CB $15
+RLA                   | $17
+RLC     A             | $CB $07
+RLC     B             | $CB $00
+RLC     C             | $CB $01
+RLC     D             | $CB $02
+RLC     E             | $CB $03
+RLC     H             | $CB $04
+RLC     HL_IND        | $CB $06
+RLC     IXPD_IND      | $DD $CB [1:S8] $06
+RLC     IX_IND        | $DD $CB $00 $06                   ; (IX) --> (IX+0)
+RLC     IYPD_IND      | $FD $CB [1:S8] $06
+RLC     IY_IND        | $FD $CB $00 $06                   ; (IY) --> (IY+0)
+RLC     L             | $CB $05
+RLCA                  | $07
+RLD                   | $ED $6F
+RR      A             | $CB $1F
+RR      B             | $CB $18
+RR      C             | $CB $19
+RR      D             | $CB $1A
+RR      E             | $CB $1B
+RR      H             | $CB $1C
+RR      HL_IND        | $CB $1E
+RR      IXPD_IND      | $DD $CB [1:S8] $1E
+RR      IX_IND        | $DD $CB $00 $1E                   ; (IX) --> (IX+0)
+RR      IYPD_IND      | $FD $CB [1:S8] $1E
+RR      IY_IND        | $FD $CB $00 $1E                   ; (IY) --> (IY+0)
+RR      L             | $CB $1D
+RRA                   | $1F
+RRC     A             | $CB $0F
+RRC     B             | $CB $08
+RRC     C             | $CB $09
+RRC     D             | $CB $0A
+RRC     E             | $CB $0B
+RRC     H             | $CB $0C
+RRC     HL_IND        | $CB $0E
+RRC     IXPD_IND      | $DD $CB [1:S8] $0E
+RRC     IX_IND        | $DD $CB $00 $0E                   ; (IX) --> (IX+0)
+RRC     IYPD_IND      | $FD $CB [1:S8] $0E
+RRC     IY_IND        | $FD $CB $00 $0E                   ; (IY) --> (IY+0)
+RRC     L             | $CB $0D
+RRCA                  | $0F
+RRD                   | $ED $67
+SLA     A             | $CB $27
+SLA     B             | $CB $20
+SLA     C             | $CB $21
+SLA     D             | $CB $22
+SLA     E             | $CB $23
+SLA     H             | $CB $24
+SLA     HL_IND        | $CB $26
+SLA     IXPD_IND      | $DD $CB [1:S8] $26
+SLA     IX_IND        | $DD $CB $00 $26                   ; (IX) --> (IX+0)
+SLA     IYPD_IND      | $FD $CB [1:S8] $26
+SLA     IY_IND        | $FD $CB $00 $26                   ; (IY) --> (IY+0)
+SLA     L             | $CB $25
+SRA     A             | $CB $2F
+SRA     B             | $CB $28
+SRA     C             | $CB $29
+SRA     D             | $CB $2A
+SRA     E             | $CB $2B
+SRA     H             | $CB $2C
+SRA     HL_IND        | $CB $2E
+SRA     IXPD_IND      | $DD $CB [1:S8] $2E
+SRA     IX_IND        | $DD $CB $00 $2E                   ; (IX) --> (IX+0)
+SRA     IYPD_IND      | $FD $CB [1:S8] $2E
+SRA     IY_IND        | $FD $CB $00 $2E                   ; (IY) --> (IY+0)
+SRA     L             | $CB $2D
+SRL     A             | $CB $3F
+SRL     B             | $CB $38
+SRL     C             | $CB $39
+SRL     D             | $CB $3A
+SRL     E             | $CB $3B
+SRL     H             | $CB $3C
+SRL     HL_IND        | $CB $3E
+SRL     IXPD_IND      | $DD $CB [1:S8] $3E
+SRL     IX_IND        | $DD $CB $00 $3E                   ; (IX) --> (IX+0)
+SRL     IYPD_IND      | $FD $CB [1:S8] $3E
+SRL     IY_IND        | $FD $CB $00 $3E                   ; (IY) --> (IY+0)
+SRL     L             | $CB $3D
 
 
 ;-----------------------------------------------------------------------------
@@ -828,8 +828,8 @@ SRL   L             | $CB $3D
 ;
 ;-----------------------------------------------------------------------------
 
-IM    U8            | $ED [1:IM]
-NOP                 | $00
+IM      U8            | $ED [1:IM]
+NOP                   | $00
 
 
 ;-----------------------------------------------------------------------------
@@ -838,17 +838,17 @@ NOP                 | $00
 ;
 ;-----------------------------------------------------------------------------
 
-POP   AF            | $F1
-POP   BC            | $C1
-POP   DE            | $D1
-POP   HL            | $E1
-POP   IX            | $DD $E1
-POP   IY            | $FD $E1
-PUSH  AF            | $F5
-PUSH  BC            | $C5
-PUSH  DE            | $D5
-PUSH  HL            | $E5
-PUSH  IX            | $DD $E5
-PUSH  IY            | $FD $E5
+POP     AF            | $F1
+POP     BC            | $C1
+POP     DE            | $D1
+POP     HL            | $E1
+POP     IX            | $DD $E1
+POP     IY            | $FD $E1
+PUSH    AF            | $F5
+PUSH    BC            | $C5
+PUSH    DE            | $D5
+PUSH    HL            | $E5
+PUSH    IX            | $DD $E5
+PUSH    IY            | $FD $E5
 
 ; <End Of File>

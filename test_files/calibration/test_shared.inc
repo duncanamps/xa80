@@ -123,7 +123,6 @@ HIGHNUM	EQU		19
 		DB		RIGHT("DUNCAN",2)		// 41 4E Rightmost characters in string
 		DB		STRING(12)				// 31 32 Convert number to string
 		DB		UPPER("AbC0")			// 41 42 43 30 Upper case of string
-		DB		VERSION()				// 30 2E 32 2E 30 Version as string
 
 ;
 ; Functions commented out as the values will vary and frustrate the

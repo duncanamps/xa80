@@ -1,0 +1,543 @@
+;
+;  TEST_UNDOCUMENTED.Z80
+;  Test program for undocumented Z80 instructions
+; 
+;  Duncan Munro
+;  24/06/2023
+;
+
+;==============================================================================
+;
+; Initial defines
+;
+;==============================================================================
+
+disp		EQU		5
+u8			EQU		123
+			
+			
+;-----------------------------------------------------------------------------
+;
+; Z80X - UNDOCUMENTED Arithmetic instructions
+;
+;-----------------------------------------------------------------------------
+			
+			ADC     A,IXH         // $DD $8C                           
+			ADC     A,IXL         // $DD $8D                           
+			ADC     A,IYH         // $FD $8C                           
+			ADC     A,IYL         // $FD $8D                           
+			ADC     IXH           // $DD $8C                           
+			ADC     IXL           // $DD $8D                           
+			ADC     IYH           // $FD $8C                           
+			ADC     IYL           // $FD $8D                           
+			ADD     A,IXH         // $DD $84                           
+			ADD     A,IXL         // $DD $85                           
+			ADD     A,IYH         // $FD $84                           
+			ADD     A,IYL         // $FD $85                           
+			ADD     IXH           // $DD $84                          
+			ADD     IXL           // $DD $85                           
+			ADD     IYH           // $FD $84                           
+			ADD     IYL           // $FD $85                           
+			SBC     A,IXH         // $DD $9C                           
+			SBC     A,IXL         // $DD $9D                           
+			SBC     A,IYH         // $FD $9C                           
+			SBC     A,IYL         // $FD $9D                           
+			SBC     IXH           // $DD $9C                           
+			SBC     IXL           // $DD $9D                           
+			SBC     IYH           // $FD $9C                           
+			SBC     IYL           // $FD $9D                           
+			SUB     A,IXH         // $DD $94                           
+			SUB     A,IXL         // $DD $95                           
+			SUB     A,IYH         // $FD $94                           
+			SUB     A,IYL         // $FD $95                           
+			SUB     IXH           // $DD $94                           
+			SUB     IXL           // $DD $95                           
+			SUB     IYH           // $FD $94                           
+			SUB     IYL           // $FD $95                           
+			
+			
+;-----------------------------------------------------------------------------
+;
+; Z80X - UNDOCUMENTED Compare instructions
+;
+;-----------------------------------------------------------------------------
+			
+			CP      A,IXH         // $DD $BC                           
+			CP      A,IXL         // $DD $BD                           
+			CP      A,IYH         // $FD $BC                           
+			CP      A,IYL         // $FD $BD                           
+			CP      IXH           // $DD $BC                           
+			CP      IXL           // $DD $BD                           
+			CP      IYH           // $FD $BC                           
+			CP      IYL           // $FD $BD                           
+			
+			
+;-----------------------------------------------------------------------------
+;
+; Z80X - UNDOCUMENTED Data move instructions
+;
+;-----------------------------------------------------------------------------
+			
+			LD      A,IXH         // $DD $7C                           
+			LD      A,IXL         // $DD $7D                           
+			LD      A,IYH         // $FD $7C                           
+			LD      A,IYL         // $FD $7D                           
+			LD      B,IXH         // $DD $44                           
+			LD      B,IXL         // $DD $45                           
+			LD      B,IYH         // $FD $44                           
+			LD      B,IYL         // $FD $45                           
+			LD      C,IXH         // $DD $4C                           
+			LD      C,IXL         // $DD $4D                           
+			LD      C,IYH         // $FD $4C                           
+			LD      C,IYL         // $FD $4D                           
+			LD      D,IXH         // $DD $54                           
+			LD      D,IXL         // $DD $55                           
+			LD      D,IYH         // $FD $54                           
+			LD      D,IYL         // $FD $55                           
+			LD      E,IXH         // $DD $5C                           
+			LD      E,IXL         // $DD $5D                           
+			LD      E,IYH         // $FD $5C                           
+			LD      E,IYL         // $FD $5D                           
+			LD      IXH,A         // $DD $67                           
+			LD      IXH,B         // $DD $60                           
+			LD      IXH,C         // $DD $61                           
+			LD      IXH,D         // $DD $62                           
+			LD      IXH,E         // $DD $63                           
+			LD      IXH,IXH       // $DD $64                           
+			LD      IXH,IXL       // $DD $65                           
+			LD      IXH,U8        // $DD $26 [2:U8]                    
+			LD      IXL,A         // $DD $6F                           
+			LD      IXL,B         // $DD $68                           
+			LD      IXL,C         // $DD $69                           
+			LD      IXL,D         // $DD $6A                           
+			LD      IXL,E         // $DD $6B                           
+			LD      IXL,IXH       // $DD $6C                           
+			LD      IXL,IXL       // $DD $6D                           
+			LD      IXL,U8        // $DD $2E [2:U8]                    
+			LD      IYH,A         // $FD $67                           
+			LD      IYH,B         // $FD $60                           
+			LD      IYH,C         // $FD $61                           
+			LD      IYH,D         // $FD $62                           
+			LD      IYH,E         // $FD $63                           
+			LD      IYH,IYH       // $FD $64                           
+			LD      IYH,IYL       // $FD $65                           
+			LD      IYH,U8        // $FD $26 [2:U8]                    
+			LD      IYL,A         // $FD $6F                           
+			LD      IYL,B         // $FD $68                           
+			LD      IYL,C         // $FD $69                           
+			LD      IYL,D         // $FD $6A                           
+			LD      IYL,E         // $FD $6B                           
+			LD      IYL,IYH       // $FD $6C                           
+			LD      IYL,IYL       // $FD $6D                           
+			LD      IYL,U8        // $FD $2E [2:U8]                    
+			
+			
+;-----------------------------------------------------------------------------
+;
+; Z80X - UNDOCUMENTED Bit instructions
+;
+;-----------------------------------------------------------------------------
+			
+			RES0LDA (IX+disp)      // $DD $CB [2:S8] $87                
+			RES0LDA (IY+disp)      // $FD $CB [2:S8] $87                
+			RES0LDB (IX+disp)      // $DD $CB [2:S8] $80                
+			RES0LDB (IY+disp)      // $FD $CB [2:S8] $80                
+			RES0LDC (IX+disp)      // $DD $CB [2:S8] $81                
+			RES0LDC (IY+disp)      // $FD $CB [2:S8] $81                
+			RES0LDD (IX+disp)      // $DD $CB [2:S8] $82                
+			RES0LDD (IY+disp)      // $FD $CB [2:S8] $82                
+			RES0LDE (IX+disp)      // $DD $CB [2:S8] $83                
+			RES0LDE (IY+disp)      // $FD $CB [2:S8] $83                
+			RES0LDF (IX+disp)      // $DD $CB [2:S8] $86                
+			RES0LDF (IY+disp)      // $FD $CB [2:S8] $86                
+			RES0LDH (IX+disp)      // $DD $CB [2:S8] $84                
+			RES0LDH (IY+disp)      // $FD $CB [2:S8] $84                
+			RES0LDL (IX+disp)      // $DD $CB [2:S8] $85                
+			RES0LDL (IY+disp)      // $FD $CB [2:S8] $85                
+			RES1LDA (IX+disp)      // $DD $CB [2:S8] $8F                
+			RES1LDA (IY+disp)      // $FD $CB [2:S8] $8F                
+			RES1LDB (IX+disp)      // $DD $CB [2:S8] $88                
+			RES1LDB (IY+disp)      // $FD $CB [2:S8] $88                
+			RES1LDC (IX+disp)      // $DD $CB [2:S8] $89                
+			RES1LDC (IY+disp)      // $FD $CB [2:S8] $89                
+			RES1LDD (IX+disp)      // $DD $CB [2:S8] $8A                
+			RES1LDD (IY+disp)      // $FD $CB [2:S8] $8A                
+			RES1LDE (IX+disp)      // $DD $CB [2:S8] $8B                
+			RES1LDE (IY+disp)      // $FD $CB [2:S8] $8B                
+			RES1LDF (IX+disp)      // $DD $CB [2:S8] $8E                
+			RES1LDF (IY+disp)      // $FD $CB [2:S8] $8E                
+			RES1LDH (IX+disp)      // $DD $CB [2:S8] $8C                
+			RES1LDH (IY+disp)      // $FD $CB [2:S8] $8C                
+			RES1LDL (IX+disp)      // $DD $CB [2:S8] $8D                
+			RES1LDL (IY+disp)      // $FD $CB [2:S8] $8D                
+			RES2LDA (IX+disp)      // $DD $CB [2:S8] $97                
+			RES2LDA (IY+disp)      // $FD $CB [2:S8] $97                
+			RES2LDB (IX+disp)      // $DD $CB [2:S8] $90                
+			RES2LDB (IY+disp)      // $FD $CB [2:S8] $90                
+			RES2LDC (IX+disp)      // $DD $CB [2:S8] $91                
+			RES2LDC (IY+disp)      // $FD $CB [2:S8] $91                
+			RES2LDD (IX+disp)      // $DD $CB [2:S8] $92                
+			RES2LDD (IY+disp)      // $FD $CB [2:S8] $92                
+			RES2LDE (IX+disp)      // $DD $CB [2:S8] $93                
+			RES2LDE (IY+disp)      // $FD $CB [2:S8] $93                
+			RES2LDF (IX+disp)      // $DD $CB [2:S8] $96                
+			RES2LDF (IY+disp)      // $FD $CB [2:S8] $96                
+			RES2LDH (IX+disp)      // $DD $CB [2:S8] $94                
+			RES2LDH (IY+disp)      // $FD $CB [2:S8] $94                
+			RES2LDL (IX+disp)      // $DD $CB [2:S8] $95                
+			RES2LDL (IY+disp)      // $FD $CB [2:S8] $95                
+			RES3LDA (IX+disp)      // $DD $CB [2:S8] $9F                
+			RES3LDA (IY+disp)      // $FD $CB [2:S8] $9F                
+			RES3LDB (IX+disp)      // $DD $CB [2:S8] $98                
+			RES3LDB (IY+disp)      // $FD $CB [2:S8] $98                
+			RES3LDC (IX+disp)      // $DD $CB [2:S8] $99                
+			RES3LDC (IY+disp)      // $FD $CB [2:S8] $99                
+			RES3LDD (IX+disp)      // $DD $CB [2:S8] $9A                
+			RES3LDD (IY+disp)      // $FD $CB [2:S8] $9A                
+			RES3LDE (IX+disp)      // $DD $CB [2:S8] $9B                
+			RES3LDE (IY+disp)      // $FD $CB [2:S8] $9B                
+			RES3LDF (IX+disp)      // $DD $CB [2:S8] $9E                
+			RES3LDF (IY+disp)      // $FD $CB [2:S8] $9E                
+			RES3LDH (IX+disp)      // $DD $CB [2:S8] $9C                
+			RES3LDH (IY+disp)      // $FD $CB [2:S8] $9C                
+			RES3LDL (IX+disp)      // $DD $CB [2:S8] $9D                
+			RES3LDL (IY+disp)      // $FD $CB [2:S8] $9D                
+			RES4LDA (IX+disp)      // $DD $CB [2:S8] $A7                
+			RES4LDA (IY+disp)      // $FD $CB [2:S8] $A7                
+			RES4LDB (IX+disp)      // $DD $CB [2:S8] $A0                
+			RES4LDB (IY+disp)      // $FD $CB [2:S8] $A0                
+			RES4LDC (IX+disp)      // $DD $CB [2:S8] $A1                
+			RES4LDC (IY+disp)      // $FD $CB [2:S8] $A1                
+			RES4LDD (IX+disp)      // $DD $CB [2:S8] $A2                
+			RES4LDD (IY+disp)      // $FD $CB [2:S8] $A2                
+			RES4LDE (IX+disp)      // $DD $CB [2:S8] $A3                
+			RES4LDE (IY+disp)      // $FD $CB [2:S8] $A3                
+			RES4LDF (IX+disp)      // $DD $CB [2:S8] $A6                
+			RES4LDF (IY+disp)      // $FD $CB [2:S8] $A6                
+			RES4LDH (IX+disp)      // $DD $CB [2:S8] $A4                
+			RES4LDH (IY+disp)      // $FD $CB [2:S8] $A4                
+			RES4LDL (IX+disp)      // $DD $CB [2:S8] $A5                
+			RES4LDL (IY+disp)      // $FD $CB [2:S8] $A5                
+			RES5LDA (IX+disp)      // $DD $CB [2:S8] $AF                
+			RES5LDA (IY+disp)      // $FD $CB [2:S8] $AF                
+			RES5LDB (IX+disp)      // $DD $CB [2:S8] $A8                
+			RES5LDB (IY+disp)      // $FD $CB [2:S8] $A8                
+			RES5LDC (IX+disp)      // $DD $CB [2:S8] $A9                
+			RES5LDC (IY+disp)      // $FD $CB [2:S8] $A9                
+			RES5LDD (IX+disp)      // $DD $CB [2:S8] $AA                
+			RES5LDD (IY+disp)      // $FD $CB [2:S8] $AA                
+			RES5LDE (IX+disp)      // $DD $CB [2:S8] $AB                
+			RES5LDE (IY+disp)      // $FD $CB [2:S8] $AB                
+			RES5LDF (IX+disp)      // $DD $CB [2:S8] $AE                
+			RES5LDF (IY+disp)      // $FD $CB [2:S8] $AE                
+			RES5LDH (IX+disp)      // $DD $CB [2:S8] $AC                
+			RES5LDH (IY+disp)      // $FD $CB [2:S8] $AC                
+			RES5LDL (IX+disp)      // $DD $CB [2:S8] $AD                
+			RES5LDL (IY+disp)      // $FD $CB [2:S8] $AD                
+			RES6LDA (IX+disp)      // $DD $CB [2:S8] $B7                
+			RES6LDA (IY+disp)      // $FD $CB [2:S8] $B7                
+			RES6LDB (IX+disp)      // $DD $CB [2:S8] $B0                
+			RES6LDB (IY+disp)      // $FD $CB [2:S8] $B0                
+			RES6LDC (IX+disp)      // $DD $CB [2:S8] $B1                
+			RES6LDC (IY+disp)      // $FD $CB [2:S8] $B1                
+			RES6LDD (IX+disp)      // $DD $CB [2:S8] $B2                
+			RES6LDD (IY+disp)      // $FD $CB [2:S8] $B2                
+			RES6LDE (IX+disp)      // $DD $CB [2:S8] $B3                
+			RES6LDE (IY+disp)      // $FD $CB [2:S8] $B3                
+			RES6LDF (IX+disp)      // $DD $CB [2:S8] $B6                
+			RES6LDF (IY+disp)      // $FD $CB [2:S8] $B6                
+			RES6LDH (IX+disp)      // $DD $CB [2:S8] $B4                
+			RES6LDH (IY+disp)      // $FD $CB [2:S8] $B4                
+			RES6LDL (IX+disp)      // $DD $CB [2:S8] $B5                
+			RES6LDL (IY+disp)      // $FD $CB [2:S8] $B5                
+			RES7LDA (IX+disp)      // $DD $CB [2:S8] $BF                
+			RES7LDA (IY+disp)      // $FD $CB [2:S8] $BF                
+			RES7LDB (IX+disp)      // $DD $CB [2:S8] $B8                
+			RES7LDB (IY+disp)      // $FD $CB [2:S8] $B8                
+			RES7LDC (IX+disp)      // $DD $CB [2:S8] $B9                
+			RES7LDC (IY+disp)      // $FD $CB [2:S8] $B9                
+			RES7LDD (IX+disp)      // $DD $CB [2:S8] $BA                
+			RES7LDD (IY+disp)      // $FD $CB [2:S8] $BA                
+			RES7LDE (IX+disp)      // $DD $CB [2:S8] $BB                
+			RES7LDE (IY+disp)      // $FD $CB [2:S8] $BB                
+			RES7LDF (IX+disp)      // $DD $CB [2:S8] $BE                
+			RES7LDF (IY+disp)      // $FD $CB [2:S8] $BE                
+			RES7LDH (IX+disp)      // $DD $CB [2:S8] $BC                
+			RES7LDH (IY+disp)      // $FD $CB [2:S8] $BC                
+			RES7LDL (IX+disp)      // $DD $CB [2:S8] $BD                
+			RES7LDL (IY+disp)      // $FD $CB [2:S8] $BD                
+			SET0LDA (IX+disp)      // $DD $CB [2:S8] $C7                
+			SET0LDA (IY+disp)      // $FD $CB [2:S8] $C7                
+			SET0LDB (IX+disp)      // $DD $CB [2:S8] $C0                
+			SET0LDB (IY+disp)      // $FD $CB [2:S8] $C0                
+			SET0LDC (IX+disp)      // $DD $CB [2:S8] $C1                
+			SET0LDC (IY+disp)      // $FD $CB [2:S8] $C1                
+			SET0LDD (IX+disp)      // $DD $CB [2:S8] $C2                
+			SET0LDD (IY+disp)      // $FD $CB [2:S8] $C2                
+			SET0LDE (IX+disp)      // $DD $CB [2:S8] $C3                
+			SET0LDE (IY+disp)      // $FD $CB [2:S8] $C3                
+			SET0LDF (IX+disp)      // $DD $CB [2:S8] $C6                
+			SET0LDF (IY+disp)      // $FD $CB [2:S8] $C6                
+			SET0LDH (IX+disp)      // $DD $CB [2:S8] $C4                
+			SET0LDH (IY+disp)      // $FD $CB [2:S8] $C4                
+			SET0LDL (IX+disp)      // $DD $CB [2:S8] $C5                
+			SET0LDL (IY+disp)      // $FD $CB [2:S8] $C5                
+			SET1LDA (IX+disp)      // $DD $CB [2:S8] $CF                
+			SET1LDA (IY+disp)      // $FD $CB [2:S8] $CF                
+			SET1LDB (IX+disp)      // $DD $CB [2:S8] $C8                
+			SET1LDB (IY+disp)      // $FD $CB [2:S8] $C8                
+			SET1LDC (IX+disp)      // $DD $CB [2:S8] $C9                
+			SET1LDC (IY+disp)      // $FD $CB [2:S8] $C9                
+			SET1LDD (IX+disp)      // $DD $CB [2:S8] $CA                
+			SET1LDD (IY+disp)      // $FD $CB [2:S8] $CA                
+			SET1LDE (IX+disp)      // $DD $CB [2:S8] $CB                
+			SET1LDE (IY+disp)      // $FD $CB [2:S8] $CB                
+			SET1LDF (IX+disp)      // $DD $CB [2:S8] $CE                
+			SET1LDF (IY+disp)      // $FD $CB [2:S8] $CE                
+			SET1LDH (IX+disp)      // $DD $CB [2:S8] $CC                
+			SET1LDH (IY+disp)      // $FD $CB [2:S8] $CC                
+			SET1LDL (IX+disp)      // $DD $CB [2:S8] $CD                
+			SET1LDL (IY+disp)      // $FD $CB [2:S8] $CD                
+			SET2LDA (IX+disp)      // $DD $CB [2:S8] $D7                
+			SET2LDA (IY+disp)      // $FD $CB [2:S8] $D7                
+			SET2LDB (IX+disp)      // $DD $CB [2:S8] $D0                
+			SET2LDB (IY+disp)      // $FD $CB [2:S8] $D0                
+			SET2LDC (IX+disp)      // $DD $CB [2:S8] $D1                
+			SET2LDC (IY+disp)      // $FD $CB [2:S8] $D1                
+			SET2LDD (IX+disp)      // $DD $CB [2:S8] $D2                
+			SET2LDD (IY+disp)      // $FD $CB [2:S8] $D2                
+			SET2LDE (IX+disp)      // $DD $CB [2:S8] $D3                
+			SET2LDE (IY+disp)      // $FD $CB [2:S8] $D3                
+			SET2LDF (IX+disp)      // $DD $CB [2:S8] $D6                
+			SET2LDF (IY+disp)      // $FD $CB [2:S8] $D6                
+			SET2LDH (IX+disp)      // $DD $CB [2:S8] $D4                
+			SET2LDH (IY+disp)      // $FD $CB [2:S8] $D4                
+			SET2LDL (IX+disp)      // $DD $CB [2:S8] $D5                
+			SET2LDL (IY+disp)      // $FD $CB [2:S8] $D5                
+			SET3LDA (IX+disp)      // $DD $CB [2:S8] $DF                
+			SET3LDA (IY+disp)      // $FD $CB [2:S8] $DF                
+			SET3LDB (IX+disp)      // $DD $CB [2:S8] $D8                
+			SET3LDB (IY+disp)      // $FD $CB [2:S8] $D8                
+			SET3LDC (IX+disp)      // $DD $CB [2:S8] $D9                
+			SET3LDC (IY+disp)      // $FD $CB [2:S8] $D9                
+			SET3LDD (IX+disp)      // $DD $CB [2:S8] $DA                
+			SET3LDD (IY+disp)      // $FD $CB [2:S8] $DA                
+			SET3LDE (IX+disp)      // $DD $CB [2:S8] $DB                
+			SET3LDE (IY+disp)      // $FD $CB [2:S8] $DB                
+			SET3LDF (IX+disp)      // $DD $CB [2:S8] $DE                
+			SET3LDF (IY+disp)      // $FD $CB [2:S8] $DE                
+			SET3LDH (IX+disp)      // $DD $CB [2:S8] $DC                
+			SET3LDH (IY+disp)      // $FD $CB [2:S8] $DC                
+			SET3LDL (IX+disp)      // $DD $CB [2:S8] $DD                
+			SET3LDL (IY+disp)      // $FD $CB [2:S8] $DD                
+			SET4LDA (IX+disp)      // $DD $CB [2:S8] $E7                
+			SET4LDA (IY+disp)      // $FD $CB [2:S8] $E7                
+			SET4LDB (IX+disp)      // $DD $CB [2:S8] $E0                
+			SET4LDB (IY+disp)      // $FD $CB [2:S8] $E0                
+			SET4LDC (IX+disp)      // $DD $CB [2:S8] $E1                
+			SET4LDC (IY+disp)      // $FD $CB [2:S8] $E1                
+			SET4LDD (IX+disp)      // $DD $CB [2:S8] $E2                
+			SET4LDD (IY+disp)      // $FD $CB [2:S8] $E2                
+			SET4LDE (IX+disp)      // $DD $CB [2:S8] $E3                
+			SET4LDE (IY+disp)      // $FD $CB [2:S8] $E3                
+			SET4LDF (IX+disp)      // $DD $CB [2:S8] $E6                
+			SET4LDF (IY+disp)      // $FD $CB [2:S8] $E6                
+			SET4LDH (IX+disp)      // $DD $CB [2:S8] $E4                
+			SET4LDH (IY+disp)      // $FD $CB [2:S8] $E4                
+			SET4LDL (IX+disp)      // $DD $CB [2:S8] $E5                
+			SET4LDL (IY+disp)      // $FD $CB [2:S8] $E5                
+			SET5LDA (IX+disp)      // $DD $CB [2:S8] $EF                
+			SET5LDA (IY+disp)      // $FD $CB [2:S8] $EF                
+			SET5LDB (IX+disp)      // $DD $CB [2:S8] $E8                
+			SET5LDB (IY+disp)      // $FD $CB [2:S8] $E8                
+			SET5LDC (IX+disp)      // $DD $CB [2:S8] $E9                
+			SET5LDC (IY+disp)      // $FD $CB [2:S8] $E9                
+			SET5LDD (IX+disp)      // $DD $CB [2:S8] $EA                
+			SET5LDD (IY+disp)      // $FD $CB [2:S8] $EA                
+			SET5LDE (IX+disp)      // $DD $CB [2:S8] $EB                
+			SET5LDE (IY+disp)      // $FD $CB [2:S8] $EB                
+			SET5LDF (IX+disp)      // $DD $CB [2:S8] $EE                
+			SET5LDF (IY+disp)      // $FD $CB [2:S8] $EE                
+			SET5LDH (IX+disp)      // $DD $CB [2:S8] $EC                
+			SET5LDH (IY+disp)      // $FD $CB [2:S8] $EC                
+			SET5LDL (IX+disp)      // $DD $CB [2:S8] $ED                
+			SET5LDL (IY+disp)      // $FD $CB [2:S8] $ED                
+			SET6LDA (IX+disp)      // $DD $CB [2:S8] $F7                
+			SET6LDA (IY+disp)      // $FD $CB [2:S8] $F7                
+			SET6LDB (IX+disp)      // $DD $CB [2:S8] $F0                
+			SET6LDB (IY+disp)      // $FD $CB [2:S8] $F0                
+			SET6LDC (IX+disp)      // $DD $CB [2:S8] $F1                
+			SET6LDC (IY+disp)      // $FD $CB [2:S8] $F1                
+			SET6LDD (IX+disp)      // $DD $CB [2:S8] $F2                
+			SET6LDD (IY+disp)      // $FD $CB [2:S8] $F2                
+			SET6LDE (IX+disp)      // $DD $CB [2:S8] $F3                
+			SET6LDE (IY+disp)      // $FD $CB [2:S8] $F3                
+			SET6LDF (IX+disp)      // $DD $CB [2:S8] $F6                
+			SET6LDF (IY+disp)      // $FD $CB [2:S8] $F6                
+			SET6LDH (IX+disp)      // $DD $CB [2:S8] $F4                
+			SET6LDH (IY+disp)      // $FD $CB [2:S8] $F4                
+			SET6LDL (IX+disp)      // $DD $CB [2:S8] $F5                
+			SET6LDL (IY+disp)      // $FD $CB [2:S8] $F5                
+			SET7LDA (IX+disp)      // $DD $CB [2:S8] $FF                
+			SET7LDA (IY+disp)      // $FD $CB [2:S8] $FF                
+			SET7LDB (IX+disp)      // $DD $CB [2:S8] $F8                
+			SET7LDB (IY+disp)      // $FD $CB [2:S8] $F8                
+			SET7LDC (IX+disp)      // $DD $CB [2:S8] $F9                
+			SET7LDC (IY+disp)      // $FD $CB [2:S8] $F9                
+			SET7LDD (IX+disp)      // $DD $CB [2:S8] $FA                
+			SET7LDD (IY+disp)      // $FD $CB [2:S8] $FA                
+			SET7LDE (IX+disp)      // $DD $CB [2:S8] $FB                
+			SET7LDE (IY+disp)      // $FD $CB [2:S8] $FB                
+			SET7LDF (IX+disp)      // $DD $CB [2:S8] $FE                
+			SET7LDF (IY+disp)      // $FD $CB [2:S8] $FE                
+			SET7LDH (IX+disp)      // $DD $CB [2:S8] $FC                
+			SET7LDH (IY+disp)      // $FD $CB [2:S8] $FC                
+			SET7LDL (IX+disp)      // $DD $CB [2:S8] $FD                
+			SET7LDL (IY+disp)      // $FD $CB [2:S8] $FD                
+			
+			
+;-----------------------------------------------------------------------------
+;
+; Z80X - UNDOCUMENTED Shift / rotate instructions
+;
+;-----------------------------------------------------------------------------
+			
+			RLCLDA  (IX+disp)      // $DD $CB [2:S8] $07                
+			RLCLDA  (IY+disp)      // $FD $CB [2:S8] $07                
+			RLCLDB  (IX+disp)      // $DD $CB [2:S8] $00                
+			RLCLDB  (IY+disp)      // $FD $CB [2:S8] $00                
+			RLCLDC  (IX+disp)      // $DD $CB [2:S8] $01                
+			RLCLDC  (IY+disp)      // $FD $CB [2:S8] $01                
+			RLCLDD  (IX+disp)      // $DD $CB [2:S8] $02                
+			RLCLDD  (IY+disp)      // $FD $CB [2:S8] $02                
+			RLCLDE  (IX+disp)      // $DD $CB [2:S8] $03                
+			RLCLDE  (IY+disp)      // $FD $CB [2:S8] $03                
+			RLCLDF  (IX+disp)      // $DD $CB [2:S8] $06                
+			RLCLDF  (IY+disp)      // $FD $CB [2:S8] $06                
+			RLCLDH  (IX+disp)      // $DD $CB [2:S8] $04                
+			RLCLDH  (IY+disp)      // $FD $CB [2:S8] $04                
+			RLCLDL  (IX+disp)      // $DD $CB [2:S8] $05                
+			RLCLDL  (IY+disp)      // $FD $CB [2:S8] $05                
+			RLLDA   (IX+disp)      // $DD $CB [2:S8] $17                
+			RLLDA   (IY+disp)      // $FD $CB [2:S8] $17                
+			RLLDB   (IX+disp)      // $DD $CB [2:S8] $10                
+			RLLDB   (IY+disp)      // $FD $CB [2:S8] $10                
+			RLLDC   (IX+disp)      // $DD $CB [2:S8] $11                
+			RLLDC   (IY+disp)      // $FD $CB [2:S8] $11                
+			RLLDD   (IX+disp)      // $DD $CB [2:S8] $12                
+			RLLDD   (IY+disp)      // $FD $CB [2:S8] $12                
+			RLLDE   (IX+disp)      // $DD $CB [2:S8] $13                
+			RLLDE   (IY+disp)      // $FD $CB [2:S8] $13                
+			RLLDF   (IX+disp)      // $DD $CB [2:S8] $16                
+			RLLDF   (IY+disp)      // $FD $CB [2:S8] $16                
+			RLLDH   (IX+disp)      // $DD $CB [2:S8] $14                
+			RLLDH   (IY+disp)      // $FD $CB [2:S8] $14                
+			RLLDL   (IX+disp)      // $DD $CB [2:S8] $15                
+			RLLDL   (IY+disp)      // $FD $CB [2:S8] $15                
+			RRCLDA  (IX+disp)      // $DD $CB [2:S8] $0F                
+			RRCLDA  (IY+disp)      // $FD $CB [2:S8] $0F                
+			RRCLDB  (IX+disp)      // $DD $CB [2:S8] $08                
+			RRCLDB  (IY+disp)      // $FD $CB [2:S8] $08                
+			RRCLDC  (IX+disp)      // $DD $CB [2:S8] $09                
+			RRCLDC  (IY+disp)      // $FD $CB [2:S8] $09                
+			RRCLDD  (IX+disp)      // $DD $CB [2:S8] $0A                
+			RRCLDD  (IY+disp)      // $FD $CB [2:S8] $0A                
+			RRCLDE  (IX+disp)      // $DD $CB [2:S8] $0B                
+			RRCLDE  (IY+disp)      // $FD $CB [2:S8] $0B                
+			RRCLDF  (IX+disp)      // $DD $CB [2:S8] $0E                
+			RRCLDF  (IY+disp)      // $FD $CB [2:S8] $0E                
+			RRCLDH  (IX+disp)      // $DD $CB [2:S8] $0C                
+			RRCLDH  (IY+disp)      // $FD $CB [2:S8] $0C                
+			RRCLDL  (IX+disp)      // $DD $CB [2:S8] $0D                
+			RRCLDL  (IY+disp)      // $FD $CB [2:S8] $0D                
+			RRLDA   (IX+disp)      // $DD $CB [2:S8] $1F                
+			RRLDA   (IY+disp)      // $FD $CB [2:S8] $1F                
+			RRLDB   (IX+disp)      // $DD $CB [2:S8] $18                
+			RRLDB   (IY+disp)      // $FD $CB [2:S8] $18                
+			RRLDC   (IX+disp)      // $DD $CB [2:S8] $19                
+			RRLDC   (IY+disp)      // $FD $CB [2:S8] $19                
+			RRLDD   (IX+disp)      // $DD $CB [2:S8] $1A                
+			RRLDD   (IY+disp)      // $FD $CB [2:S8] $1A                
+			RRLDE   (IX+disp)      // $DD $CB [2:S8] $1B                
+			RRLDE   (IY+disp)      // $FD $CB [2:S8] $1B                
+			RRLDF   (IX+disp)      // $DD $CB [2:S8] $1E                
+			RRLDF   (IY+disp)      // $FD $CB [2:S8] $1E                
+			RRLDH   (IX+disp)      // $DD $CB [2:S8] $1C                
+			RRLDH   (IY+disp)      // $FD $CB [2:S8] $1C                
+			RRLDL   (IX+disp)      // $DD $CB [2:S8] $1D                
+			RRLDL   (IY+disp)      // $FD $CB [2:S8] $1D                
+			SLADA   (IX+disp)      // $DD $CB [2:S8] $27                
+			SLADA   (IY+disp)      // $FD $CB [2:S8] $27                
+			SLADB   (IX+disp)      // $DD $CB [2:S8] $20                
+			SLADB   (IY+disp)      // $FD $CB [2:S8] $20                
+			SLADC   (IX+disp)      // $DD $CB [2:S8] $21                
+			SLADC   (IY+disp)      // $FD $CB [2:S8] $21                
+			SLADD   (IX+disp)      // $DD $CB [2:S8] $22                
+			SLADD   (IY+disp)      // $FD $CB [2:S8] $22                
+			SLADE   (IX+disp)      // $DD $CB [2:S8] $23                
+			SLADE   (IY+disp)      // $FD $CB [2:S8] $23                
+			SLADF   (IX+disp)      // $DD $CB [2:S8] $26                
+			SLADF   (IY+disp)      // $FD $CB [2:S8] $26                
+			SLADH   (IX+disp)      // $DD $CB [2:S8] $24                
+			SLADH   (IY+disp)      // $FD $CB [2:S8] $24                
+			SLADL   (IX+disp)      // $DD $CB [2:S8] $25                
+			SLADL   (IY+disp)      // $FD $CB [2:S8] $25                
+			SLL     A              // $CB $37                           
+			SLL     B              // $CB $30                           
+			SLL     C              // $CB $31                           
+			SLL     D              // $CB $32                           
+			SLL     E              // $CB $33                           
+			SLL     H              // $CB $34                           
+			SLL     (HL)           // $CB $36                           
+			SLL     L              // $CB $35                           
+			SLLDA   (IX+disp)      // $DD $CB [2:S8] $37                
+			SLLDA   (IY+disp)      // $FD $CB [2:S8] $37                
+			SLLDB   (IX+disp)      // $DD $CB [2:S8] $30                
+			SLLDB   (IY+disp)      // $FD $CB [2:S8] $30                
+			SLLDC   (IX+disp)      // $DD $CB [2:S8] $31                
+			SLLDC   (IY+disp)      // $FD $CB [2:S8] $31                
+			SLLDD   (IX+disp)      // $DD $CB [2:S8] $32                
+			SLLDD   (IY+disp)      // $FD $CB [2:S8] $32                
+			SLLDE   (IX+disp)      // $DD $CB [2:S8] $33                
+			SLLDE   (IY+disp)      // $FD $CB [2:S8] $33                
+			SLLDF   (IX+disp)      // $DD $CB [2:S8] $36                
+			SLLDF   (IY+disp)      // $FD $CB [2:S8] $36                
+			SLLDH   (IX+disp)      // $DD $CB [2:S8] $34                
+			SLLDH   (IY+disp)      // $FD $CB [2:S8] $34                
+			SLLDL   (IX+disp)      // $DD $CB [2:S8] $35                
+			SLLDL   (IY+disp)      // $FD $CB [2:S8] $35                
+			SRADA   (IX+disp)      // $DD $CB [2:S8] $2F                
+			SRADA   (IY+disp)      // $FD $CB [2:S8] $2F                
+			SRADB   (IX+disp)      // $DD $CB [2:S8] $28                
+			SRADB   (IY+disp)      // $FD $CB [2:S8] $28                
+			SRADC   (IX+disp)      // $DD $CB [2:S8] $29                
+			SRADC   (IY+disp)      // $FD $CB [2:S8] $29                
+			SRADD   (IX+disp)      // $DD $CB [2:S8] $2A                
+			SRADD   (IY+disp)      // $FD $CB [2:S8] $2A                
+			SRADE   (IX+disp)      // $DD $CB [2:S8] $2B                
+			SRADE   (IY+disp)      // $FD $CB [2:S8] $2B                
+			SRADF   (IX+disp)      // $DD $CB [2:S8] $2E                
+			SRADF   (IY+disp)      // $FD $CB [2:S8] $2E                
+			SRADH   (IX+disp)      // $DD $CB [2:S8] $2C                
+			SRADH   (IY+disp)      // $FD $CB [2:S8] $2C                
+			SRADL   (IX+disp)      // $DD $CB [2:S8] $2D                
+			SRADL   (IY+disp)      // $FD $CB [2:S8] $2D                
+			SRLDA   (IX+disp)      // $DD $CB [2:S8] $3F                
+			SRLDA   (IY+disp)      // $FD $CB [2:S8] $3F                
+			SRLDB   (IX+disp)      // $DD $CB [2:S8] $38                
+			SRLDB   (IY+disp)      // $FD $CB [2:S8] $38                
+			SRLDC   (IX+disp)      // $DD $CB [2:S8] $39                
+			SRLDC   (IY+disp)      // $FD $CB [2:S8] $39                
+			SRLDD   (IX+disp)      // $DD $CB [2:S8] $3A                
+			SRLDD   (IY+disp)      // $FD $CB [2:S8] $3A                
+			SRLDE   (IX+disp)      // $DD $CB [2:S8] $3B                
+			SRLDE   (IY+disp)      // $FD $CB [2:S8] $3B                
+			SRLDF   (IX+disp)      // $DD $CB [2:S8] $3E                
+			SRLDF   (IY+disp)      // $FD $CB [2:S8] $3E                
+			SRLDH   (IX+disp)      // $DD $CB [2:S8] $3C                
+			SRLDH   (IY+disp)      // $FD $CB [2:S8] $3C                
+			SRLDL   (IX+disp)      // $DD $CB [2:S8] $3D                
+			SRLDL   (IY+disp)      // $FD $CB [2:S8] $3D                
+			
+
+			END
