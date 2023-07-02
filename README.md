@@ -1,11 +1,13 @@
 # XA80
 
-XA80 - X-Assembler for x80 processors
+XA80 - Cross(X) Assembler for x80 processors
 
+![opcode_compiler](https://github.com/duncanamps/xa80/assets/6016794/933c70d9-ed36-4142-ae0a-611b34d96b64)
+
+## Description
 This is V0.2 which is a stable and supported version of the software. This is the version that should be used for any day to day activities. There is also a version V0.3 which is under development; this is likely to have major gaps in functionality and may not be stable. It can be accessed from [XA80 V0.3 GitHub](https://github.com/duncanamps/xa80/tree/V0.3).
 
-#### Synopsis
-
+## Synopsis
 XA80 is a command line tool that allows the cross assembly of source files aimed at x80 processors (8080,8085,Z80,Z180). It takes an input file (e.g. myfile.z80 or test.asm) and creates the following output files, some of which are optional:
 
 * .hex file containing output information in the industry standard Intel .hex format
@@ -14,9 +16,7 @@ XA80 is a command line tool that allows the cross assembly of source files aimed
 * .map file containing the symbol information
 * .com/.bin file containing the actual machine code which can be executed on, for example, CP/M machines
 
-
-#### Key features
-
+## Key features
 Here are some of the key features of XA80:
 
 * Open source
@@ -31,14 +31,12 @@ Here are some of the key features of XA80:
 * Runs on any hardware supported by Lazarus/FPC (Windows, macOS, Linux, etc. etc.)
 * Fast - will assemble the CP/M BDOS22.ASM (3,289 lines) and CCP22.ASM files (1,325 lines) with map file and listing outputs (total 105 pages) in approx 0.15 seconds using a Core i7 laptop, Acer Aspire 5 A515-56
 
-#### Development Status
-
+## Development Status
 This is very much experimental and was developed by the author as a learning tool for how assemblers, lexical analysers and parsers work in general.
 Please don't use this for anything serious that you would object to losing. Whilst having been extensively tested, and coming with 
 working examples, there is no guarantee that it will work correctly with all input files.
 
-#### Development Environment
-
+## Development Environment
 To modify and compile this software, you will need [Lazarus](https://www.lazarus-ide.org/index.php?page=downloads) 2.1.0 or later. It has been
 tested on Windows and Linux. As it is only a simple text and file based application, it should be relatively easy to recompile on other hosts
 which are supported by the Lazarus ecosystem in 32 and 64 bit flavours, including:
@@ -55,19 +53,16 @@ which are supported by the Lazarus ecosystem in 32 and 64 bit flavours, includin
 Tip: You don't have to download Lazarus and recompile, just use the pre-compiled binaries available from this repository if they are
 sufficient for your needs.
 
-#### Dependencies
-
+## Dependencies
 To modify the grammar for the opcode compiler, or XA80 itself, will require the use of a tool called LaCoGen (Lazarus Compiler Generator).
 LaCoGen is [available from this GitHub](https://github.com/duncanamps/lacogen1). The grammar to deal with operands is contained in the .lac file and for the
 most part can be left alone. It's only if you want to add new functions or operators that you would need to get involved in changing
 the grammar file and recompiling with LaCoGen.
 
-#### Documentation
-
+## Documentation
 The [docs/](https://github.com/duncanamps/xa80/tree/main/docs) folder contains a user guide and a technical document explaining how some of the internal features work.
 
-#### Folder Structure
-
+## Folder Structure
 Folders are organised as follows:
 
 * [root](https://github.com/duncanamps/xa80/tree/main) the Lazarus project files, licence and .gitignore
@@ -81,15 +76,12 @@ Folders are organised as follows:
   * [test_files/](https://github.com/duncanamps/xa80/tree/main/test_files) - A set of test files to check that things work, and also includes some deliberate fails to check the assembler response
   * [units/](https://github.com/duncanamps/xa80/tree/main/units) - The bulk of the source code resides in here
 
-#### Known Issues 
-
+## Known Issues 
 * No major issues identified at this time
 
-#### Development roadmap
-
+## Development roadmap
 * V0.3 - Introduce segmented architecture, object files, debug info generation
 * V0.4 - Likely to be tagged as V1.0
 
-#### Author
-
+## Author
 Duncan Munro  <duncan@duncanamps.com>
