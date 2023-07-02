@@ -32,6 +32,7 @@ type
       FLabelX:            string;
       FMacroIndex:        integer;
       FMacroList:         TMacroList;
+      FMacroReference:    boolean;
       FOpcodeCol:         integer;
       FOpcodeIndex:       integer;
       FOpcodeList:        TInstructionList;
@@ -70,6 +71,7 @@ type
       property LabelX:           string           read FLabelX;
       property MacroIndex:       integer          read FMacroIndex;
       property MacroList:        TMacroList       read FMacroList      write SetMacroList;
+      property MacroReference:   boolean          read FMacroReference;
       property OpcodeCol:        integer          read FOpcodeCol;
       property OpcodeIndex:      integer          read FOpcodeIndex;
       property OpcodeList:       TInstructionList read FOpcodeList     write FOpcodeList;
@@ -367,7 +369,10 @@ begin
       if FMacroIndex < 0 then
         ErrorObj.Show(ltError,E2057_MACRO_NOT_FOUND,[Items[i].Payload])
       else
-        Delete(i);
+        begin
+          Delete(i);
+          FMacroReference := True;
+        end;
     end;
 end;
 
@@ -483,6 +488,7 @@ var i: integer;
 
 begin
   ErrorObj.ColNumber := 0;
+  FMacroReference := False;
   Parse := True;
   Init;
   inp_len := Length(_input);
@@ -594,10 +600,11 @@ begin
   AllocateOperands;
   ExtractLabel;
   ExtractCommand;
-  ExtractOpcode;
   if not FDefiningMacro then
     begin
       ExtractMacro;
+      if not FMacroReference then
+        ExtractOpcode;
       // Check for reserved word in position 0 - using reserved word as a label
       if (FLabelX <> '') and FDFA.IsReserved(FLabelX) then
         begin
@@ -609,7 +616,6 @@ begin
       // This probably means we are using the wrong processor / instruction set
       if (FCommandIndex < 0) and (FOpcodeIndex < 0) and (FMacroIndex < 0) and (Count > 0) then
         begin
-
           ErrorObj.ColNumber := Items[0].Column;
           ErrorObj.Show(ltError,E2043_INVALID_COMMAND_OPCODE,[Items[0].Payload]);
         end;
@@ -622,7 +628,9 @@ begin
               ErrorObj.Show(ltError,E2003_UNRECOGNISED_CONTENT,[iter.Payload]);
             end;
         end;
-    end;
+    end
+  else if not FMacroReference then
+    ExtractOpcode;
   Parse := True;
 end;
 

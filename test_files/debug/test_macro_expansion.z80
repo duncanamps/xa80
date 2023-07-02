@@ -1,0 +1,48 @@
+;
+; Test MACRO expansion
+; 02/07/2023
+;
+; For testing the following problem where it's necessary to expand
+; an opcode as part of a macro parameter:
+;
+; myname  			MACRO  inst
+; myfunc{inst}:		; Do some stuff
+;					{inst}  ; Put the instruction here
+;					RET		; and leave
+;					ENDM
+;
+; When expanded with a call like:
+;
+;					myname RLA
+;
+; Instead of expanding the macro with the RLA instruction in the
+; middle, it justs pumps out an RLA instruction. Not what's
+; required.
+;
+
+
+myname			MACRO	inst
+myfunc{inst}:	PUSH	BC			// Copy BC register
+				POP		AF			// into AF
+				{inst}				// Perform shift / rotate
+				PUSH	AF			// Save flags straight away
+				CP		A,D			// Check if A the same
+				JP		NZ, FAIL	// No, mismatch, flag an error
+				POP		BC			// Get flags back into C
+				LD		A,$13		// Mask for Half carry, subtract, and carry flags
+				AND		A,C			// Leave just the ones we want
+				CP		A,E			// Expected?
+				JP		NZ, FAIL	// No, flag as an error
+				RET					// Return; all was good
+				ENDM
+
+		ORG		$0200
+		
+codestart
+				myname	RLA
+				myname	RRA
+				myname	RLCA
+				myname	RRCA
+				
+				END
+				

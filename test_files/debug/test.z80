@@ -1,0 +1,23 @@
+;
+; TEST.Z80
+;
+; Check if 
+;
+
+K EQU 0
+	K = K + 1
+	K = K << 1
+	K = K << 1	
+	K = K << 1	
+	K = K << 1	
+	K = K << 1	
+
+J = K
+
+LOOP:	LD	A,3
+		LD	(J),A
+		LD	A,(K)
+		RL	A
+		
+	
+	END

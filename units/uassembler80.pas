@@ -2109,7 +2109,9 @@ var i,j: integer;
     serial: integer;
     param:  string;
     repl_flags: TReplaceFlags;
+    parmcount_temp: integer;
 begin
+  parmcount_temp := macro_entry.Params.Count;
   serial := FMacroList.AllocateSerial;
   repl_flags := [rfReplaceAll];
   if not FCaseSensitive then
@@ -2301,6 +2303,8 @@ var
   s: string;
 begin
   FPreparser.Parse(_s);
+  if FPreparser.MacroReference then
+    exit;
   // Now parse all the operands where needed
   if (not FDefiningMacro) and (FSolGenerate or (cfBypass in FPreparser.CmdFlags)) then
     for i := 0 to FPreparser.Count - 1 do
