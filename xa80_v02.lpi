@@ -10,7 +10,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="XA80"/>
+      <Title Value="xa80_v02"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
       <Resources Count="5">
@@ -36,12 +36,12 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="binaries\release\$(TargetOS)-$(TargetCPU)\xa80"/>
+            <Filename Value="binaries\release\$(TargetOS)-$(TargetCPU)\v02\xa80"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="units;lexer_parser\units;lac"/>
-            <UnitOutputDirectory Value="lib\release\$(TargetOS)-$(TargetCPU)"/>
+            <UnitOutputDirectory Value="lib\release\$(TargetOS)-$(TargetCPU)\v02"/>
           </SearchPaths>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
@@ -70,12 +70,12 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="binaries\debug\$(TargetOS)-$(TargetCPU)\xa80"/>
+            <Filename Value="binaries\debugleak\$(TargetOS)-$(TargetCPU)\v02\xa80"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="units;lexer_parser\units;lac"/>
-            <UnitOutputDirectory Value="lib\debug\$(TargetOS)-$(TargetCPU)"/>
+            <UnitOutputDirectory Value="lib\debugleak\$(TargetOS)-$(TargetCPU)\v02"/>
           </SearchPaths>
           <Parsing>
             <SyntaxOptions>
@@ -118,7 +118,7 @@
     </RunParams>
     <Units>
       <Unit>
-        <Filename Value="xa80.lpr"/>
+        <Filename Value="xa80_v02.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
@@ -223,12 +223,12 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="binaries\debug\$(TargetOS)-$(TargetCPU)\xa80"/>
+      <Filename Value="binaries\debug\$(TargetOS)-$(TargetCPU)\v02\xa80"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
       <OtherUnitFiles Value="units;lexer_parser\units;lac"/>
-      <UnitOutputDirectory Value="lib\debug\$(TargetOS)-$(TargetCPU)"/>
+      <UnitOutputDirectory Value="lib\debug\$(TargetOS)-$(TargetCPU)\v02"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
@@ -256,6 +256,10 @@
         <IgnoredMessages idx5024="True"/>
       </CompilerMessages>
       <CustomOptions Value="-dCONSOLE_APP"/>
+      <OtherDefines Count="2">
+        <Define0 Value="CONSOLE_APP"/>
+        <Define1 Value="DEBUG_LOGX"/>
+      </OtherDefines>
     </Other>
   </CompilerOptions>
   <Debugging>

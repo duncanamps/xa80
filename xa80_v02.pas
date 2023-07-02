@@ -1,4 +1,4 @@
-program xa80;
+program xa80_v02;
 
 {$mode objfpc}{$H+}
 
