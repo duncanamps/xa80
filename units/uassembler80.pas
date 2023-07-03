@@ -1081,6 +1081,7 @@ begin
   ApplyCommandLineDefines;
   ErrorObj.SetLogFilename(FilenameError);
   ErrorObj.Show(ltInfo, I0003_ASSEMBLING_FILE, [filename]);
+  FPreparser.CaseSensitive := CaseSensitive;
   AssemblePass(1, filename);
   AssemblePass(2, filename);
   CheckStack;
@@ -1140,7 +1141,10 @@ begin
       if (cfDuringMD in FCmdList[command_index].CommandFlags) or (not FDefiningMacro) then
         FCmdList[command_index].CommandExec(labelx, FPreparser);
   // Assemble opcodes if available
-  if (opcode_index >= 0) and FSolGenerate and (not FDefiningMacro) then
+  if (opcode_index >= 0) and
+     FSolGenerate and
+     (not FDefiningMacro) and
+     (macro_index < 0) then
   begin
     oper1 := OPER_NULL;
     oper2 := OPER_NULL;

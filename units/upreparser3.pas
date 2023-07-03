@@ -20,6 +20,7 @@ uses
 type
   TPreparser = class(TPreparserBase)
     private
+      FCaseSensitive:     boolean;
       FCmdFlags:          TCommandFlags;
       FCommandIndex:      integer;
       FCommandList:       TCommandList;
@@ -38,27 +39,36 @@ type
       FOpcodeList:        TInstructionList;
       FPass:              integer;
       procedure AdjustComments;
+      procedure Allocate;
       procedure AllocateKeywords;
       procedure AllocateLabels;
+      procedure XXAllocateLabels;
       procedure AllocateOperands;
       procedure AllocateMacros;
+      procedure Categorise(const _input: string);
       procedure CombineBrackets;
       procedure CombineGlobs;
       procedure ExtractCommand;
       procedure ExtractLabel;
       procedure ExtractMacro;
       procedure ExtractOpcode;
+      procedure GlobsToOperands;
       procedure PopulateDFA;
       procedure RemoveAfterEnd;
+      procedure RemoveCommas;
       procedure RemoveComments;
+      procedure RemoveLeadingWhitespace;
       procedure RemoveWhitespace;
       procedure SetDefiningMacro(_v: boolean);
+      procedure SetIndices;
       procedure SetMacroList(_lst: TMacroList);
+      procedure ShowPPinfo(const _s: string = '');
     public
       constructor Create(_cmd_list: TCommandList; _opcode_list: TInstructionList);
       destructor Destroy; override;
       procedure Init;
-      function  Parse(_input: string): boolean;
+      procedure Parse(const _input: string);
+      property CaseSensitive:    boolean          read FCaseSensitive      write FCaseSensitive;
       property CmdFlags:         TCommandFlags    read FCmdFlags;
       property CommandIndex:     integer          read FCommandIndex;
       property CommandList:      TCommandList     read FCommandList    write FCommandList;
@@ -139,10 +149,12 @@ begin
 end;
 
 procedure TPreparser.AllocateKeywords;
+type TTokenMode = (tmOpcode,tmCommand,tmOperand,tmError);
 var i: integer;
     rec: TParserProp;
     cmd: string;
     token: TNFAToken;
+    tmode: TTokenMode;
     directive: string;
 begin
   directive := '';
@@ -152,32 +164,37 @@ begin
         rec := Items[i];
         cmd := rec.Payload;
         token := FDFA.Tokenise(cmd);
-        if token >= FDFA.OffsetOpcode then
+        tmode := tmError;
+        if (token >= FDFA.OffsetOpcode)  and (token < FDFA.OffsetCommand) then tmode := tmOpcode;
+        if (token >= FDFA.OffsetCommand) and (token < FDFA.OffsetOperand) then tmode := tmCommand;
+        if (token >= FDFA.OffsetOperand)                                  then tmode := tmOperand;
+        if (tmode <> tmError) then
           begin
-            if token >= FDFA.OffsetCommand then
-              begin
-                if token >= FDFA.OffsetOperand then
-                  begin
-                    rec.State := ppOperand;
-                    rec.Index := token - FDFA.OffsetOperand;
-                  end
-                else
-                  begin
-                    if directive <> '' then
-                      begin
-                        ErrorObj.ColNumber := Items[i].Column;
-                        ErrorObj.Show(ltError,E2060_UNEXPECTED_DIRECTIVE,[cmd,directive]);
-                      end;
-                    rec.State := ppCommand;
-                    FCmdFlags := FCommandList[token - FDFA.OffsetCommand].CommandFlags;
-                    directive := cmd;
-                  end;
-              end
-            else
-              begin
-                rec.State := ppInstruction;
-                FOpcodeCol := Items[i].Column;
-              end;
+            case tmode of
+              tmOpcode:
+                begin
+                  rec.State := ppInstruction;
+                  rec.Index := token - FDFA.OffsetOpcode;
+                  FOpcodeCol := Items[i].Column;
+                end;
+              tmCommand:
+                begin
+                  if directive <> '' then
+                    begin
+                      ErrorObj.ColNumber := Items[i].Column;
+                      ErrorObj.Show(ltError,E2060_UNEXPECTED_DIRECTIVE,[cmd,directive]);
+                    end;
+                  rec.State := ppCommand;
+                  rec.Index := token - FDFA.OffsetCommand;
+                  FCmdFlags := FCommandList[token - FDFA.OffsetCommand].CommandFlags;
+                  directive := cmd;
+                end;
+              tmOperand:
+                begin
+                  rec.State := ppOperand;
+                  rec.Index := token - FDFA.OffsetOperand;
+                end
+            end; // Case
             rec.Token := token;
             Items[i] := rec;
           end;
@@ -196,7 +213,8 @@ begin
   if (i < Count) then
     begin
       rec := Items[i];
-      rec.State := ppOperand;
+      if rec.State <> ppInstruction then
+        rec.State := ppOperand;
       Items[i] := rec;
       Inc(i);
       while (i < Count-1) and
@@ -215,14 +233,37 @@ end;
 procedure TPreparser.AllocateLabels;
 var rec: TParserProp;
     _pos: integer;
-    _haslabel: boolean;
-    _index:    integer;
 begin
   _pos := 0;
-  _index := 0;
-  _haslabel := False;
   if Count = 0 then
     Exit;
+  if (Items[0].State = psGlob) and ((Items[0].Column = 1) or (cfEQU in FCmdFlags)) then
+    begin  // This is a label
+      if not FDefiningMacro then
+        begin
+          InvalidLabelCharacters(Items[0].Payload,_pos);
+          if (_pos > 0) and (Items[0].Payload[_pos] <> ':') then
+            begin
+              ErrorObj.ColNumber := _pos;
+              ErrorObj.Show(ltError,E2036_INVALID_LABEL_CHARACTER);
+            end;
+        end;
+      rec := Items[0];
+      rec.State := ppLabel;
+      Items[0] := rec;
+    end;
+end;
+
+procedure TPreparser.XXAllocateLabels;
+{
+var rec: TParserProp;
+    _pos: integer;
+    _haslabel: boolean;
+    _index:    integer;
+}
+begin
+
+  {
   if Items[_index].State = psGlob then
     _haslabel := True  // Must be a label if in first position
   else
@@ -259,6 +300,7 @@ begin
   rec := Items[_index];
   rec.State := ppLabel;
   Items[_index] := rec;
+  }
 end;
 
 procedure TPreparser.AllocateMacros;
@@ -275,6 +317,7 @@ begin
       rec := Items[i];
       rec.State := ppMacro;
       Items[i] := rec;
+      FMacroReference := True;
     end;
 end;
 
@@ -440,6 +483,8 @@ begin
   Clear;
 end;
 
+
+{
 function TPreparser.Parse(_input: string): boolean;
 var i: integer;
     payload: string;
@@ -662,6 +707,20 @@ begin
     ExtractOpcode;
   Parse := True;
 end;
+}
+
+procedure TPreparser.GlobsToOperands;
+var rec: TParserProp;
+    i:   integer;
+begin
+  for i := 0 to Count-1 do
+    begin
+      rec := Items[i];
+      if rec.State = psGlob then
+        rec.State := ppOperand;
+      Items[i] := rec;
+    end;
+end;
 
 procedure TPreparser.PopulateDFA;
 {$IFDEF DEBUG_LOG}
@@ -702,6 +761,18 @@ begin
     end;
 end;
 
+procedure TPreparser.RemoveCommas;
+var i: integer;
+begin
+  i := Count-1;
+  while i > 0 do
+    begin
+      if Items[i].State = psComma then
+        Delete(i);
+      Dec(i);
+    end;
+end;
+
 procedure TPreparser.RemoveComments;
 var i: integer;
 begin
@@ -711,6 +782,12 @@ begin
   // All comments and everything after must go
   while (i < Count) do
     Delete(i);
+end;
+
+procedure TPreparser.RemoveLeadingWhiteSpace;
+begin
+  if (Count > 0) and (Items[0].State = psWhitespace) then
+    Delete(0);
 end;
 
 procedure TPreparser.RemoveWhitespace;
@@ -732,9 +809,266 @@ begin
   FDefiningMacro := _v;
 end;
 
+procedure TPreparser.SetIndices;
+var rec: TParserProp;
+    i:   integer;
+begin
+  // Macros first - we need to know if there's one here
+  for i := Count-1 downto 0 do
+    begin
+      rec := Items[i];
+      if (rec.State = ppMacro) and (not FDefiningMacro) then
+        begin
+          if FCaseSensitive then
+            FMacroIndex := FMacroList.IndexOf(rec.Payload)
+          else
+            FMacroIndex := FMacroList.IndexOf(UpperCase(rec.Payload));
+          if FMacroIndex < 0 then
+            ErrorObj.Show(ltError,E2057_MACRO_NOT_FOUND,[Items[i].Payload]);
+          FMacroReference := True;
+          Delete(i);
+        end;
+    end;
+  // Now do the others
+  for i := Count-1 downto 0 do
+    begin
+      rec := Items[i];
+      case rec.State of
+        ppLabel:
+          if not FDefiningMacro then
+            begin
+              FLabelX := StripColon(rec.Payload);
+              Delete(i);
+            end;
+        ppCommand:
+          begin
+            FCommandIndex := rec.Index;
+            Delete(i);
+          end;
+        ppInstruction:
+          if not (FDefiningMacro or FMacroReference) then
+            begin
+              FOpcodeIndex := rec.Index;
+              if not FMacroReference then
+                Delete(i);
+            end;
+      end;
+    end;
+end;
+
 procedure TPreparser.SetMacroList(_lst: TMacroList);
 begin
   FMacroList := _lst;
+end;
+
+
+
+//----------------------------------------------------------------------------
+//
+//  Preparsing routine
+//
+//  Covers parsing 1/3 = Categorise
+//                 2/3 = Pre-parse, allocate labels, commands, macros
+//
+//  Part 3/3 full parse on each operand is covered by the main assembler
+//
+//----------------------------------------------------------------------------
+
+{$IFDEF DEBUG_LOGPP}
+procedure TPreparser.ShowPPinfo(const _s: string);
+var i: integer;
+    obj: TParserProp;
+begin
+  if _s <> '' then
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,[_s])
+  else
+    ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['DUMP']);
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['    Number of segments is ' + IntToStr(Count)]);
+  for i := 0 to Count-1 do
+    begin
+      obj := Items[i];
+      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['    Segment ' + IntToStr(i)]);
+      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['        State:    ' + GetEnumName(TypeInfo(TParserState),Ord(obj.State))]);
+      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['        Payload:  ' + obj.Payload]);
+      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['        Token:    ' + IntToStr(obj.Token)]);
+      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['        Column:   ' + IntToStr(obj.Column)]);
+      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['        Index:    ' + IntToStr(obj.Index)]);
+      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['        Level:    ' + IntToStr(obj.Level)]);
+      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['        DataType: ' + GetEnumName(TypeInfo(TLCGParserStackType),Ord(obj.DataType))]);
+      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['        IntValue: ' + IntToStr(obj.IntValue)]);
+      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['        StrValue: ' + obj.StrValue]);
+      ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['        DataType: ' + GetEnumName(TypeInfo(TParserStackSource),Ord(obj.Source))]);
+    end;
+end;
+{$ELSE}
+procedure TPreparser.ShowPPinfo(const _s: string);
+begin
+
+end;
+{$ENDIF}
+
+procedure TPreparser.Categorise(const _input: string);
+var i:       integer;
+    state:   TParserState;
+    ch:      char;
+    prev_ch: char;
+    inp_len: integer;
+    payload: string;
+    column:  integer;
+    level:   integer;
+
+  procedure NewState(_newstate: TParserState);
+  var prop: TParserProp;
+  begin
+    if _newstate = psUnknown then
+      payload := payload + ch;
+    if _newstate <> state then // Only deal with changed state
+      begin
+        if not (state in [psNone,psUnknown]) then
+          begin
+            prop.State    := state;
+            prop.Payload  := payload;
+            prop.Token    := -1;
+            prop.Column   := column;
+            prop.Index    := -1;
+            prop.Level    := level;
+            prop.DataType := pstNone;
+            prop.IntValue := 0;
+            prop.StrValue := '';
+            prop.Source   := pssUndefined;
+            Add(prop);
+          end;
+        state := _newstate;
+        column := i;
+        payload := '';
+      end;
+  end;
+
+begin
+  ErrorObj.ColNumber := 0;
+  FMacroReference := False;
+  Init;
+  inp_len := Length(_input);
+  level := 0;
+  prev_ch := #0;
+  if inp_len = 0 then
+    Exit;
+  state := psNone;
+  if _input[1] = '*' then
+    state := psComment;
+  // Split into whitespace, commas, "globs", and comments
+  // where globs are things like ASC(LEFT(sVal,1))
+  for i := 1 to inp_len do
+    begin
+      ErrorObj.ColNumber := i;
+      ch := _input[i];
+      case state of
+        psNone:
+          case ch of
+            ' ': NewState(psWhitespace);
+            '*',
+            ';': NewState(psComment);
+            otherwise
+              NewState(psGlob);
+          end;
+        psUnknown:
+          case ch of
+            ' ': NewState(psWhitespace);
+            ',': NewState(psComma);
+            SQ:  NewState(psSQChr);
+            DQ:  NewState(psDQStr);
+            ';': NewState(psComment);
+            otherwise
+              NewState(psGlob);
+          end;
+        psComment:
+          ; // Do nothing, once in a comment we are staying there
+        psGlob:
+          case ch of
+            ' ': NewState(psWhitespace);
+            ',': NewState(psComma);
+            SQ:  if UpperCase(payload) <> 'AF' then
+                   NewState(psSQChr);
+            DQ:  NewState(psDQStr);
+            ':': NewState(psUnknown);
+            ';': NewState(psComment);
+            '/': if prev_ch = '/' then
+                   NewState(psComment);
+          end;
+        psComma:
+          case ch of
+            ' ': NewState(psWhitespace);
+            ',': NewState(psComma);
+            SQ:  NewState(psSQChr);
+            DQ:  NewState(psDQStr);
+            ';': NewState(psComment);
+            otherwise
+              NewState(psGlob);
+          end;
+        psWhitespace:
+          case ch of
+            ' ': NewState(psWhitespace);
+            ',': NewState(psComma);
+            SQ:  NewState(psSQChr);
+            DQ:  NewState(psDQStr);
+            ';': NewState(psComment);
+            otherwise
+              NewState(psGlob);
+          end;
+        psDQStr:
+          case ch of
+            DQ:     NewState(psUnknown);
+            otherwise
+              if ch = FEscape then
+                state := psDQEsc;
+          end;
+        psDQEsc:
+          if ch in ESCAPED then
+            state := psDQStr
+          else
+            ErrorObj.Show(ltError,E2001_ILLEGAL_ESCAPE_CHARACTER,[ch,CharSetToStr(ESCAPED)]);
+        psSQChr:
+          case ch of
+            SQ:     NewState(psUnknown);
+          end;
+      end;
+      if (ch = '(') and (state = psGlob) then
+        Inc(level);
+      if (ch = ')') and (state = psGlob) then
+        Dec(level);
+      payload := payload + ch;
+      prev_ch := ch;
+    end;
+  if state in [psSQChr,psDQStr,psDQEsc] then
+    ErrorObj.Show(ltError,E2002_UNTERMINATED_STRING,[payload]);
+  NewState(psDone);
+  AdjustComments;
+  RemoveComments;
+  AllocateKeywords;
+  RemoveLeadingWhitespace;
+  ShowPPinfo('TPreparser.Categorise()');
+end;
+
+procedure TPreparser.Allocate;
+begin
+  AllocateLabels;
+  AllocateMacros;
+  CombineBrackets;
+  CombineGlobs;
+  RemoveWhitespace;
+  GlobsToOperands;
+  RemoveCommas;
+  SetIndices;
+  ShowPPinfo('TPreparser.Allocate()');
+end;
+
+procedure TPreparser.Parse(const _input: string);
+begin
+{$IFDEF DEBUG_LOGPP}
+  ErrorObj.Show(ltDebug,I9999_DEBUG_MESSAGE,['Source line: ' + _input]);
+{$ENDIF}
+  Categorise(_input);
+  Allocate; // Allocate the main types
 end;
 
 end.

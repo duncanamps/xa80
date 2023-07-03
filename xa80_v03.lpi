@@ -255,8 +255,7 @@
       <CompilerMessages>
         <IgnoredMessages idx5024="True"/>
       </CompilerMessages>
-      <CustomOptions Value="-dCONSOLE_APP
--dDEBUG_LOGPP"/>
+      <CustomOptions Value="-dCONSOLE_APP"/>
       <OtherDefines Count="3">
         <Define0 Value="CONSOLE_APP"/>
         <Define1 Value="DEBUG_LOGX"/>
