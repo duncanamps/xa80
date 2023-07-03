@@ -1,6 +1,3 @@
-		DB		1 shl 3
-			
-		
 
 CTEST		MACRO		inst, source, result
 			LD			BC,{source}
