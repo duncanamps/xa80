@@ -70,7 +70,7 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="binaries\debugleak\$(TargetOS)-$(TargetCPU)\v03\xa80"/>
+            <Filename Value="xa80_v03"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
@@ -100,10 +100,13 @@
             </Debugging>
           </Linking>
           <Other>
-            <CustomOptions Value="-dCONSOLE_APP"/>
-            <OtherDefines Count="2">
+            <CustomOptions Value="-dCONSOLE_APP
+-dPROFILE"/>
+            <OtherDefines Count="4">
               <Define0 Value="CONSOLE_APP"/>
               <Define1 Value="DEBUG_LOGX"/>
+              <Define2 Value="DEBUG_LOGPP"/>
+              <Define3 Value="PROFILE"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>

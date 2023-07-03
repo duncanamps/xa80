@@ -42,19 +42,19 @@ type
       procedure Allocate;
       procedure AllocateKeywords;
       procedure AllocateLabels;
-      procedure XXAllocateLabels;
-      procedure AllocateOperands;
+//    procedure XXAllocateLabels;
+//    procedure AllocateOperands;
       procedure AllocateMacros;
       procedure Categorise(const _input: string);
       procedure CombineBrackets;
       procedure CombineGlobs;
-      procedure ExtractCommand;
-      procedure ExtractLabel;
-      procedure ExtractMacro;
-      procedure ExtractOpcode;
+//    procedure ExtractCommand;
+//    procedure ExtractLabel;
+//    procedure ExtractMacro;
+//    procedure ExtractOpcode;
       procedure GlobsToOperands;
       procedure PopulateDFA;
-      procedure RemoveAfterEnd;
+//    procedure RemoveAfterEnd;
       procedure RemoveCommas;
       procedure RemoveComments;
       procedure RemoveLeadingWhitespace;
@@ -201,35 +201,6 @@ begin
       end;
 end;
 
-procedure TPreparser.AllocateOperands;
-var i: integer;
-    rec: TParserProp;
-    valid_op: set of TParserState = [psGlob,ppOperand,psSQChr,psDQStr];
-begin
-  // Find first glob / char / string
-  i := 0;
-  while (i < Count) and not (Items[i].State in valid_op) do
-    Inc(i);
-  if (i < Count) then
-    begin
-      rec := Items[i];
-      if rec.State <> ppInstruction then
-        rec.State := ppOperand;
-      Items[i] := rec;
-      Inc(i);
-      while (i < Count-1) and
-            (Items[i].State = psComma) and
-            (Items[i+1].State in valid_op) do
-        begin
-          Delete(i);
-          rec := Items[i];
-          rec.State := ppOperand;
-          Items[i] := rec;
-          Inc(i);
-        end;
-    end;
-end;
-
 procedure TPreparser.AllocateLabels;
 var rec: TParserProp;
     _pos: integer;
@@ -252,55 +223,6 @@ begin
       rec.State := ppLabel;
       Items[0] := rec;
     end;
-end;
-
-procedure TPreparser.XXAllocateLabels;
-{
-var rec: TParserProp;
-    _pos: integer;
-    _haslabel: boolean;
-    _index:    integer;
-}
-begin
-
-  {
-  if Items[_index].State = psGlob then
-    _haslabel := True  // Must be a label if in first position
-  else
-    begin
-      if cfEQU in FCmdFlags then
-        begin
-          while (_index < Count) and (Items[_index].State = psWhitespace) do
-            Inc(_index);
-          _haslabel := (_index < Count);
-        end;
-    end;
-  if not _haslabel then
-    Exit;
-
-  // _index is point to what should be the label
-  // check if so...
-
-  if not (Items[_index].State in [psGlob]) then
-    begin
-      ErrorObj.ColNumber := Items[_index].Column;
-      ErrorObj.Show(ltError,E2046_EXPECTED_LABEL,[Items[_index].Payload]);
-    end;
-
-  _pos := -1;
-  if not FDefiningMacro then
-    begin
-      InvalidLabelCharacters(Items[_index].Payload,_pos);
-      if (_pos > 0) and (Items[_index].Payload[_pos] <> ':') then
-        begin
-          ErrorObj.ColNumber := _pos;
-          ErrorObj.Show(ltError,E2036_INVALID_LABEL_CHARACTER);
-        end;
-    end;
-  rec := Items[_index];
-  rec.State := ppLabel;
-  Items[_index] := rec;
-  }
 end;
 
 procedure TPreparser.AllocateMacros;
@@ -384,91 +306,6 @@ begin
           Delete(i+1);
         end;
       Inc(i);
-    end;
-end;
-
-procedure TPreparser.ExtractCommand;
-var i: integer;
-begin
-  i := 0;
-  while (i < Count) and (Items[i].State <> ppCommand) do
-    Inc(i);
-  if (i < Count) then
-    begin
-      ErrorObj.ColNumber := Items[i].Column;
-      FCommandIndex := Items[i].Token - FDFA.OffsetCommand;
-      if FCommandList.Items[FCommandIndex].CommandStatus = csUsedAsLabel then
-        begin
-          ErrorObj.ColNumber := Items[i].Column;
-          ErrorObj.Show(ltError,E2062_COMMAND_ALREADY_USED_AS_LABEL,[FCommandList.Items[FCommandIndex].CommandName]);
-        end;
-      FCommandList.Items[FCommandIndex].CommandStatus := csUsedAsNormal;
-      Delete(i);
-    end;
-end;
-
-procedure TPreparser.ExtractMacro;
-var i: integer;
-begin
-  i := 0;
-  while (i < Count) and (Items[i].State <> ppMacro) do
-    Inc(i);
-  if (i < Count) then
-    begin
-      ErrorObj.ColNumber := Items[i].Column;
-      FMacroIndex := FMacroList.IndexOf(Items[i].Payload);
-      if FMacroIndex < 0 then
-        ErrorObj.Show(ltError,E2057_MACRO_NOT_FOUND,[Items[i].Payload])
-      else
-        begin
-          Delete(i);
-          FMacroReference := True;
-        end;
-    end;
-end;
-
-procedure TPreparser.ExtractOpcode;
-var i: integer;
-begin
-  i := 0;
-  while (i < Count) and (Items[i].State <> ppInstruction) do
-    Inc(i);
-  if (i < Count) then
-    begin
-      ErrorObj.ColNumber := Items[i].Column;
-      FOpcodeIndex := Items[i].Token - FDFA.OffsetOpcode;
-      Delete(i);
-    end;
-end;
-
-procedure TPreparser.ExtractLabel;
-var i: integer;
-    token: TNFAtoken;
-    index: integer;
-begin
-  i := 0;
-  while (i < Count) and (Items[i].State <> ppLabel) do
-    Inc(i);
-  if (i < Count) then
-    begin
-      ErrorObj.ColNumber := Items[i].Column;
-      FLabelX := StripColon(Items[i].Payload);
-      // Check to see if the label is used as a command anywhere
-      token := FDFA.Tokenise(FLabelX);
-      if (token >= FDFA.OffsetCommand) and (token < FDFA.OffsetOperand) then
-        begin  // Label used here is already a command
-          index := token - FDFA.OffsetCommand;
-          if FCommandList.Items[Index].CommandStatus = csUsedAsNormal then
-            ErrorObj.Show(ltError,E2063_COMMAND_ALREADY_USED,[FLabelX]);
-          FCommandList.Items[Index].CommandStatus := csUsedAsLabel;
-          if FPass = 1 then
-            ErrorObj.Show(ltWarning,W1006_COMMAND_AS_SYMBOL,[FLabelX]);
-        end
-      else if token > TOKEN_WHITESPACE then
-        begin
-          ErrorObj.Show(ltError,E2030_USING_RESERVED_AS_LABEL,[FLabelX]);
-        end;
-      Delete(i);
     end;
 end;
 
@@ -743,24 +580,6 @@ begin
 {$ENDIF}
 end;
 
-procedure TPreparser.RemoveAfterEnd;
-var i: integer;
-begin
-  i := 0;
-  while (i < Count) and ((FItems[i].State <> ppCommand) or (UpperCase(FItems[i].Payload) <> 'END')) do
-    Inc(i);
-  if (i+1 < Count) then
-    begin // Baggage after END command
-      if FPass = 1 then
-        begin
-          ErrorObj.ColNumber := FItems[i+1].Column;
-          ErrorObj.Show(ltWarning,W1004_END_OPERANDS_IGNORED);
-        end;
-      while (i+1 < Count) do
-        Delete(i+1); // Delete anything after the END command
-    end;
-end;
-
 procedure TPreparser.RemoveCommas;
 var i: integer;
 begin
@@ -812,6 +631,8 @@ end;
 procedure TPreparser.SetIndices;
 var rec: TParserProp;
     i:   integer;
+    token: TNFAtoken;
+    index: integer;
 begin
   // Macros first - we need to know if there's one here
   for i := Count-1 downto 0 do
@@ -839,10 +660,33 @@ begin
             begin
               FLabelX := StripColon(rec.Payload);
               Delete(i);
-            end;
+              ErrorObj.ColNumber := Items[i].Column;
+              // Check to see if the label is used as a command anywhere
+              token := FDFA.Tokenise(FLabelX);
+              if (token >= FDFA.OffsetCommand) and (token < FDFA.OffsetOperand) then
+              begin  // Label used here is already a command
+                index := token - FDFA.OffsetCommand;
+                if FCommandList.Items[Index].CommandStatus = csUsedAsNormal then
+                  ErrorObj.Show(ltError,E2063_COMMAND_ALREADY_USED,[FLabelX]);
+                FCommandList.Items[Index].CommandStatus := csUsedAsLabel;
+                if FPass = 1 then
+                  ErrorObj.Show(ltWarning,W1006_COMMAND_AS_SYMBOL,[FLabelX]);
+              end
+            else if token > TOKEN_WHITESPACE then
+              begin
+                ErrorObj.Show(ltError,E2030_USING_RESERVED_AS_LABEL,[FLabelX]);
+              end;
+            Delete(i);
+          end;
         ppCommand:
           begin
             FCommandIndex := rec.Index;
+            if FCommandList.Items[FCommandIndex].CommandStatus = csUsedAsLabel then
+              begin
+                ErrorObj.ColNumber := Items[i].Column;
+                ErrorObj.Show(ltError,E2062_COMMAND_ALREADY_USED_AS_LABEL,[FCommandList.Items[FCommandIndex].CommandName]);
+              end;
+            FCommandList.Items[FCommandIndex].CommandStatus := csUsedAsNormal;
             Delete(i);
           end;
         ppInstruction:
@@ -945,6 +789,7 @@ var i:       integer;
   end;
 
 begin
+  payload := '';
   ErrorObj.ColNumber := 0;
   FMacroReference := False;
   Init;

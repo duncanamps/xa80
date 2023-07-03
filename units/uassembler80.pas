@@ -1112,7 +1112,6 @@ var
   i: integer;
   opval: integer;
   newaddr: integer;
-  do_cmd: boolean;
   macro_entry: TMacroEntry;
 
   function GetOpVal(_idx: integer): integer;
@@ -1413,10 +1412,6 @@ end;
 
 procedure TAssembler80.CmdCPU(const _label: string; _preparser: TPreparserBase);
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   if FPass = 1 then
     ErrorObj.Show(ltWarning, W1002_DIRECTIVE_IGNORED, ['CPU']);
 end;
@@ -1440,10 +1435,6 @@ var
   bcount: integer;
   bval: integer;
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   // Define storage
   // Two forms of this command:
   //    DS <storagesize>
@@ -1470,13 +1461,7 @@ procedure TAssembler80.CmdDW(const _label: string; _preparser: TPreparserBase);
 var
   itm: TParserProp;
   i: integer;
-  j: integer;
-  s: string;
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   // Define words
   // There should be one or more operands
   CheckOperandCount(1, 9999);
@@ -1502,10 +1487,6 @@ var
   entry: TAsmStackEntry;
 begin
   // Should be no operands
-  {
-  if FDefiningMacro then
-    Exit;
-  }
   CheckOperandCount(0, 0);
   if FAsmStack.TOStype <> setIf then
     ErrorObj.Show(ltError, E2049_UNEXPECTED_ELSE);
@@ -1520,23 +1501,13 @@ end;
 procedure TAssembler80.CmdEND(const _label: string; _preparser: TPreparserBase);
 begin
   // There should be no operands
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   CheckOperandCount(0, 0);
   FEnded := True;
 end;
 
 procedure TAssembler80.CmdENDIF(const _label: string; _preparser: TPreparserBase);
-var
-  entry: TAsmStackEntry;
 begin
   // Should only be no operands
-  {
-  if FDefiningMacro then
-    Exit;
-  }
   CheckOperandCount(0, 0);
   if FAsmStack.TOStype <> setIf then
     ErrorObj.Show(ltError, E2048_UNEXPECTED_ENDIF);
@@ -1546,10 +1517,6 @@ end;
 procedure TAssembler80.CmdENDM(const _label: string; _preparser: TPreparserBase);
 var newobj: TMacroEntry;
 begin
-  {
-  if not FDefiningMacro then
-    ErrorObj.Show(ltError,E2055_UNEXPECTED_ENDM);
-  }
   if FPass = 1 then
     begin
       if FPreparser.LabelX <> '' then
@@ -1578,10 +1545,6 @@ end;
 procedure TAssembler80.CmdENDR(const _label: string; _preparser: TPreparserBase);
 var entry: TAsmStackEntry;
 begin
-  {
-  if FDefiningMacro then
-    Exit;
-  }
   // Should only be no operands
   CheckOperandCount(0, 0);
   if FAsmStack.TOStype <> setRepeat then
@@ -1603,10 +1566,6 @@ procedure TAssembler80.CmdENDW(const _label: string; _preparser: TPreparserBase)
 var
   entry: TAsmStackEntry;
 begin
-  {
-  if  FDefiningMacro then
-    Exit;
-  }
   // Should only be no operands
   CheckOperandCount(0, 0);
   if FAsmStack.TOStype <> setWhile then
@@ -1623,19 +1582,11 @@ end;
 
 procedure TAssembler80.CmdEQU(const _label: string; _preparser: TPreparserBase);
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   EQUCore(_label, _preparser, False);
 end;
 
 procedure TAssembler80.CmdEQU2(const _label: string; _preparser: TPreparserBase);
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   EQUCore(_label, _preparser, True);
 end;
 
@@ -1651,10 +1602,6 @@ procedure TAssembler80.CmdIF(const _label: string; _preparser: TPreparserBase);
 var
   entry: TAsmStackEntry;
 begin
-  {
-  if FDefiningMacro then
-    Exit;
-  }
   // Should only be one operand
   CheckOperandCount(1, 1);
   CheckOperandInteger(0, -32767, 65535);
@@ -1702,10 +1649,6 @@ end;
 
 procedure TAssembler80.CmdINCLUDE(const _label: string; _preparser: TPreparserBase);
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   // Should only be one operand
   CheckOperandCount(1, 1);
   if FPreparser[0].DataType <> pstString then
@@ -1715,10 +1658,6 @@ end;
 
 procedure TAssembler80.CmdLISTON(const _label: string; _preparser: TPreparserBase);
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   // Turn listings on
   // There should be no operands
   CheckOperandCount(0, 0);
@@ -1729,10 +1668,6 @@ procedure TAssembler80.CmdMACRO(const _label: string; _preparser: TPreparserBase
 var i: integer;
     payload: string;
 begin
-  {
-  if FDefiningMacro then
-    ErrorObj.Show(ltError,E2056_MACRO_IN_MACRO_DEFINE);
-  }
   DefiningMacro := True;
   if FPass = 1 then
     begin
@@ -1756,10 +1691,6 @@ end;
 
 procedure TAssembler80.CmdMSGERROR(const _label: string; _preparser: TPreparserBase);
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   // Issue an error message
   // There should be 1 operand (numeric or string)
   CheckOperandCount(1, 1);
@@ -1772,10 +1703,6 @@ end;
 
 procedure TAssembler80.CmdMSGINFO(const _label: string; _preparser: TPreparserBase);
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   // Issue an info message
   // There should be 1 operand (numeric or string)
   CheckOperandCount(1, 1);
@@ -1788,10 +1715,6 @@ end;
 
 procedure TAssembler80.CmdMSGWARNING(const _label: string; _preparser: TPreparserBase);
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   // Issue a warning message
   // There should be 1 operand (numeric or string)
   CheckOperandCount(1, 1);
@@ -1804,10 +1727,6 @@ end;
 
 procedure TAssembler80.CmdLISTOFF(const _label: string; _preparser: TPreparserBase);
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   // Turn listings off
   // There should be no operands
   CheckOperandCount(0, 0);
@@ -1816,10 +1735,6 @@ end;
 
 procedure TAssembler80.CmdWARNOFF(const _label: string; _preparser: TPreparserBase);
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   // Turn warnings off
   // There should be no operands
   CheckOperandCount(0, 0);
@@ -1828,10 +1743,6 @@ end;
 
 procedure TAssembler80.CmdORG(const _label: string; _preparser: TPreparserBase);
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   // Set the origin for the assembly
   // There should be one and only one operand and no label
   CheckOperandCount(1, 1);
@@ -1850,10 +1761,6 @@ procedure TAssembler80.CmdREPEAT(const _label: string; _preparser: TPreparserBas
 var
   entry: TAsmStackEntry;
 begin
-  {
-  if FDefiningMacro then
-    Exit;
-  }
   // Should only be one operand
   CheckOperandCount(1, 1);
   CheckOperandInteger(0, 0, 65535);
@@ -1877,10 +1784,6 @@ end;
 
 procedure TAssembler80.CmdTITLE(const _label: string; _preparser: TPreparserBase);
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   // Set the title
   // There should one string operand containing the title
   CheckOperandCount(1, 1);
@@ -1898,10 +1801,6 @@ end;
 
 procedure TAssembler80.CmdWARNON(const _label: string; _preparser: TPreparserBase);
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   // Turn warnings back on
   // There should be no operands
   CheckOperandCount(0, 0);
@@ -1912,10 +1811,6 @@ procedure TAssembler80.CmdWHILE(const _label: string; _preparser: TPreparserBase
 var
   entry: TAsmStackEntry;
 begin
-  {
-  if FDefiningMacro then
-    Exit;
-  }
   // Should only be one operand
   CheckOperandCount(1, 1);
   CheckOperandInteger(0, -32767, 65535);
@@ -1948,10 +1843,6 @@ var
   j: integer;
   s: string;
 begin
-  {
-  if (not FSolGenerate) or FDefiningMacro then
-    Exit;
-  }
   // Define bytes
   // There should be one or more operands
   CheckOperandCount(1, 9999);
@@ -2114,9 +2005,7 @@ var i,j: integer;
     serial: integer;
     param:  string;
     repl_flags: TReplaceFlags;
-    parmcount_temp: integer;
 begin
-  parmcount_temp := macro_entry.Params.Count;
   serial := FMacroList.AllocateSerial;
   repl_flags := [rfReplaceAll];
   if not FCaseSensitive then
@@ -2158,13 +2047,9 @@ end;
 function TAssembler80.MakeFilename(const _base_asm, _option, _ext: string): string;
 var
   filename_base: string;
-  option_path: string;
-  option_filename: string;
   mfn: string;
 begin
   mfn := '';
-  option_path := ExtractFilePath(_option);
-  option_filename := ExtractFilename(_option);
   filename_base := ExtractFilename(_base_asm);
   if RevPos('.', filename_base) > 0 then
     filename_base := LeftStr(filename_base, RevPos('.', filename_base) - 1);
@@ -2249,7 +2134,6 @@ var
   i: integer;
   addr: integer;
   remaining: integer;
-  column: integer;
   checksum: integer;
   s: string;
   lowest, highest: integer;
@@ -2264,7 +2148,6 @@ begin
     Inc(lowest);
   sl := TStringList.Create;
   try
-    column := 0;
     addr := lowest;
     while addr < Highest do
     begin
@@ -2475,9 +2358,7 @@ end;
 procedure TAssembler80.ProcessFile(const filename: string);
 var
   sl: TStringList;
-  i: integer;
   s: string;
-  execs: integer;
 begin
   FCurrentFile := filename;
   sl := TStringList.Create;
