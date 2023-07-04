@@ -58,9 +58,11 @@
           </Linking>
           <Other>
             <CustomOptions Value="-dCONSOLE_APP"/>
-            <OtherDefines Count="2">
+            <OtherDefines Count="4">
               <Define0 Value="CONSOLE_APP"/>
               <Define1 Value="DEBUG_LOGX"/>
+              <Define2 Value="DEBUG_LOGPP"/>
+              <Define3 Value="PROFILE"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>

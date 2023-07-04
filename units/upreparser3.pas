@@ -46,6 +46,7 @@ type
 //    procedure AllocateOperands;
       procedure AllocateMacros;
       procedure Categorise(const _input: string);
+      procedure CleanUp;
       procedure CombineBrackets;
       procedure CombineGlobs;
 //    procedure ExtractCommand;
@@ -243,6 +244,28 @@ begin
     end;
 end;
 
+procedure TPreparser.CleanUp;
+var iter: TParserProp;
+begin
+  // Check for operands without command or instruction
+  // @@@@@ CHECK HERE FOR IF THE ITEM IS A MACRO
+  // This probably means we are using the wrong processor / instruction set
+  if (FCommandIndex < 0) and (FOpcodeIndex < 0) and (FMacroIndex < 0) and (Count > 0) then
+    begin
+      ErrorObj.ColNumber := Items[0].Column;
+      ErrorObj.Show(ltError,E2043_INVALID_COMMAND_OPCODE,[Items[0].Payload]);
+    end;
+  // Check for unresolved globs etc.
+  for iter in Self do
+    begin
+      if not (iter.State in [ppLabel,ppCommand,ppInstruction,ppMacro,ppOperand]) then
+        begin
+          ErrorObj.ColNumber := iter.Column;
+          ErrorObj.Show(ltError,E2003_UNRECOGNISED_CONTENT,[iter.Payload]);
+        end;
+    end;
+end;
+
 procedure TPreparser.CombineBrackets;
 var i:         integer;
     rec:       TParserProp;
@@ -327,7 +350,7 @@ begin
   for i := 0 to Count-1 do
     begin
       rec := Items[i];
-      if rec.State = psGlob then
+      if rec.State in [psGlob,psSQchr,psDQstr] then
         rec.State := ppOperand;
       Items[i] := rec;
     end;
@@ -696,6 +719,7 @@ begin
   GlobsToOperands;
   RemoveCommas;
   SetIndices;
+  CleanUp;
   ShowPPinfo('TPreparser.Allocate()');
 end;
 
