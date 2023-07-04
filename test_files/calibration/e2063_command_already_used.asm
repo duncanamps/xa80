@@ -4,6 +4,10 @@
 //
 
 
+			WORD	2,3,4
+			
+WORD:		LD		A, 1			
+
 
             END
 
