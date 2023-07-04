@@ -2,8 +2,7 @@
 
 xa80 - Cross(X) Assembler for x80 processors
 
-![xa80](https://github.com/duncanamps/xa80/assets/6016794/e4c0c436-9eb5-482a-a6e9-c236193e6d5f)
-
+![xa80_short](https://github.com/duncanamps/xa80/assets/6016794/04132e03-bb70-4b69-bc23-448f5411a6dc)
 
 ## Description
 This is V0.2 which is a stable and supported version of the software. This is the version that should be used for any day to day activities. There is also a version V0.3 which is under development; this is likely to have major gaps in functionality and may not be stable. It can be accessed from [xa80 V0.3 GitHub](https://github.com/duncanamps/xa80/tree/V0.3).
