@@ -541,22 +541,19 @@ begin
   //       or 0b101
   //       or 0B101
   decval := 0;
-  if Length(_s) < 2 then
-    ErrorObj.Show(ltError,E2006_BINARY_LITERAL_TOO_SHORT,[_s])
-  else
-    begin
-      if LeftStr(_s,1) = '%' then
-        buf := _s
-      else if UpperCase(RightStr(_s,1)) = 'B' then
-        buf := '%' + LeftStr(_s,Length(_s)-1)
-      else if (Length(_s) >= 3) and (UpperCase(LeftStr(_s,2)) = '0B') then
-        buf := '%' + RightStr(_s,Length(_s)-2)
-      else
-        ErrorObj.Show(ltError,E2006_BINARY_LITERAL_TOO_SHORT,[_s]);
-      Val(buf,decval,code);
-      if code > 0 then
-        ErrorObj.Show(ltInternal,X3005_BINARY_CONVERSION_FAILURE,[_s]);
-    end;
+  begin
+    if LeftStr(_s,1) = '%' then
+      buf := _s
+    else if UpperCase(RightStr(_s,1)) = 'B' then
+      buf := '%' + LeftStr(_s,Length(_s)-1)
+    else if (Length(_s) >= 3) and (UpperCase(LeftStr(_s,2)) = '0B') then
+      buf := '%' + RightStr(_s,Length(_s)-2)
+    else
+      buf := '%0';
+    Val(buf,decval,code);
+    if code > 0 then
+      ErrorObj.Show(ltInternal,X3005_BINARY_CONVERSION_FAILURE,[_s]);
+  end;
   Result := decval;
 end;
 

@@ -3,7 +3,7 @@
 // Duncan Munro - 04/07/2023
 //
 
-
+LOADBIN		LD		A, 0B
 
             END
 
