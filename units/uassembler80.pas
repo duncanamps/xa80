@@ -1502,6 +1502,8 @@ procedure TAssembler80.CmdEND(const _label: string; _preparser: TPreparserBase);
 begin
   // There should be no operands, if there are we produce a message
   CheckOperandCount(0, 0);
+  CheckMacroDone;
+  CheckStack;
   FEnded := True;
 end;
 
@@ -1677,6 +1679,11 @@ begin
       FDefMacro.Headings.Clear;
       FDefMacro.Params.Clear;
       FDefMacro.Content.Clear;
+      if FDefMacro.Name = '' then
+        begin
+          ErrorObj.ColNumber := 1;
+          ErrorObj.Show(ltError,E2046_EXPECTED_LABEL,['nothing']);
+        end;
       if not FCaseSensitive then
         FDefMacro.Name := UpperCase(FDefMacro.Name);
       for i := 0 to _preparser.Count-1 do

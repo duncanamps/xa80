@@ -3,7 +3,8 @@
 // Duncan Munro - 04/07/2023
 //
 
-
+			MACRO	param1, param2
+			ENDM
 
             END
 
