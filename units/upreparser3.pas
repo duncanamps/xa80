@@ -185,10 +185,13 @@ begin
                       ErrorObj.ColNumber := Items[i].Column;
                       ErrorObj.Show(ltError,E2060_UNEXPECTED_DIRECTIVE,[cmd,directive]);
                     end;
-                  rec.State := ppCommand;
-                  rec.Index := token - FDFA.OffsetCommand;
-                  FCmdFlags := FCommandList[token - FDFA.OffsetCommand].CommandFlags;
-                  directive := cmd;
+                  if FCommandList[token - FDFA.OffsetCommand].CommandStatus <> csUsedAsLabel then
+                    begin
+                      rec.State := ppCommand;
+                      rec.Index := token - FDFA.OffsetCommand;
+                      FCmdFlags := FCommandList[rec.Index].CommandFlags;
+                      directive := cmd;
+                    end;
                 end;
               tmOperand:
                 begin
