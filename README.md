@@ -2,8 +2,7 @@
 
 xa80 - X-Assembler for x80 processors
 
-![xa80](https://github.com/duncanamps/xa80/assets/6016794/357e4a5e-d260-44f7-8522-113297961a03)
-
+![xa80_short](https://github.com/duncanamps/xa80/assets/6016794/5a307bc0-b6b6-458f-91a2-7ae34e710088)
 
 This is V0.3 which is a developing build version of the software and is largely incomplete, and in some areas, unusable. If you wish to download the day-to-day working and supported version, please access it from here -> [xa80 V0.2 GitHub](https://github.com/duncanamps/xa80/tree/V0.2).
 
