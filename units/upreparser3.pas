@@ -54,7 +54,7 @@ type
 //    procedure ExtractOpcode;
       procedure GlobsToOperands;
       procedure PopulateDFA;
-//    procedure RemoveAfterEnd;
+      procedure RemoveAfterEnd;
       procedure RemoveCommas;
       procedure RemoveComments;
       procedure RemoveLeadingWhitespace;
@@ -352,6 +352,24 @@ begin
     FreeAndNil(_strm);
   end;
 {$ENDIF}
+end;
+
+procedure TPreparser.RemoveAfterEnd;
+var i: integer;
+begin
+  i := 0;
+  while (i < Count) and ((FItems[i].State <> ppCommand) or (UpperCase(FItems[i].Payload) <> 'END')) do
+    Inc(i);
+  if (i+1 < Count) then
+    begin // Baggage after END command
+      if FPass = 1 then
+        begin
+          ErrorObj.ColNumber := FItems[i+1].Column;
+          ErrorObj.Show(ltWarning,W1004_END_OPERANDS_IGNORED);
+        end;
+      while (i+1 < Count) do
+        Delete(i+1); // Delete anything after the END command
+    end;
 end;
 
 procedure TPreparser.RemoveCommas;
@@ -663,6 +681,7 @@ begin
   AdjustComments;
   RemoveComments;
   AllocateKeywords;
+  RemoveAfterEnd;
   RemoveLeadingWhitespace;
   ShowPPinfo('TPreparser.Categorise()');
 end;

@@ -1500,7 +1500,7 @@ end;
 
 procedure TAssembler80.CmdEND(const _label: string; _preparser: TPreparserBase);
 begin
-  // There should be no operands
+  // There should be no operands, if there are we produce a message
   CheckOperandCount(0, 0);
   FEnded := True;
 end;

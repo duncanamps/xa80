@@ -1,0 +1,9 @@
+//
+// Test W1004_END_OPERANDS_IGNORED
+// Duncan Munro - 04/07/2023
+//
+
+STARTPOS	EQU		20
+		
+			END		W1004_END_OPERANDS_IGNORED
+			
