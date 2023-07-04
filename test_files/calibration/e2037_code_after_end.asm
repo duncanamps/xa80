@@ -7,3 +7,5 @@
 
             END
 
+CODEAFTER	LD		A, 1
+

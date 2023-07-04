@@ -34,8 +34,7 @@ const
 
   LEXBUF_BLOCK_SIZE_DEFAULT = 4096;      // Size of each block in bytes to read into the lexer
   LEXBUF_MIN                = 64;        // Minimum number of characters to keep in lexer buffer for comment lookahead
-  PARSER_STACK_SIZE_DEFAULT = 100;       // Default, the parser stack size will grow if needed
-  PARSER_STACK_SIZE_MAX     = 800;       // Maximum
+  PARSER_STACK_SIZE_MAX     = 64;       // Maximum
   PREDEFINED_EMPTY_STATE    = $7FFFFFFF;
   PREDEFINED_EMPTY_TOKEN    = $7FFFFFFF;
   PREDEFINED_TOKEN_ERROR    = 0;

@@ -589,7 +589,7 @@ begin
   FRules.Clear;
   FLALR.Clear;
   // Set up some sizes
-  SetLength(FParserStack,PARSER_STACK_SIZE_DEFAULT);
+  SetLength(FParserStack,PARSER_STACK_SIZE_MAX);
   LexBufBlock  := LEXBUF_BLOCK_SIZE_DEFAULT;
   TokenBufSize := TOKEN_BUF_SIZE_DEFAULT;
   FTabSize := 4;
@@ -907,7 +907,9 @@ end;
 procedure TLCGParser.Push(_entry: TLCGParserStackEntry);
 begin
   if FParserSP >= PARSER_STACK_SIZE_MAX then
-    ErrorObj.Show(ltError,E2035_PARSER_STACK_EXCEEDED,[PARSER_STACK_SIZE_MAX]);
+    begin
+      ErrorObj.Show(ltError,E2035_PARSER_STACK_EXCEEDED,[PARSER_STACK_SIZE_MAX]);
+    end;
 //  Monitor(ltError,'PARSER_STACK_SIZE_MAX (%d) exceeded',[PARSER_STACK_SIZE_MAX]);
   CheckStackSize;
   FParserStack[FParserSP] := _entry;
