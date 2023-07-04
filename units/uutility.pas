@@ -569,24 +569,21 @@ begin
   //       or 0x033A
   //       or 0X033A
   decval := 0;
-  if Length(_s) < 2 then
-    ErrorObj.Show(ltError,E2008_HEX_LITERAL_TOO_SHORT,[_s])
-  else
-    begin
-      if _s[1] = '$' then
-        buf := _s
-      else if _s[1] = '#' then
-        buf := '$' + RightStr(_s,Length(_s)-1)
-      else if UpperCase(RightStr(_s,1)) = 'H' then
-        buf := '$' + LeftStr(_s,Length(_s)-1)
-      else if (Length(_s) > 3) and (UpperCase(LeftStr(_s,2)) = '0X') then
-        buf := '$' + RightStr(_s,Length(_s)-2)
-      else
-        ErrorObj.Show(ltError,E2008_HEX_LITERAL_TOO_SHORT,[_s]);
-      Val(buf,decval,code);
-      if code > 0 then
-        ErrorObj.Show(ltInternal,X3006_HEX_CONVERSION_FAILURE,[_s]);
-    end;
+  begin
+    if _s[1] = '$' then
+      buf := _s
+    else if _s[1] = '#' then
+      buf := '$' + RightStr(_s,Length(_s)-1)
+    else if UpperCase(RightStr(_s,1)) = 'H' then
+      buf := '$' + LeftStr(_s,Length(_s)-1)
+    else if (Length(_s) > 3) and (UpperCase(LeftStr(_s,2)) = '0X') then
+      buf := '$' + RightStr(_s,Length(_s)-2)
+    else
+      buf := '$0';
+    Val(buf,decval,code);
+    if code > 0 then
+      ErrorObj.Show(ltInternal,X3006_HEX_CONVERSION_FAILURE,[_s]);
+  end;
   Result := decval;
 end;
 

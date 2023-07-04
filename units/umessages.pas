@@ -86,7 +86,7 @@ type
                      E2005_INTEGER_OVERFLOW,
                      E2006_REMOVED,
                      E2007_REMOVED,
-                     E2008_HEX_LITERAL_TOO_SHORT,
+                     E2008_REMOVED,
                      E2009_DIVIDE_BY_ZERO,
                      E2010_EXPECTED_STRING,
                      E2011_EXPECTED_POS_NUMBER,
