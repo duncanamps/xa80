@@ -1,12 +1,15 @@
-# XA80 V0.3
+# xa80 V0.3
 
-XA80 - X-Assembler for x80 processors
+xa80 - X-Assembler for x80 processors
 
-This is V0.3 which is a developing build version of the software and is largely incomplete, and in some areas, unusable. If you wish to download the day-to-day working and supported version, please access it from here -> [XA80 V0.2 GitHub](https://github.com/duncanamps/xa80/tree/V0.2).
+![xa80](https://github.com/duncanamps/xa80/assets/6016794/357e4a5e-d260-44f7-8522-113297961a03)
+
+
+This is V0.3 which is a developing build version of the software and is largely incomplete, and in some areas, unusable. If you wish to download the day-to-day working and supported version, please access it from here -> [xa80 V0.2 GitHub](https://github.com/duncanamps/xa80/tree/V0.2).
 
 #### Synopsis
 
-XA80 is a command line tool that allows the cross assembly of source files aimed at x80 processors (8080,8085,Z80,Z180). It takes an input file (e.g. myfile.z80 or test.asm) and creates the following output files, some of which are optional:
+xa80 is a command line tool that allows the cross assembly of source files aimed at x80 processors (8080,8085,Z80,Z180). It takes an input file (e.g. myfile.z80 or test.asm) and creates the following output files, some of which are optional:
 
 * .hex file containing output information in the industry standard Intel .hex format
 * .lst file containing a listing of the assembler output
@@ -18,19 +21,19 @@ XA80 is a command line tool that allows the cross assembly of source files aimed
 
 #### Key features
 
-Here are some of the key features of XA80:
+Here are some of the key features of xa80:
 
 * Open source
 * Two pass assembler
 * Supports mnemonics from different processors (8080, 8085, Z80, Z180) as a baked in standard
 * Supports 24bit code generation for the EZ80 processor **(NOT IMPLEMENTED)**
-* Ability to add additional opcode maps as external files **(NOT IMPLEMENTED)**
+* Ability to add additional opcode maps as external files
 * Opcode compiler so you can add your own secret/hidden instructions and extend to other processor variants in the "family"
 * Macro capability with nested expansion of macros allowed
 * Conditional assembly with IF / IFDEF / IFNDEF statements
 * Full expression evaluator with many functions and string handling capability
 * Rich set of command line parameters
-* XA80 Environment variable for commonly used parameters
+* xa80 Environment variable for commonly used parameters
 * Runs on any hardware supported by Lazarus/FPC (Windows, macOS, Linux, etc. etc.)
 * Fast - will assemble the CP/M BDOS22.ASM (3,289 lines) and CCP22.ASM files (1,325 lines) with map file and listing outputs (total 105 pages) in approx 0.15 seconds using a Core i7 laptop, Acer Aspire 5 A515-56
 
@@ -60,7 +63,7 @@ sufficient for your needs. All you will need is **xa80** or **xa80.exe** dependi
 
 #### Dependencies
 
-To modify the grammar for the opcode compiler, or XA80 itself, will require the use of a tool called LaCoGen (Lazarus Compiler Generator).
+To modify the grammar for the opcode compiler, or xa80 itself, will require the use of a tool called LaCoGen (Lazarus Compiler Generator).
 LaCoGen is [available from this GitHub](https://github.com/duncanamps/lacogen1). The grammar to deal with operands is contained in the .lac file and for the
 most part can be left alone. It's only if you want to add new functions or operators that you would need to get involved in changing
 the grammar file and recompiling with LaCoGen.
@@ -76,7 +79,7 @@ Folders are organised as follows:
 * [root](https://github.com/duncanamps/xa80/tree/main) the Lazarus project files, licence and .gitignore
   * [binaries/](https://github.com/duncanamps/xa80/tree/main/docs) - Precompiled binaries for various systems  	
   * [docs/](https://github.com/duncanamps/xa80/tree/main/docs) - Documentation (user manual, technical notes)
-  * [lac/](https://github.com/duncanamps/xa80/tree/main/lac) - The LaCoGen operand grammar for XA80. The xa80oper.lac file is compiled into xa80oper.lacobj which is loaded into the assembler as a resource file. If you don't need to change the basic grammar for operands, then this can be left alone
+  * [lac/](https://github.com/duncanamps/xa80/tree/main/lac) - The LaCoGen operand grammar for xa80. The xa80oper.lac file is compiled into xa80oper.lacobj which is loaded into the assembler as a resource file. If you don't need to change the basic grammar for operands, then this can be left alone
   * [lexer_parser/](https://github.com/duncanamps/xa80/tree/main/lexer_parser) - A lightweight lexical analyser which is used to split or pre-parse the input into labels, commands, instructions, operands and comments
   * [opcodes/](https://github.com/duncanamps/xa80/tree/main/opcodes) - The folder containing the opcode compiler oc_comp (see readme.txt in the folder)
     * [opcodes/lac/](https://github.com/duncanamps/xa80/tree/main/opcodes/lac) - Grammar for the opcode compiler, opcode_compiler.lac compiles info opcode_compiler.lacobj
