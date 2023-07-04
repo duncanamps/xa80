@@ -599,8 +599,10 @@ begin
   //       or 123q
   //       or 123Q
   decval := 0;
+  {
   if Length(_s) < 2 then
     ErrorObj.Show(ltError,E2007_OCTAL_LITERAL_TOO_SHORT,[_s]);
+  }
   for i := 1 to Length(_s)-1 do
     decval := decval * 8 + (Ord(_s[i])-Ord('0'));
   Result := decval;
