@@ -91,8 +91,10 @@ Folders are organised as follows:
 
 #### Development roadmap
 
-* V0.3 - Introduces 24 bit capability, segmented architecture, object files, debug info generation
-* V0.4 - TBA, may even become V1.0
+* V0.2 - **Current Production**
+* V0.3 - Heavy use of assembler with automated testing to remove any bugs found
+* V1.0 - Introduces segmented architecture, object files, debug info generation
+* V2.0 - Introduces 24 bit capability
 
 #### Author
 
