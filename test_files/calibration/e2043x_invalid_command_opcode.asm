@@ -1,9 +1,9 @@
 //
-// Test E2048_UNEXPECTED_ENDIF
+// Test E2043_INVALID_COMMAND_OPCODE
 // Duncan Munro - 04/07/2023
 //
 
-
+INVALID		MULT	BC
 
             END
 

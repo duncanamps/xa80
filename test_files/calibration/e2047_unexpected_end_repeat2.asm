@@ -3,7 +3,7 @@
 // Duncan Munro - 04/07/2023
 //
 
-
-
-            END
+			REPEAT 4
+			
+			LD		A,1
 
