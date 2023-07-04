@@ -3,7 +3,7 @@
 // Duncan Munro - 04/07/2023
 //
 
-
+			LD		HL,A
 
             END
 

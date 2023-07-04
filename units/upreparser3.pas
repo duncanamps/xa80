@@ -250,6 +250,8 @@ end;
 procedure TPreparser.CleanUp;
 var iter: TParserProp;
 begin
+  if FDefiningMacro then
+    Exit;
   // Check for operands without command or instruction
   // @@@@@ CHECK HERE FOR IF THE ITEM IS A MACRO
   // This probably means we are using the wrong processor / instruction set

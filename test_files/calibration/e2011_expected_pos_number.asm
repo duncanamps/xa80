@@ -3,7 +3,7 @@
 // Duncan Munro - 04/07/2023
 //
 
-
+START		LD		A, 1 shl -3
 
             END
 

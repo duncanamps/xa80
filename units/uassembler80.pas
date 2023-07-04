@@ -1308,7 +1308,7 @@ end;
 procedure TAssembler80.CheckNoLabel(const _label: string);
 begin
   if (_label <> '') and (Pass = 1) then
-    ErrorObj.Show(ltWarning, E2020_UNEXPECTED_LABEL, [_label]);
+    ErrorObj.Show(ltError, E2020_UNEXPECTED_LABEL, [_label]);
 end;
 
 procedure TAssembler80.CheckInteger(_i, _min, _max: integer);

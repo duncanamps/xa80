@@ -3,7 +3,7 @@
 // Duncan Munro - 04/07/2023
 //
 
-
+BAD_BYTE	DB		123+234
 
             END
 
