@@ -157,52 +157,73 @@ var i: integer;
     token: TNFAToken;
     tmode: TTokenMode;
     directive: string;
+    opstr:     string;
 begin
   directive := '';
+  opstr := '';
   for i := 0 to Count-1 do
-    if (Items[i].State = psGlob) and (Items[i].Column <> 1) then
-      begin
-        rec := Items[i];
-        cmd := rec.Payload;
-        token := FDFA.Tokenise(cmd);
-        tmode := tmError;
-        if (token >= FDFA.OffsetOpcode)  and (token < FDFA.OffsetCommand) then tmode := tmOpcode;
-        if (token >= FDFA.OffsetCommand) and (token < FDFA.OffsetOperand) then tmode := tmCommand;
-        if (token >= FDFA.OffsetOperand)                                  then tmode := tmOperand;
-        if (tmode <> tmError) then
-          begin
-            case tmode of
-              tmOpcode:
-                begin
-                  rec.State := ppInstruction;
-                  rec.Index := token - FDFA.OffsetOpcode;
-                  FOpcodeCol := Items[i].Column;
-                end;
-              tmCommand:
-                begin
-                  if directive <> '' then
-                    begin
-                      ErrorObj.ColNumber := Items[i].Column;
-                      ErrorObj.Show(ltError,E2060_UNEXPECTED_DIRECTIVE,[cmd,directive]);
-                    end;
-                  if FCommandList[token - FDFA.OffsetCommand].CommandStatus <> csUsedAsLabel then
-                    begin
-                      rec.State := ppCommand;
-                      rec.Index := token - FDFA.OffsetCommand;
-                      FCmdFlags := FCommandList[rec.Index].CommandFlags;
-                      directive := cmd;
-                    end;
-                end;
-              tmOperand:
-                begin
-                  rec.State := ppOperand;
-                  rec.Index := token - FDFA.OffsetOperand;
-                end
-            end; // Case
-            rec.Token := token;
-            Items[i] := rec;
-          end;
-      end;
+    begin
+      rec := Items[i];
+      if (rec.State = psGlob) and (rec.Column <> 1) then
+        begin
+          rec := Items[i];
+          cmd := rec.Payload;
+          token := FDFA.Tokenise(cmd);
+          tmode := tmError;
+          if (token >= FDFA.OffsetOpcode)  and (token < FDFA.OffsetCommand) then tmode := tmOpcode;
+          if (token >= FDFA.OffsetCommand) and (token < FDFA.OffsetOperand) then tmode := tmCommand;
+          if (token >= FDFA.OffsetOperand)                                  then tmode := tmOperand;
+          if (tmode <> tmError) then
+            begin
+              case tmode of
+                tmOpcode:
+                  begin
+                    rec.State := ppInstruction;
+                    rec.Index := token - FDFA.OffsetOpcode;
+                    FOpcodeCol := Items[i].Column;
+                    opstr := cmd;
+                  end;
+                tmCommand:
+                  begin
+                    if directive <> '' then
+                      begin
+                        ErrorObj.ColNumber := Items[i].Column;
+                        ErrorObj.Show(ltError,E2060_UNEXPECTED_DIRECTIVE,[cmd,directive]);
+                      end;
+                    if FCommandList[token - FDFA.OffsetCommand].CommandStatus <> csUsedAsLabel then
+                      begin
+                        rec.State := ppCommand;
+                        rec.Index := token - FDFA.OffsetCommand;
+                        FCmdFlags := FCommandList[rec.Index].CommandFlags;
+                        directive := cmd;
+                      end
+                    else
+                      begin  // Already used as a label, need to figure out if this is cmd or operand
+                        // If there is command   or...
+                        //             label command
+                        // Then this is command being reused as a command or else
+                        // it's an operand
+                        if (rec.Column <> 1) and (directive = '') and (opstr = '') then
+                          begin
+                            ErrorObj.ColNumber := rec.Column;
+                            ErrorObj.Show(ltError,E2062_COMMAND_ALREADY_USED_AS_LABEL,[cmd]);
+                          end;
+                        rec.State := ppOperand;
+                        rec.Index := -1;
+                      end;
+
+                  end;
+                tmOperand:
+                  begin
+                    rec.State := ppOperand;
+                    rec.Index := token - FDFA.OffsetOperand;
+                  end
+              end; // Case
+              rec.Token := token;
+              Items[i] := rec;
+            end;
+        end;
+    end;
 end;
 
 procedure TPreparser.AllocateLabels;
@@ -476,26 +497,28 @@ begin
       rec := Items[i];
       case rec.State of
         ppLabel:
-          if not FDefiningMacro then
-            begin
-              FLabelX := StripColon(rec.Payload);
-              ErrorObj.ColNumber := Items[i].Column;
-              // Check to see if the label is used as a command anywhere
-              token := FDFA.Tokenise(FLabelX);
-              if (token >= FDFA.OffsetCommand) and (token < FDFA.OffsetOperand) then
-              begin  // Label used here is already a command
-                index := token - FDFA.OffsetCommand;
-                if FCommandList.Items[Index].CommandStatus = csUsedAsNormal then
-                  ErrorObj.Show(ltError,E2063_COMMAND_ALREADY_USED,[FLabelX]);
-                FCommandList.Items[Index].CommandStatus := csUsedAsLabel;
-                if FPass = 1 then
-                  ErrorObj.Show(ltWarning,W1006_COMMAND_AS_SYMBOL,[FLabelX]);
-              end
-            else if token > TOKEN_WHITESPACE then
+          begin
+            FLabelX := StripColon(rec.Payload);
+            if not FDefiningMacro then
               begin
-                ErrorObj.Show(ltError,E2030_USING_RESERVED_AS_LABEL,[FLabelX]);
-              end;
-            Delete(i);
+                ErrorObj.ColNumber := Items[i].Column;
+                // Check to see if the label is used as a command anywhere
+                token := FDFA.Tokenise(FLabelX);
+                if (token >= FDFA.OffsetCommand) and (token < FDFA.OffsetOperand) then
+                begin  // Label used here is already a command
+                  index := token - FDFA.OffsetCommand;
+                  if FCommandList.Items[Index].CommandStatus = csUsedAsNormal then
+                    ErrorObj.Show(ltError,E2063_COMMAND_ALREADY_USED,[FLabelX]);
+                  FCommandList.Items[Index].CommandStatus := csUsedAsLabel;
+                  if FPass = 1 then
+                    ErrorObj.Show(ltWarning,W1006_COMMAND_AS_SYMBOL,[FLabelX]);
+                end
+              else if token > TOKEN_WHITESPACE then
+                begin
+                  ErrorObj.Show(ltError,E2030_USING_RESERVED_AS_LABEL,[FLabelX]);
+                end;
+              Delete(i);
+            end;
           end;
         ppCommand:
           begin

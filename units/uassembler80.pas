@@ -1519,6 +1519,8 @@ end;
 procedure TAssembler80.CmdENDM(const _label: string; _preparser: TPreparserBase);
 var newobj: TMacroEntry;
 begin
+  if not FDefiningMacro then
+    ErrorObj.Show(ltError,E2055_UNEXPECTED_ENDM);
   if FPass = 1 then
     begin
       if FPreparser.LabelX <> '' then
@@ -1670,6 +1672,8 @@ procedure TAssembler80.CmdMACRO(const _label: string; _preparser: TPreparserBase
 var i: integer;
     payload: string;
 begin
+  if DefiningMacro then
+    ErrorObj.Show(ltError,E2056_MACRO_IN_MACRO_DEFINE);
   DefiningMacro := True;
   if FPass = 1 then
     begin
