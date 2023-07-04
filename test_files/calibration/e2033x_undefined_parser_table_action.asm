@@ -3,7 +3,7 @@
 // Duncan Munro - 04/07/2023
 //
 
-
+UNDEX		LD		A,[IX+]
 
             END
 
