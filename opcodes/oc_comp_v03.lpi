@@ -31,12 +31,12 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="..\binaries\release\$(TargetOS)-$(TargetCPU)\oc_comp"/>
+            <Filename Value="..\binaries\release\$(TargetOS)-$(TargetCPU)\v03\oc_comp"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="..\units;lac"/>
-            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)\v03"/>
           </SearchPaths>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
@@ -63,7 +63,7 @@
     </RunParams>
     <Units>
       <Unit>
-        <Filename Value="oc_comp.lpr"/>
+        <Filename Value="oc_comp_v03.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
@@ -88,7 +88,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\binaries\debug\$(TargetOS)-$(TargetCPU)\oc_comp"/>
+      <Filename Value="..\binaries\release\$(TargetOS)-$(TargetCPU)\oc_comp_v03"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

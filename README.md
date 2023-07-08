@@ -4,7 +4,7 @@ xa80 - X-Assembler for x80 processors
 
 ![xa80_short](https://github.com/duncanamps/xa80/assets/6016794/5a307bc0-b6b6-458f-91a2-7ae34e710088)
 
-This is V0.3 which is a developing build version of the software and is largely incomplete, and in some areas, unusable. If you wish to download the day-to-day working and supported version, please access it from here -> [xa80 V0.2 GitHub](https://github.com/duncanamps/xa80/tree/V0.2).
+This is V0.3 which is the supported stable release of the software.
 
 #### Synopsis
 
@@ -15,8 +15,6 @@ xa80 is a command line tool that allows the cross assembly of source files aimed
 * .log file containing errors encountered during the assembly
 * .map file containing the symbol information
 * .com file containing the actual machine code which can be executed on, for example, CP/M machines
-* .obj80 file which creates the object code and symbol information suitable for use with a linker **(NOT IMPLEMENTED)**
-* .dbg80 file containing debug information such as symbols, source lines, etc. for use with a simulator **(NOT IMPLEMENTED)**
 
 #### Key features
 
@@ -25,11 +23,11 @@ Here are some of the key features of xa80:
 * Open source
 * Two pass assembler
 * Supports mnemonics from different processors (8080, 8085, Z80, Z180) as a baked in standard
-* Supports 24bit code generation for the EZ80 processor **(NOT IMPLEMENTED)**
 * Ability to add additional opcode maps as external files
 * Opcode compiler so you can add your own secret/hidden instructions and extend to other processor variants in the "family"
 * Macro capability with nested expansion of macros allowed
 * Conditional assembly with IF / IFDEF / IFNDEF statements
+* Repetition through REPEAT and WHILE statements
 * Full expression evaluator with many functions and string handling capability
 * Rich set of command line parameters
 * xa80 Environment variable for commonly used parameters
@@ -58,18 +56,18 @@ which are supported by the Lazarus ecosystem in 32 and 64 bit flavours, includin
 * Windows
 
 **Tip**: For most people, it won't be necessary to alter or recompile the software. Just use the pre-compiled binaries available from this repository if they are
-sufficient for your needs. All you will need is **xa80** or **xa80.exe** depending on your operating system.
+sufficient for your needs. All you will need is **xa80** or **xa80.exe** depending on your operating system. There are packages available containing the binary and manuals.
 
 #### Dependencies
 
 To modify the grammar for the opcode compiler, or xa80 itself, will require the use of a tool called LaCoGen (Lazarus Compiler Generator).
 LaCoGen is [available from this GitHub](https://github.com/duncanamps/lacogen1). The grammar to deal with operands is contained in the .lac file and for the
 most part can be left alone. It's only if you want to add new functions or operators that you would need to get involved in changing
-the grammar file and recompiling with LaCoGen.
+the grammar file and recompiling with LaCoGen; 99.9% of people won't need to look at this.
 
 #### Documentation
 
-The [docs/](https://github.com/duncanamps/xa80/tree/main/docs) folder contains a user guide explaining how the assembler is used.
+The [docs/](https://github.com/duncanamps/xa80/tree/main/docs) folder contains a user guide explaining how the assembler is used, and also the opcode compiler if you want to get into the detail.
 
 #### Folder Structure
 
@@ -83,20 +81,18 @@ Folders are organised as follows:
   * [opcodes/](https://github.com/duncanamps/xa80/tree/main/opcodes) - The folder containing the opcode compiler oc_comp (see readme.txt in the folder)
     * [opcodes/lac/](https://github.com/duncanamps/xa80/tree/main/opcodes/lac) - Grammar for the opcode compiler, opcode_compiler.lac compiles info opcode_compiler.lacobj
 	* [opcodes/source/](https://github.com/duncanamps/xa80/tree/main/opcodes/source) - The source files describing the different combinations of instructions and operands
-  * [test_files/](https://github.com/duncanamps/xa80/tree/main/test_files) - A set of test files to check that things work, and also includes some deliberate fails to check the assembler response
+  * [test_files/](https://github.com/duncanamps/xa80/tree/main/test_files) - A set of test files to check that things work, and also includes some deliberate fails to check the assembler response to warning and error conditions
   * [units/](https://github.com/duncanamps/xa80/tree/main/units) - The bulk of the source code resides in here
 
 #### Known Issues 
 
-* Need to get a bunch of major features working such as object files, debug files, and 24 bit code generation
-
+* No major issues identified at this time
 
 #### Development roadmap
 
-* V0.2 - **Current Production**
-* V0.3 - Heavy use of assembler with automated testing to remove any bugs found
-* V1.0 - Introduces segmented architecture, object files, debug info generation
-* V2.0 - Introduces 24 bit capability
+* V0.3 - **Current Stable Release**
+* V1.0 - FUTURE: Introduce segmented architecture, object files, debug info generation
+* V2.0 - FUTURE: Introduce 24 bit capability
 
 #### Author
 
