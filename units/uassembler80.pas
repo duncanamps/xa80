@@ -237,7 +237,7 @@ type
     constructor Create(const _processor: string);
     destructor Destroy; override;
     procedure Assemble(const filename: string);
-    procedure AssembleLine(const _s: string);
+    procedure AssembleLine(const _s: string; set_line: boolean = True);
     procedure AssemblePass(_pass: integer; const filename: string);
     procedure DumpInstructions;
     procedure DumpReserved;
@@ -1098,7 +1098,7 @@ end;
 
 // Key routine - assemble a single line of text from the input
 
-procedure TAssembler80.AssembleLine(const _s: string);
+procedure TAssembler80.AssembleLine(const _s: string; set_line: boolean);
 var
   labelx: string;
   command_index: integer;
@@ -1122,7 +1122,7 @@ var
 
 begin
   FSolGenerate := FAsmStack.CanGenerate;
-  ErrorObj.SourceLine := _s;
+  ErrorObj.SourceLine := _s;  // DOn't set this when expanding macro
   FCodeBuffer.Init;
   Parse(_s,FDefiningMacro); // Do the pre-parsing and main parsing
   labelx := FPreparser.LabelX;
@@ -2016,7 +2016,43 @@ var i,j: integer;
     serial: integer;
     param:  string;
     repl_flags: TReplaceFlags;
+    checking_angles: boolean;
 begin
+  // Group together any parameters that are enclosed in < > angle brackets
+  // For example  <1,2,3>, 4, 5
+  //   param 1 = 1,2,3
+  //   param 2 = 4
+  //   param 3 = 5
+  checking_angles := True;
+  while checking_angles do
+    begin
+      checking_angles := False;
+      i := 0;
+      while (i < macro_entry.Params.Count-1) do // Online go to n-1 as we must have at least 2 to combine
+        begin
+          if LeftStr(macro_entry.Params[i],1) = '<' then // Potential group
+            begin
+              j := i + 1;
+              while (j < macro_entry.Params.Count) and (RightStr(macro_entry.Params[j],1) <> '>') do
+                Inc(j);
+              if j < macro_entry.Params.Count then
+                begin  // Can combine
+                  checking_angles := True;
+                  macro_entry.Params[i] := RightStr(macro_entry.Params[i],Length(macro_entry.Params[i])-1);
+                  macro_entry.Params[j] := LeftStr(macro_entry.Params[j],Length(macro_entry.Params[j])-1);
+                  // Do the combine
+                  while j > i do
+                    begin
+                      macro_entry.Params[i] := macro_entry.Params[i] + ',' + macro_entry.Params[i+1];
+                      macro_entry.Params.Delete(i+1);
+                      Dec(j);
+                    end;
+                end;
+            end;
+          Inc(i);
+        end;
+    end;
+  // Now carry on with the rest of the expansion
   serial := FMacroList.AllocateSerial;
   repl_flags := [rfReplaceAll];
   if not FCaseSensitive then
@@ -2042,7 +2078,7 @@ begin
             if p > 0 then
               s := StringReplace(s,param,macro_entry.Params[j],repl_flags);
           end;
-      AssembleLine(s);
+      AssembleLine(s,False);
     end;
 end;
 
