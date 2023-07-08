@@ -143,6 +143,7 @@ type
                      E2061_PROCESSOR_NOT_LOADED,
                      E2062_COMMAND_ALREADY_USED_AS_LABEL,
                      E2063_COMMAND_ALREADY_USED,
+                     E2064_FAILED_MACRO_EXPANSION,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -285,6 +286,7 @@ var
     'Could not load processor details from %s',
     'Command %s has already been used as a label',
     'Command %s cannot now be used as a label',
+    'Failed macro expansion',
 
     'Unhandled case option at %s',
     'Preparser peeek error',
