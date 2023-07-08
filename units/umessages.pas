@@ -77,6 +77,7 @@ type
                      W1004_END_OPERANDS_IGNORED,
                      W1005_SYMBOL_UNDEFINED,
                      W1006_COMMAND_AS_SYMBOL,
+                     W1007_MACRO_CALL_MISMATCH,
 
                      E2000_USER_ERROR,
                      E2001_ILLEGAL_ESCAPE_CHARACTER,
@@ -218,6 +219,7 @@ var
     'Operands after END directive ignored',
     'Symbol %s is undefined',
     'Symbol %s replaces command of the same name',
+    'Macro parameter count mismatch - expected %d parameters, received %d',
 
     '%s',
     'Illegal escape character %s, valid are %s',

@@ -2021,26 +2021,27 @@ begin
   repl_flags := [rfReplaceAll];
   if not FCaseSensitive then
     repl_flags := repl_flags + [rfIgnoreCase];
+  if (FPass = 1) and (macro_entry.Headings.Count <> macro_entry.Params.Count) then
+    ErrorObj.Show(ltWarning,W1007_MACRO_CALL_MISMATCH,[macro_entry.Headings.Count,macro_entry.Params.Count]);
   for i := 0 to macro_entry.Content.Count-1 do
     begin
       s := macro_entry.Content[i];
 
       p := Pos('{#}',s);
       if p > 0 then
-        s := StringReplace(s,'{#}',IntToStr(serial),[]);
+        s := StringReplace(s,'{#}',IntToStr(serial),[rfReplaceAll]);
 
       for j := 0 to macro_entry.Headings.Count-1 do
-        begin
-          if j >= macro_entry.Params.Count then
-            Exit;
-          param := '{' + macro_entry.Headings[j] + '}';
-          if FCaseSensitive then
-            p := Pos(param,s)
-          else
-            p := Pos(param,UpperCase(s));
-          if p > 0 then
-            s := StringReplace(s,param,macro_entry.Params[j],repl_flags);
-        end;
+        if j < macro_entry.Params.Count then
+          begin
+            param := '{' + macro_entry.Headings[j] + '}';
+            if FCaseSensitive then
+              p := Pos(param,s)
+            else
+              p := Pos(param,UpperCase(s));
+            if p > 0 then
+              s := StringReplace(s,param,macro_entry.Params[j],repl_flags);
+          end;
       AssembleLine(s);
     end;
 end;
