@@ -2078,6 +2078,8 @@ begin
             if p > 0 then
               s := StringReplace(s,param,macro_entry.Params[j],repl_flags);
           end;
+      if ((Pos('{',s) > 0) or (Pos('}',s) > 0)) and (FPass = 1) then
+        ErrorObj.Show(ltError,E2064_FAILED_MACRO_EXPANSION);
       AssembleLine(s,False);
     end;
 end;
