@@ -1,9 +1,12 @@
 ;        TITLE   'HELLO.Z80 - Hello World'
 
-        ORG     0100H
-
 BDOS            EQU     0005H   ; BDOS entry address
 C_WRITESTR      EQU     9       ; BDOS command to write $ terminated string
+
+		SEGMENT	CSEG, FIXED, READWRITE
+		
+        ORG     0100H
+
 
 HELLO:
         LD      DE,MSG      	; Get address of msg

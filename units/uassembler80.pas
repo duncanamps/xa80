@@ -2,7 +2,7 @@ unit uassembler80;
 
 {
     XA80 - Cross Assembler for x80 processors
-    Copyright (C)2020-2023 Duncan Munro
+    Copyright (C)2020-2024 Duncan Munro
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ uses
   Classes, SysUtils, lacogen_types, lacogen_module,
   umessages, uinstruction, usymboltable,
   upreparser3, ucommand, upreparser3_defs, ucodebuffer, ulisting, uinclude,
-  uenvironment, ustack, umacro;
+  uenvironment, ustack, umacro, ucodesegment;
 
 type
   TCompareMode = (cmEqual, cmNotEqual, cmLessThan, cmLessEqual, cmGreaterThan,
@@ -74,6 +74,7 @@ type
     FPreparser: TPreparser;
     FProcArray: array of TLCGParserProc;
     FProcessor: string;
+    FSegments: TSegments;
     FSolGenerate: boolean;
     FSymbolTable: TSymbolTable;
     FTitle: string;
@@ -188,6 +189,7 @@ type
     procedure CmdWARNOFF(const _label: string; _preparser: TPreparserBase);
     procedure CmdORG(const _label: string; _preparser: TPreparserBase);
     procedure CmdREPEAT(const _label: string; _preparser: TPreparserBase);
+    procedure CmdSEGMENT(const _label: string; _preparser: TPreparserBase);
     procedure CmdTITLE(const _label: string; _preparser: TPreparserBase);
     procedure CmdUDATA(const _label: string; _preparser: TPreparserBase);
     procedure CmdWARNON(const _label: string; _preparser: TPreparserBase);
@@ -300,6 +302,7 @@ begin
   FMacroList  := TMacroList.Create;
   FMacroStack := TMacroStack.Create;
   FDefMacro   := TMacroEntry.Create;
+  FSegments   := TSegments.Create;
 
   FCmdList.SymbolTable := FSymbolTable;
   FPreparser.MacroList := FMacroList;
@@ -316,6 +319,7 @@ end;
 
 destructor TAssembler80.Destroy;
 begin
+  FreeAndNil(FSegments);
   FreeAndNil(FDefMacro);
   FreeAndNil(FMacroStack);
   FreeAndNil(FMacroList);
@@ -1263,7 +1267,7 @@ begin
       end;
   end
   else
-  if FSolGenerate then
+  if FSolGenerate and (FCodeBuffer.Contains > 0) then
     Org := Org + FCodeBuffer.Contains;
   // Process the include file if required
   ProcessInclude;
@@ -1285,6 +1289,7 @@ begin
   FPreparser.Pass := _pass;
   FSymbolTable.Pass := _pass;
   FAsmStack.Clear;
+  FSegments.Clear;
   FListing.Listing := True;
 
   ErrorObj.Filename := filename;
@@ -1763,7 +1768,7 @@ begin
     pstString: ErrorObj.Show(ltError, E2019_EXPECTED_INTEGER);
     pstINT32: begin
       CheckOperandInteger(0, 0, $FFFF);
-      FOrg := _preparser[0].IntValue;
+      Org := _preparser[0].IntValue;
     end;
   end; // case
 end;
@@ -1791,6 +1796,101 @@ begin
   entry.LineNumber := FInputLine;
   entry.RepeatRemain := FPreparser[0].IntValue;
   FAsmStack.Add(entry);
+end;
+
+
+procedure TAssembler80.CmdSEGMENT(const _label: string; _preparser: TPreparserBase);
+const TOKENCOUNT = 8;
+      _tokens: array[0..TOKENCOUNT-1] of string = ('FIXED',
+                                                   'READONLY',
+                                                   'UNINITIALISED',
+                                                   'UNINITIALIZED',
+                                                   'RELOCATABLE',
+                                                   'READWRITE',
+                                                   'INITIALISED',
+                                                   'INITIALIZED');
+      _mods: array[0..TOKENCOUNT-1] of TSegmentModifiers = ([smFixed],
+                                                            [smReadOnly],
+                                                            [smUninitialised],
+                                                            [smUninitialised],
+                                                            [],
+                                                            [],
+                                                            [],
+                                                            []);
+      _dealing: array[0..TOKENCOUNT-1] of TSegmentModifier = (smFixed,
+                                                              smReadOnly,
+                                                              smUninitialised,
+                                                              smUninitialised,
+                                                              smFixed,
+                                                              smReadOnly,
+                                                              smUninitialised,
+                                                              smUninitialised);
+var _segname: string;
+    _operand: string;
+    _dealtwith: array[TSegmentModifier] of boolean;
+    _allmods: TSegmentModifiers;
+    _seg: TSegment;
+    _smiter: TSegmentModifier;
+    i,j: integer;
+    _index: integer;
+begin
+  // Should be at least one operand which will be the name and optional
+  // operands for the different TSegmentModifier entries. Typically these
+  // would be:
+  //
+  //   FIXED / RELOCATABLE[default]
+  //   READONLY / READWRITE[default]
+  //   UNINITIALISED or UNINITIALIZED / INITIALISED or INITIALIZED [default]
+  //
+  // If a segment has already been defined then there should be no other
+  // operands allowed, this will give a segment modifier error message.
+  // So we would expect between 1 and 4 operands
+  CheckOperandCount(1, 4);
+  _segname := FPreparser[0].Payload;
+  if not CaseSensitive then
+    _segname := UpperCase(_segname);
+  // Loop through the remaining items to see if there are segment modifiers
+  // Check to ensure no clashes, for example having FIXED and RELOCATABLE
+  // isn't going to make sense
+  for _smiter in TSegmentModifier do
+    _dealtwith[_smiter] := False; // Clear array of the items we've dealt with
+  _allmods := [];
+  for i := 1 to FPreparser.Count-1 do
+    begin
+      _operand := UpperCase(FPreparser[i].Payload);
+      _index := -1;
+      for j := 0 to TOKENCOUNT-1 do
+        if _operand = _tokens[j] then
+          begin
+            _index := j;
+            break;
+          end;
+      if _index < 0 then
+        ErrorObj.Show(ltError,E2065_ILLEGAL_SEGMENT_MODIFIER,[_operand])
+      else
+        begin
+          if _dealtwith[_dealing[_index]] then
+            ErrorObj.Show(ltWarning,W1010_SEGMENT_MODIFIER_CLASH,[_operand])
+          else
+            begin
+              _allmods := _allmods + _mods[_index];
+              _dealtwith[_dealing[_index]] := True;
+            end;
+        end;
+    end;
+  // Check if the segment already exists, if so don't have any other operands
+  // If the segment doesn't, exist we create it here
+  _seg := FSegments.FindByName(_segname,CaseSensitive);
+  if _seg = nil then
+    begin // Create new segment
+      FSegments.CreateSegment(_segname,_allmods);
+    end
+  else
+    begin // Set current segment and ensure no operands
+      FSegments.CurrentSegment := _seg;
+      if FPreparser.Count > 1 then
+        ErrorObj.Show(ltWarning,W1009_SEGMENT_MODIFIERS_IGNORED,[_segname]);
+    end;
 end;
 
 procedure TAssembler80.CmdTITLE(const _label: string; _preparser: TPreparserBase);
@@ -2599,6 +2699,7 @@ begin
   FCmdList.RegisterCommand('.MSGWARNING',[],                        @CmdMSGWARNING);
   FCmdList.RegisterCommand('.ORG',       [],                        @CmdORG);
   FCmdList.RegisterCommand('.REPEAT',    [cfNoPlaceholder,cfBypass],@CmdREPEAT);
+  FCmdList.RegisterCommand('.SEGMENT',   [],                        @CMDSEGMENT);
   FCmdList.RegisterCommand('.TEXT',      [cfLabel],                 @CmdDB);
   FCmdList.RegisterCommand('.TITLE',     [],                        @CmdTITLE);
   FCmdList.RegisterCommand('.WARNOFF',   [],                        @CmdWARNOFF);
@@ -2636,6 +2737,7 @@ begin
   FCmdList.RegisterCommand('MSGWARNING', [],                        @CmdMSGWARNING);
   FCmdList.RegisterCommand('ORG',        [],                        @CmdORG);
   FCmdList.RegisterCommand('REPEAT',     [cfNoPlaceholder,cfBypass],@CmdREPEAT);
+  FCmdList.RegisterCommand('SEGMENT',    [],                        @CMDSEGMENT);
   FCmdList.RegisterCommand('TEXT',       [cfLabel],                 @CmdDB);
   FCmdList.RegisterCommand('TITLE',      [],                        @CmdTITLE);
   FCmdList.RegisterCommand('WARNOFF',    [],                        @CmdWARNOFF);
@@ -2760,6 +2862,7 @@ begin
     _neworg := _neworg and $FFFF;
   end;
   FOrg := _neworg;
+  FSegments.SetOrg(FOrg);
 end;
 
 procedure TAssembler80.SetTitle(_title: string);

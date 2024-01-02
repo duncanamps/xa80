@@ -4,7 +4,7 @@ unit umessages;
 
 {
     XA80 - Cross Assembler for x80 processors
-    Copyright (C)2020-2023 Duncan Munro
+    Copyright (C)2020-2024 Duncan Munro
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -78,6 +78,9 @@ type
                      W1005_SYMBOL_UNDEFINED,
                      W1006_COMMAND_AS_SYMBOL,
                      W1007_MACRO_CALL_MISMATCH,
+                     W1008_NO_DEFAULT_SEGMENT,
+                     W1009_SEGMENT_MODIFIERS_IGNORED,
+                     W1010_SEGMENT_MODIFIER_CLASH,
 
                      E2000_USER_ERROR,
                      E2001_ILLEGAL_ESCAPE_CHARACTER,
@@ -144,6 +147,7 @@ type
                      E2062_COMMAND_ALREADY_USED_AS_LABEL,
                      E2063_COMMAND_ALREADY_USED,
                      E2064_FAILED_MACRO_EXPANSION,
+                     E2065_ILLEGAL_SEGMENT_MODIFIER,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -221,6 +225,9 @@ var
     'Symbol %s is undefined',
     'Symbol %s replaces command of the same name',
     'Macro parameter count mismatch - expected %d parameters, received %d',
+    'Outputting code with no segment definition, default CSEG created',
+    'Segment modifiers ignored, segment %s has already been defined',
+    'Segment modifier %s clashes with a preceding modifier',
 
     '%s',
     'Illegal escape character %s, valid are %s',
@@ -287,6 +294,7 @@ var
     'Command %s has already been used as a label',
     'Command %s cannot now be used as a label',
     'Failed macro expansion',
+    'Illegal segment modifier %s',
 
     'Unhandled case option at %s',
     'Preparser peeek error',

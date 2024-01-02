@@ -2,7 +2,7 @@ unit uasmglobals;
 
 {
     XA80 - Cross Assembler for x80 processors
-    Copyright (C)2020-2023 Duncan Munro
+    Copyright (C)2020-2024 Duncan Munro
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ uses
 
 
 const
-  COPYRIGHT_YEAR                    = '2023';
+  COPYRIGHT_YEAR                    = '2024';
   DEFAULT_GRAMMAR_VALUE             = 'XA80';
   DEFAULT_LISTING_MARGIN_LEFT       = 0;
   DEFAULT_LISTING_MARGIN_TOP        = 2;

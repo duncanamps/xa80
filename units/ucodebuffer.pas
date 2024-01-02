@@ -12,9 +12,9 @@ type
 
   TCodeBuffer = class(TObject)
     private
-    FBuffer:   TCodeArray;
-    FContains: integer;
-    FGenerate: boolean;
+     FBuffer:   TCodeArray;
+     FContains: integer;
+     FGenerate: boolean;
     public
       function  AsString: string;
       procedure Push(_b: byte);
