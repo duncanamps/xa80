@@ -216,7 +216,7 @@ uses
 {$IFDEF WINDOWS}
   Windows, // For definition of RT_RCDATA
 {$ENDIF}
-  umessages;
+  uasmglobals, umessages;
 
 const
   LACOBJ_MAGIC_WORD = $0143414C;
@@ -922,7 +922,7 @@ begin
   _entry.State   := _state;
   _entry.Token   := _token;
   _entry.Buf     := _buf;
-  _entry.Source  := pssUndefined;
+  _entry.Source  := esUndefined;
   _entry.BufType := pstNone;
   _entry.BufInt  := 0;
   Push(_entry);
