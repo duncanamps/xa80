@@ -1891,6 +1891,8 @@ begin
       if FPreparser.Count > 1 then
         ErrorObj.Show(ltWarning,W1009_SEGMENT_MODIFIERS_IGNORED,[_segname]);
     end;
+  // Finally, set ORG to the correct value
+  FOrg := FSegments.GetOrg;
 end;
 
 procedure TAssembler80.CmdTITLE(const _label: string; _preparser: TPreparserBase);
@@ -2699,7 +2701,7 @@ begin
   FCmdList.RegisterCommand('.MSGWARNING',[],                        @CmdMSGWARNING);
   FCmdList.RegisterCommand('.ORG',       [],                        @CmdORG);
   FCmdList.RegisterCommand('.REPEAT',    [cfNoPlaceholder,cfBypass],@CmdREPEAT);
-  FCmdList.RegisterCommand('.SEGMENT',   [],                        @CMDSEGMENT);
+  FCmdList.RegisterCommand('.SEGMENT',   [cfNoPlaceholder],         @CMDSEGMENT);
   FCmdList.RegisterCommand('.TEXT',      [cfLabel],                 @CmdDB);
   FCmdList.RegisterCommand('.TITLE',     [],                        @CmdTITLE);
   FCmdList.RegisterCommand('.WARNOFF',   [],                        @CmdWARNOFF);
@@ -2737,7 +2739,7 @@ begin
   FCmdList.RegisterCommand('MSGWARNING', [],                        @CmdMSGWARNING);
   FCmdList.RegisterCommand('ORG',        [],                        @CmdORG);
   FCmdList.RegisterCommand('REPEAT',     [cfNoPlaceholder,cfBypass],@CmdREPEAT);
-  FCmdList.RegisterCommand('SEGMENT',    [],                        @CMDSEGMENT);
+  FCmdList.RegisterCommand('SEGMENT',    [cfNoPlaceholder],         @CMDSEGMENT);
   FCmdList.RegisterCommand('TEXT',       [cfLabel],                 @CmdDB);
   FCmdList.RegisterCommand('TITLE',      [],                        @CmdTITLE);
   FCmdList.RegisterCommand('WARNOFF',    [],                        @CmdWARNOFF);
