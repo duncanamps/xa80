@@ -123,6 +123,12 @@ type
   end;
   }
 
+  TExpressionSource = (esUndefined, // Known about, but not defined/declared
+                       esConstant,  // Constant value we know about now
+                       esExtern,    // External 16 bit value (constant or reloc)
+                       esOffsetFix, // Fixed offset internally
+                       esOffsetRel, // Relocatable offset internally
+                       esUnusable); // A mish mash of the above which can't be used
 
   TCodeRecord = record
     start_address: word;

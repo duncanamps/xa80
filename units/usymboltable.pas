@@ -26,21 +26,20 @@ unit usymboltable;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections;
+  Classes, SysUtils, Generics.Collections, ucodesegment;
 
 type
   // Addresses are relocatable, integers are not
-  TSymbolType = (stUnknown,stAddress,stWord,stString);
+
+  TSymbolDataType = (stUnknown,stAddress,stWord,stString);
 
   TSymbolArea = (saInternal,saExported,saExternal);
 
-  TSymbolSeg  = (ssCSEG,ssDSEG,ssBSS);
-
   TSymbol = record
     Name:         string;
-    SymType:      TSymbolType;
+    SymType:      TSymbolDataType;
     Area:         TSymbolArea;
-    Seg:          TSymbolSeg;
+    Seg:          TSegment;
     IValue:       Word;
     SValue:       string;
     CreationPass: integer;
@@ -63,7 +62,7 @@ type
       MixedCase: boolean;
       constructor Create;
       destructor Destroy; override;
-      function  Add(_name: string; _datatype: TSymbolType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean): integer; reintroduce;
+      function  Add(_name: string; _datatype: TSymbolDataType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean): integer; reintroduce;
       procedure Clear;
       function  CalcHash(const _txt:string): integer;
       function  Defined(const _name: string): boolean;
@@ -140,7 +139,7 @@ begin
     SetHashSize(NextPrime(HashSize * HASH_EXPANSION));
 end;
 
-function TSymbolTable.Add(_name: string; _datatype: TSymbolType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean): integer;
+function TSymbolTable.Add(_name: string; _datatype: TSymbolDataType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean): integer;
 var idx: integer;
     sym: TSymbol;
 begin

@@ -25,7 +25,7 @@ unit lacogen_types;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, uasmglobals;
 
 
 const
@@ -103,15 +103,13 @@ type
 
   TLCGParserStackType = (pstNone,pstINT32,pstString);
 
-  TParserStackSource = (pssUndefined,pssConstant);
-
   TLCGParserStackEntry = record
       State:     TLCGStateIdentifier;
       Token:	 TToken;
       BufType:   TLCGParserStackType;
       Buf:       TString;
       BufInt:    int32;
-      Source:    TParserStackSource;
+      Source:    TExpressionSource;
     end;
 
   TLCGParserStack = array of TLCGParserStackEntry;
@@ -122,7 +120,7 @@ const
                                            BufType: pstString;
                                            Buf:     '';
                                            BufInt:  0;
-                                           Source:  pssUndefined);
+                                           Source:  esUndefined);
 
 implementation
 

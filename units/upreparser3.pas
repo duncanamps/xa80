@@ -621,7 +621,7 @@ var i:       integer;
             prop.DataType := pstNone;
             prop.IntValue := 0;
             prop.StrValue := '';
-            prop.Source   := pssUndefined;
+            prop.Source   := esUndefined;
             Add(prop);
           end;
         state := _newstate;

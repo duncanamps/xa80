@@ -5,7 +5,7 @@ unit upreparser3_defs;
 interface
 
 uses
-  Classes, SysUtils, lacogen_types, Generics.Collections;
+  Classes, SysUtils, lacogen_types, Generics.Collections, uasmglobals;
 
 type
   TParserState = (psNone,
@@ -34,7 +34,7 @@ type
     DataType: TLCGParserStackType; // Data type of the parsed item
     IntValue: word;          // Integer value from the main Parser
     StrValue: String;        // String value from the main Parser
-    Source:   TParserStackSource; // Variable, constant, etc.
+    Source:   TExpressionSource; // Variable, constant, etc.
   end;
 
   TPreparserBase = class(specialize TList<TParserProp>);
