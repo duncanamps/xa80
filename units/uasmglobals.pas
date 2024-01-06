@@ -124,11 +124,12 @@ type
   }
 
   TExpressionSource = (esUndefined, // Known about, but not defined/declared
-                       esConstant,  // Constant value we know about now
+                       esConstantI, // Constant value we know about now (int)
+                       esConstantS, // Constant value we know about now (str)
                        esExtern,    // External 16 bit value (constant or reloc)
-                       esOffsetFix, // Fixed offset internally
-                       esOffsetRel, // Relocatable offset internally
-                       esUnusable); // A mish mash of the above which can't be used
+                       esAddressF,  // Fixed address internally in same segment
+                       esAddressR,  // Relocatable address in the same module
+                       esUnusable); // A mish mash of the above which is unusable
 
   TCodeRecord = record
     start_address: word;
@@ -146,8 +147,27 @@ type
   end;
 
 
+function ExpressionSourceToStr(_es: TExpressionSource): string; // Forward
 
 implementation
+
+uses
+  umessages, lacogen_types;
+
+function ExpressionSourceToStr(_es: TExpressionSource): string;
+begin
+  case _es of
+    esUndefined: ExpressionSourceToStr := 'Undefined';
+    esConstantI: ExpressionSourceToStr := 'Const Int';
+    esConstantS: ExpressionSourceToStr := 'Const Str';
+    esExtern:    ExpressionSourceToStr := 'External';
+    esAddressF:  ExpressionSourceToStr := 'Address F';
+    esAddressR:  ExpressionSourceToStr := 'Address R';
+    esUnusable:  ExpressionSourceToStr := 'Unusable';
+    otherwise
+      ErrorObj.Show(ltInternal,X3016_UNHANDLED_EXPRESSION_SOURCE);
+  end;
+end;
 
 end.
 

@@ -1,0 +1,49 @@
+;        TITLE   'HELLO.Z80 - Hello World'
+
+BDOS            EQU     0005H   ; BDOS entry address
+C_WRITESTR      EQU     9       ; BDOS command to write $ terminated string
+
+;============================================================================		
+		SEGMENT	CSEG, FIXED, READWRITE
+;============================================================================		
+		
+        ORG     0100H
+
+
+HELLO:
+        LD      DE,MSG      	; Get address of msg
+		CALL	WRITESTR		; Write it out
+		RET						; Back to caller
+		
+;============================================================================		
+		SEGMENT CONSTANTS, RELOCATABLE, READONLY
+;============================================================================		
+
+; Text strings
+
+
+MSG: 	DB      'Hello World',13,10
+		DB		'Created with XA80 cross assembler',13,10
+		DB		'---------------------------------',13,10,10
+		DB		'Assembled:       ',DATE(),' ',TIME(),13,10
+		DB		"Version:         ",VERSION(),13,10
+		DB		"Build:           ",BUILD(),13,10
+		
+		DB		'$'
+
+;============================================================================		
+		SEGMENT	CSEG
+;============================================================================		
+
+; Write a string, call with DE holding the address of the $ terminated string
+
+WRITESTR:
+        LD      C,C_WRITESTR    ; Write string function
+        JP      BDOS            ; Go to BDOS to write the string
+
+		SEGMENT EMPTYSEG
+		
+WALLOP	EQU		1234
+
+        END
+		

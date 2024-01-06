@@ -26,7 +26,7 @@ unit usymboltable;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, ucodesegment;
+  Classes, SysUtils, Generics.Collections, ucodesegment, uasmglobals;
 
 type
   // Addresses are relocatable, integers are not
@@ -46,6 +46,7 @@ type
     DefinedPass:  integer;
     Referenced:   boolean;
     Defined:      boolean;
+    Source:       TExpressionSource;
   end;
 
   TSymbolTable = class(specialize TList<TSymbol>)
@@ -62,15 +63,15 @@ type
       MixedCase: boolean;
       constructor Create;
       destructor Destroy; override;
-      function  Add(_name: string; _datatype: TSymbolDataType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean): integer; reintroduce;
+      function  Add(_name: string; _seg: TSegment; _datatype: TSymbolDataType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean; _src: TExpressionSource): integer; reintroduce;
       procedure Clear;
       function  CalcHash(const _txt:string): integer;
       function  Defined(const _name: string): boolean;
       procedure Dump(_strm: TFileStream; const _caption: string);
       procedure DumpByAddress(_strm: TFileStream);
       procedure DumpByAddress(const filename: string);
-      procedure DumpByBoth(_strm: TFileStream);
-      procedure DumpByBoth(const filename: string);
+      procedure DumpByBoth(_strm: TFileStream; _segments: TSegments);
+      procedure DumpByBoth(const filename: string; _segments: TSegments);
       procedure DumpByName(_strm: TFileStream);
       procedure DumpByName(const filename: string);
       function  IndexOf(_name: string): integer; reintroduce;
@@ -82,7 +83,7 @@ type
 implementation
 
 uses
-  Generics.Defaults, uasmglobals, uutility;
+  Generics.Defaults, uutility;
 
 const
   HASH_RATIO = 3;
@@ -100,13 +101,31 @@ begin
 end;
 
 function CompareAddress(constref Left,Right: TSymbol): integer;
+  function SegmentText(_seg: TSegment): string;
+  begin
+    if not Assigned(_seg) then
+      SegmentText := ''
+    else
+      SegmentText := _seg.Segname;
+  end;
+
 begin
-  if Left.IValue = Right.IValue then
-    Result := CompareName(Left,Right)
-  else if Left.IValue > Right.IValue then
-    Result := 1
+  if SegmentText(Left.Seg) = SegmentText(Right.Seg) then
+    begin
+      if Left.IValue = Right.IValue then
+        Result := CompareName(Left,Right)
+      else if Left.IValue > Right.IValue then
+        Result := 1
+      else
+        Result := -1;
+    end
   else
-    Result := -1;
+    begin
+      if SegmentText(Left.Seg) > SegmentText(Right.Seg) then
+        Result := 1
+      else
+        Result := -1;
+    end;
 end;
 
 
@@ -139,7 +158,7 @@ begin
     SetHashSize(NextPrime(HashSize * HASH_EXPANSION));
 end;
 
-function TSymbolTable.Add(_name: string; _datatype: TSymbolDataType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean): integer;
+function TSymbolTable.Add(_name: string; _seg: TSegment; _datatype: TSymbolDataType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean; _src: TExpressionSource): integer;
 var idx: integer;
     sym: TSymbol;
 begin
@@ -154,11 +173,13 @@ begin
     Exit;
   // Finally use the base Add() procedure
   sym.Name         := _name;
+  sym.Seg          := _seg;
   sym.IValue       := _ival;
   sym.SValue       := _sval;
   sym.Defined      := _defined;
   sym.Referenced   := _referenced;
   sym.SymType      := _datatype;
+  sym.Source       := _src;
   sym.CreationPass := FPass;
   if _defined then
     sym.DefinedPass := FPass
@@ -210,6 +231,9 @@ var i: integer;
     line: integer;
     pagestr: string;
     spc:     integer;
+    segname: string;
+    segment: TSegment;
+    source:  string;
 
   procedure MyWrite(const _buf: string);
   begin
@@ -225,8 +249,8 @@ var i: integer;
     MyWrite(_caption + Space(spc div 2) + Title + Space(spc - spc div 2) + pagestr + LINE_TERMINATOR);
     MyWrite(StringOfChar('-',PAGE_WIDTH) + LINE_TERMINATOR);
     MyWrite(LINE_TERMINATOR);
-    MyWrite('  HEX   DEC T NAME' + LINE_TERMINATOR);
-    MyWrite('----- ----- - ----' + LINE_TERMINATOR);
+    MyWrite('  HEX   DEC SEGMENT              SOURCE    T NAME' + LINE_TERMINATOR);
+    MyWrite('----- ----- -------------------- --------- - ----' + LINE_TERMINATOR);
     line := 7;
   end;
 
@@ -252,12 +276,18 @@ begin
         otherwise
           t_ch := '?';
       end;
+      source := ExpressionSourceToStr(Items[i].Source);
       if not Items[i].Defined then
         t_ch := '?';
-      if Items[i].SymType = stString then
-        s := Format('$%4.4X %5d %s %s "%s"',[Items[i].IValue,Items[i].IValue,t_ch,Items[i].Name,Items[i].SValue])
+      segment := Items[i].Seg;
+      if not Assigned(segment) then
+        segname := '<nil>'
       else
-        s := Format('$%4.4X %5d %s %s',[Items[i].IValue,Items[i].IValue,t_ch,Items[i].Name]);
+        segname := segment.Segname;
+      if Items[i].SymType = stString then
+        s := Format('$%4.4X %5d %-20s %-9s %s %s "%s"',[Items[i].IValue,Items[i].IValue,segname,source,t_ch,Items[i].Name,Items[i].SValue])
+      else
+        s := Format('$%4.4X %5d %-20s %-9s %s %s',[Items[i].IValue,Items[i].IValue,segname,source,t_ch,Items[i].Name]);
       MyWrite(s + LINE_TERMINATOR);
       Inc(line);
     end;
@@ -284,25 +314,26 @@ begin
   end;
 end;
 
-procedure TSymbolTable.DumpByBoth(_strm: TFileSTream);
+procedure TSymbolTable.DumpByBoth(_strm: TFileSTream; _segments: TSegments);
 begin
   // This destroys the hashing but we can assume it will only be called
   // after all the assembly is complete
   FPrintPage := 0;
+  _segments.Dump(_strm,FPrintPage);
   Sort(specialize TComparer<TSymbol>.Construct(@CompareName));
   Dump(_strm,'SYMBOL NAME');
   Sort(specialize TComparer<TSymbol>.Construct(@CompareAddress));
   Dump(_strm,'SYMBOL ADDR');
 end;
 
-procedure TSymbolTable.DumpByBoth(const filename: string);
+procedure TSymbolTable.DumpByBoth(const filename: string; _segments: TSegments);
 var strm: TFileStream;
 begin
   if filename <> '' then
     begin
       strm := TFileStream.Create(filename,fmCreate);
       try
-        DumpByBoth(strm);
+        DumpByBoth(strm,_segments);
       finally
         FreeAndNil(strm);
       end;

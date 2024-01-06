@@ -163,6 +163,7 @@ type
                      X3012_PARSER_GOTO_ERROR,
                      X3013_LEXER_SET_ERROR,
                      X3015_POP_FROM_EMPTY_STACK,
+                     X3016_UNHANDLED_EXPRESSION_SOURCE,
 
                      X3999_UNHANDLED_EXCEPTION
                     );
@@ -310,6 +311,7 @@ var
     'Goto expected for rule index #%d but not found in table',
     'Attempt to set lexer buffer size while in the middle of an activity',
     'Attempt to pop from empty execution stack',
+    'Unhandled expression source',
 
     'Unhandled exception %s'
   );

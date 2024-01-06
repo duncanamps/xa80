@@ -338,14 +338,14 @@ function TAssembler80.ActBinLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.BufInt := VariableFromBinLiteral(ParserM1.Buf);
   Result.BufType := pstINT32;
-  Result.Source := esConstant;
+  Result.Source := esConstantI;
 end;
 
 function TAssembler80.ActCharConstant(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := StripQuotesAndEscaped(ParserM1.Buf);
   Result.BufType := pstString;
-  Result.Source := esConstant;
+  Result.Source := esConstantS;
   {
   Result.BufInt := Ord(ParserM1.Buf[2]);
   Result.BufType := pstINT32;
@@ -404,7 +404,7 @@ begin
     Result.BufInt := StrToInt(buf);
   Result.Buf := IntToStr(Result.BufInt);
   Result.BufType := pstINT32;
-  Result.Source := esConstant;
+  Result.Source := esConstantI;
 end;
 
 function TAssembler80.ActExprAdd(_parser: TLCGParser): TLCGParserStackEntry;
@@ -645,7 +645,7 @@ function TAssembler80.ActHexLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.BufInt := VariableFromHexLiteral(ParserM1.Buf);
   Result.BufType := pstINT32;
-  Result.Source := esConstant;
+  Result.Source := esConstantI;
 end;
 
 function TAssembler80.ActIgnore(_parser: TLCGParser): TLCGParserStackEntry;
@@ -731,7 +731,7 @@ function TAssembler80.ActOctLiteral(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.BufInt := VariableFromOctLiteral(ParserM1.Buf);
   Result.BufType := pstINT32;
-  Result.Source := esConstant;
+  Result.Source := esConstantI;
 end;
 
 {
@@ -773,7 +773,7 @@ function TAssembler80.ActStrBuild(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := EnvObject.Build;
   Result.BufType := pstString;
-  Result.Source := esConstant;
+  Result.Source := esConstantS;
 end;
 
 function TAssembler80.ActStrChr(_parser: TLCGParser): TLCGParserStackEntry;
@@ -788,7 +788,7 @@ function TAssembler80.ActStrDate(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := FormatDateTime('yyyy-mm-dd', StartTime);
   Result.BufType := pstString;
-  Result.Source := esConstant;
+  Result.Source := esConstantS;
 end;
 
 function TAssembler80.ActStrHex1(_parser: TLCGParser): TLCGParserStackEntry;
@@ -812,7 +812,7 @@ function TAssembler80.ActStringConstant(_parser: TLCGParser): TLCGParserStackEnt
 begin
   Result.Buf := StripQuotesAndEscaped(ParserM1.Buf);
   Result.BufType := pstString;
-  Result.Source := esConstant;
+  Result.Source := esConstantS;
 end;
 
 function TAssembler80.ActStrLeft(_parser: TLCGParser): TLCGParserStackEntry;
@@ -847,7 +847,7 @@ function TAssembler80.ActStrProcessor(_parser: TLCGParser): TLCGParserStackEntry
 begin
   Result.Buf := FProcessor;
   Result.BufType := pstString;
-  Result.Source := esConstant;
+  Result.Source := esConstantS;
 end;
 
 function TAssembler80.ActStrRight(_parser: TLCGParser): TLCGParserStackEntry;
@@ -871,7 +871,7 @@ function TAssembler80.ActStrTime(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := FormatDateTime('hh:nn:ss', StartTime);
   Result.BufType := pstString;
-  Result.Source := esConstant;
+  Result.Source := esConstantS;
 end;
 
 function TAssembler80.ActStrUpper(_parser: TLCGParser): TLCGParserStackEntry;
@@ -886,7 +886,7 @@ function TAssembler80.ActStrVersion(_parser: TLCGParser): TLCGParserStackEntry;
 begin
   Result.Buf := EnvObject.Version;
   Result.BufType := pstString;
-  Result.Source := esConstant;
+  Result.Source := esConstantS;
 end;
 
 {
@@ -897,10 +897,15 @@ end;
 }
 
 function TAssembler80.ActValueOrg(_parser: TLCGParser): TLCGParserStackEntry;
+var _seg: TSegment;
 begin
+  _seg := FSegments.CurrentSegment;
   Result := ParserM1;
   Result.BufInt := FOrg;
-  Result.Source := esConstant;
+  if smFixed in _seg.Modifiers then
+    Result.Source := esAddressF
+  else
+    Result.Source := esAddressR;
   Result.BufType := pstINT32;
 end;
 
@@ -919,7 +924,7 @@ var
   function SetSource: TExpressionSource;
   begin
     if sym.Defined then
-      SetSource := esConstant
+      SetSource := sym.Source
     else
       SetSource := esUndefined;
   end;
@@ -939,7 +944,7 @@ begin
       Result.BufType := pstINT32;
       Result.Source := esUndefined;
       if FSolGenerate and (not (cfNoPlaceholder in FPreparser.CmdFlags)) then
-        FSymbolTable.Add(Name, stAddress, 0, '', False, True);
+        FSymbolTable.Add(Name, nil, stAddress, 0, '', False, True, esUndefined);
     end
   else
     begin
@@ -989,7 +994,7 @@ begin
             s := sl[i];
             if Pos('=',s) = 0 then
               begin // Simple define with no assigment
-                FSymbolTable.Add(s,stWord,0,'',True,False);
+                FSymbolTable.Add(s,nil,stWord,0,'',True,False,esConstantI);
               end
             else
               begin
@@ -1000,9 +1005,9 @@ begin
                   if sl2.Count <> 2 then
                     ErrorObj.Show(ltError,E2059_COMMAND_LINE_DEFINE,[s]);
                   if (sl2[1] <> '') and (not (sl2[1][1] in ['0'..'9'])) then
-                    FSymbolTable.Add(sl2[0],stString,0,StripQuotes(sl2[1]),True,False)
+                    FSymbolTable.Add(sl2[0],nil,stString,0,StripQuotes(sl2[1]),True,False,esConstantS)
                   else
-                    FSymbolTable.Add(sl2[0],stWord,StrToInt(sl2[1]),'',True,False);
+                    FSymbolTable.Add(sl2[0],nil,stWord,StrToInt(sl2[1]),'',True,False,esConstantI);
                 finally
                   FreeAndNil(sl2);
                 end;
@@ -1019,6 +1024,7 @@ var
   equate_or_macro: boolean;
   _index: integer;
   _symbol: TSymbol;
+  _seg: TSegment;
 begin
   equate_or_macro := (_command_index >= 0) and
     ((FCmdList[_command_index].CommandName = '=') or
@@ -1027,34 +1033,45 @@ begin
     (FCmdList[_command_index].CommandName = '.EQU') or
     (FCmdList[_command_index].CommandName = '.MACRO'));
   if (_label <> '') and not equate_or_macro then
-  begin // Must be an ordinary program label, cannot already be assigned
-    if FPreparser.ForceColon and (not HasColon(_label)) then
-    begin
-      ErrorObj.ColNumber := 1; // Must be in column 1
-      ErrorObj.Show(ltError, E2016_COLON_NOT_PRESENT, [_label]);
-    end;
-    _index := FSymbolTable.IndexOf(StripColon(_label));
-    if (_index >= 0) then
-      begin
-        _symbol := FSymbolTable[_index];
-        if (FPass = 1) then
-          // Check for forward reference already defined
-          if (FSymbolTable[_index].SymType = stAddress) and
-            (FSymbolTable[_index].Defined = False) then
-          begin
-            _symbol.IValue := FOrg;
-            _symbol.Defined := True;
-            ;
-          end
+    begin // Must be an ordinary program label, cannot already be assigned
+      if FPreparser.ForceColon and (not HasColon(_label)) then
+        begin
+          ErrorObj.ColNumber := 1; // Must be in column 1
+          ErrorObj.Show(ltError, E2016_COLON_NOT_PRESENT, [_label]);
+        end;
+      _index := FSymbolTable.IndexOf(StripColon(_label));
+      FSegments.EnsureCurrentSegment;
+      _seg := FSegments.CurrentSegment;
+      if (_index >= 0) then
+        begin
+          _symbol := FSymbolTable[_index];
+          if (FPass = 1) then
+            // Check for forward reference already defined
+            if (FSymbolTable[_index].SymType = stAddress) and
+              (FSymbolTable[_index].Defined = False) then
+            begin
+              _symbol.IValue := FOrg;
+              _symbol.Defined := True;
+              _symbol.Seg     := _seg;
+              if smFixed in _seg.Modifiers then
+                _symbol.Source := esAddressF
+              else
+                _symbol.Source := esAddressR;
+            end
+            else
+              ErrorObj.Show(ltError, E2015_CODE_SYMBOL_DEFINED, [_label]);
+          _symbol.DefinedPass := FPass;
+          FSymbolTable[_index] := _symbol;
+        end
+      else
+        // Add the symbol at the current address
+        begin
+          if smFixed in _seg.Modifiers then
+            FSymbolTable.Add(StripColon(_label),_seg, stAddress, FOrg, '', True, False, esAddressF)
           else
-            ErrorObj.Show(ltError, E2015_CODE_SYMBOL_DEFINED, [_label]);
-        _symbol.DefinedPass := FPass;
-        FSymbolTable[_index] := _symbol;
-      end
-    else
-      // Add the symbol at the current address
-      FSymbolTable.Add(StripColon(_label), stAddress, FOrg, '', True, False);
-  end;
+            FSymbolTable.Add(StripColon(_label),_seg, stAddress, FOrg, '', True, False, esAddressR);
+        end;
+    end;
 end;
 
 // Key routine - assemble a whole file
@@ -1096,7 +1113,7 @@ begin
   CheckLabelsDefined;
   OutputMemoryToCom(FilenameCom);
   OutputMemoryToHex(FilenameHex);
-  FSymbolTable.DumpByBoth(FFilenameMap);
+  FSymbolTable.DumpByBoth(FFilenameMap,FSegments);
   ErrorObj.SetLogFilename('');
 end;
 
@@ -1133,7 +1150,7 @@ begin
   opcode_index := FPreparser.OpcodeIndex;
   command_index := FPreparser.CommandIndex;
   macro_index   := FPreparser.MacroIndex;
-  if (not FDefiningMacro) and FSolGenerate then
+  if (not FDefiningMacro) and FSolGenerate and (labelx <> '') then
     AsmProcessLabel(labelx, command_index);
   // Check for end
   if FEnded and ((command_index > 0) or (opcode_index > 0)) then
@@ -1256,16 +1273,24 @@ begin
       s := Format('%s %s %s', [Space(6 + MAX_HEX_WIDTH), indent_str, _s]);
     FListing.Output(s);
     // Code
+    if (FCodeBuffer.Contains > 0) and (FSolGenerate) then
+      begin
+        FSegments.AddBuf(FCodeBuffer);
+        Org := FSegments.CurrentSegment.Address;
+      end;
+    {
     for i := 0 to FCodeBuffer.Contains - 1 do
       begin
         if FSolGenerate then
           begin
-            FMemory[Org] := FCodeBuffer.Buffer[i];
-            FMemoryUsed[Org] := True;
+//          FMemory[Org] := FCodeBuffer.Buffer[i];
+//          FMemoryUsed[Org] := True;
+            FSegments.CurrentSegment.AddBuf(FCodeBuffer);
           end;
         Org := Org + 1;
       end;
-  end
+    }
+    end
   else
   if FSolGenerate and (FCodeBuffer.Contains > 0) then
     Org := Org + FCodeBuffer.Contains;
@@ -1289,7 +1314,10 @@ begin
   FPreparser.Pass := _pass;
   FSymbolTable.Pass := _pass;
   FAsmStack.Clear;
-  FSegments.Clear;
+  if _pass = 1 then
+    FSegments.Clear
+  else
+    FSegments.ClearDefined;
   FListing.Listing := True;
 
   ErrorObj.Filename := filename;
@@ -1888,8 +1916,13 @@ begin
   else
     begin // Set current segment and ensure no operands
       FSegments.CurrentSegment := _seg;
-      if FPreparser.Count > 1 then
-        ErrorObj.Show(ltWarning,W1009_SEGMENT_MODIFIERS_IGNORED,[_segname]);
+      if (FPreparser.Count > 1) then
+        begin
+          if _seg.Defined then
+            ErrorObj.Show(ltWarning,W1009_SEGMENT_MODIFIERS_IGNORED,[_segname])
+          else
+            _seg.Defined := True;
+        end;
     end;
   // Finally, set ORG to the correct value
   FOrg := FSegments.GetOrg;
@@ -2084,8 +2117,8 @@ begin
       ErrorObj.Show(ltError, E2030_USING_RESERVED_AS_LABEL, [_label]);
     case _preparser[0].DataType of
       pstNone: ErrorObj.Show(ltError, E2018_OPERAND_NO_DATA_TYPE, [1]);
-      pstINT32: FSymbolTable.Add(_label, stWord, _preparser[0].IntValue, '', True, False);
-      pstString: FSymbolTable.Add(_label, stString, 0, _preparser[0].StrValue, True, False);
+      pstINT32: FSymbolTable.Add(_label,  nil, stWord, _preparser[0].IntValue, '', True, False, esConstantI);
+      pstString: FSymbolTable.Add(_label, nil, stString, 0, _preparser[0].StrValue, True, False, esConstantS);
     end; // case
   end
   else
