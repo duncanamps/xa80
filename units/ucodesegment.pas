@@ -11,7 +11,7 @@ unit ucodesegment;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, ucodebuffer;
+  Classes, SysUtils, Generics.Collections, ucodebuffer, uasmglobals;
 
 type
   TSegmentModifier = (smFixed,smReadOnly,smUninitialised);
@@ -21,7 +21,7 @@ type
   TSegment = class(TObject)
     private
       FAddress:    word;
-      FBuf:        array[word] of byte;
+      FBuf:        TBlock64K;
       FDefined:    boolean;
       FModifiers:  TSegmentModifiers;
       FSegName:    string;
@@ -35,8 +35,9 @@ type
       function  LastAddress: word;
       function  ModifiersAsText: string;
       property Address:   word              read FAddress;
+      property Buf:       TBlock64K         read FBuf;
       property Defined:   boolean           read FDefined    write FDefined;
-      property Modifiers: TSegmentModifiers read FModifiers;
+      property Modifiers: TSegmentModifiers read FModifiers  write FModifiers;
       property Segname:   string            read FSegname;
   end;
 
@@ -62,7 +63,7 @@ type
 implementation
 
 uses
-  lacogen_types, umessages, uasmglobals;
+  lacogen_types, umessages;
 
 //----------------------------------------------------------------------
 //
@@ -261,7 +262,7 @@ begin
   if not Assigned(FCurrentSegment) then
     begin // Segment doesn't exist, create a default
       ErrorObj.Show(ltWarning,W1008_NO_DEFAULT_SEGMENT);
-      CreateSegment('CSEG',[]);
+      CreateSegment(DEFAULT_CODE_SEGMENT,[]);
     end;
 end;
 

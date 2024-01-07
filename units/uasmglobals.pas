@@ -35,6 +35,7 @@ uses
 
 const
   COPYRIGHT_YEAR                    = '2024';
+  DEFAULT_CODE_SEGMENT              = 'CSEG';
   DEFAULT_GRAMMAR_VALUE             = 'XA80';
   DEFAULT_LISTING_MARGIN_LEFT       = 0;
   DEFAULT_LISTING_MARGIN_TOP        = 2;
@@ -92,6 +93,8 @@ const DIGITS:  set of char = ['0'..'9'];
 type
   TAsmInt = int32;
 //  TSetOfChar = set of char;
+
+  TBlock64K = array[word] of byte;
 
 
 type

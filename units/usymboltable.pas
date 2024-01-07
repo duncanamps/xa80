@@ -37,7 +37,7 @@ type
 
   TSymbol = record
     Name:         string;
-    SymType:      TSymbolDataType;
+//  SymType:      TSymbolDataType;
     Area:         TSymbolArea;
     Seg:          TSegment;
     IValue:       Word;
@@ -178,7 +178,7 @@ begin
   sym.SValue       := _sval;
   sym.Defined      := _defined;
   sym.Referenced   := _referenced;
-  sym.SymType      := _datatype;
+//sym.SymType      := _datatype;
   sym.Source       := _src;
   sym.CreationPass := FPass;
   if _defined then
@@ -227,7 +227,8 @@ const PAGE_WIDTH = 78;
       PAGE_DEPTH = 60;
 var i: integer;
     s: string;
-    t_ch: char;
+//  t_ch: char;
+//  t_chs: string;
     line: integer;
     pagestr: string;
     spc:     integer;
@@ -249,8 +250,8 @@ var i: integer;
     MyWrite(_caption + Space(spc div 2) + Title + Space(spc - spc div 2) + pagestr + LINE_TERMINATOR);
     MyWrite(StringOfChar('-',PAGE_WIDTH) + LINE_TERMINATOR);
     MyWrite(LINE_TERMINATOR);
-    MyWrite('  HEX   DEC SEGMENT              SOURCE    T NAME' + LINE_TERMINATOR);
-    MyWrite('----- ----- -------------------- --------- - ----' + LINE_TERMINATOR);
+    MyWrite('  HEX   DEC SEGMENT              SOURCE    NAME' + LINE_TERMINATOR);
+    MyWrite('----- ----- -------------------- --------- ----' + LINE_TERMINATOR);
     line := 7;
   end;
 
@@ -269,25 +270,29 @@ begin
           FormFeed;
           Header;
         end;
+      {
       case Items[i].SymType of
-        stAddress: t_ch := 'A';
-        stWord:    t_ch := 'I';
-        stString:  t_ch := 'S';
+        stAddress: t_chs := 'Address';
+        stWord:    t_chs := 'Integer';
+        stString:  t_chs := 'String';
         otherwise
-          t_ch := '?';
+          t_chs := '?';
       end;
+      }
       source := ExpressionSourceToStr(Items[i].Source);
+      {
       if not Items[i].Defined then
-        t_ch := '?';
+        t_chs := '?';
+      }
       segment := Items[i].Seg;
       if not Assigned(segment) then
         segname := '<nil>'
       else
         segname := segment.Segname;
-      if Items[i].SymType = stString then
-        s := Format('$%4.4X %5d %-20s %-9s %s %s "%s"',[Items[i].IValue,Items[i].IValue,segname,source,t_ch,Items[i].Name,Items[i].SValue])
+      if Items[i].Source = esConstantS then
+        s := Format('$%4.4X %5d %-20s %-9s %s "%s"',[Items[i].IValue,Items[i].IValue,segname,source,Items[i].Name,Items[i].SValue])
       else
-        s := Format('$%4.4X %5d %-20s %-9s %s %s',[Items[i].IValue,Items[i].IValue,segname,source,t_ch,Items[i].Name]);
+        s := Format('$%4.4X %5d %-20s %-9s %s',[Items[i].IValue,Items[i].IValue,segname,source,Items[i].Name]);
       MyWrite(s + LINE_TERMINATOR);
       Inc(line);
     end;

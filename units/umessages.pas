@@ -81,6 +81,9 @@ type
                      W1008_NO_DEFAULT_SEGMENT,
                      W1009_SEGMENT_MODIFIERS_IGNORED,
                      W1010_SEGMENT_MODIFIER_CLASH,
+                     W1011_COM_FILE_IS_EMPTY,
+                     W1012_HEX_FILE_IS_EMPTY,
+                     W1013_MAKING_RELOCATABLE_SEGMENT_FIXED,
 
                      E2000_USER_ERROR,
                      E2001_ILLEGAL_ESCAPE_CHARACTER,
@@ -148,6 +151,9 @@ type
                      E2063_COMMAND_ALREADY_USED,
                      E2064_FAILED_MACRO_EXPANSION,
                      E2065_ILLEGAL_SEGMENT_MODIFIER,
+                     E2066_COM_FILE_SEGMENT_ISSUE,
+                     E2067_HEX_FILE_SEGMENT_ISSUE,
+                     E2068_CANNOT_MAKE_SEGMENT_FIXED,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -229,6 +235,9 @@ var
     'Outputting code with no segment definition, default CSEG created',
     'Segment modifiers ignored, segment %s has already been defined',
     'Segment modifier %s clashes with a preceding modifier',
+    '.COM file is empty',
+    '.HEX file is empty',
+    'ORG command is forcing Relocatable segment %s to become Fixed',
 
     '%s',
     'Illegal escape character %s, valid are %s',
@@ -296,6 +305,9 @@ var
     'Command %s cannot now be used as a label',
     'Failed macro expansion',
     'Illegal segment modifier %s',
+    'Cannot create .COM file as only 1 fixed segment must be present',
+    'Cannot create .HEX file as only 1 fixed segment must be present',
+    'Cannot change Relocatable segment to Fixed after code has been generated',
 
     'Unhandled case option at %s',
     'Preparser peeek error',

@@ -952,23 +952,22 @@ begin
       sym.Referenced := True;
       FSymbolTable[idx] := sym;
       // @@@@@ Set up the variable/constant thing from the symbol table
-      case sym.SymType of
-        stUnknown: begin
+      case sym.Source of
+        esUndefined,
+        esUnusable: begin
           Result.BufType := pstINT32;
           Result.BufInt := 0;
           Result.Source := esUndefined;
         end;
-        stAddress: begin
+        esConstantI,
+        esExtern,
+        esAddressF,
+        esAddressR: begin
           Result.BufType := pstINT32;
           Result.BufInt := sym.IValue;
           Result.Source := SetSource;
         end;
-        stWord: begin
-          Result.BufType := pstINT32;
-          Result.BufInt := sym.IValue;
-          Result.Source := SetSource;
-        end;
-        stString: begin
+        esConstantS: begin
           Result.BufType := pstString;
           Result.Buf := sym.SValue;
           Result.Source := SetSource;
@@ -1047,7 +1046,7 @@ begin
           _symbol := FSymbolTable[_index];
           if (FPass = 1) then
             // Check for forward reference already defined
-            if (FSymbolTable[_index].SymType = stAddress) and
+            if (FSymbolTable[_index].Source = esUndefined) and
               (FSymbolTable[_index].Defined = False) then
             begin
               _symbol.IValue := FOrg;
@@ -2291,23 +2290,24 @@ end;
 
 procedure TAssembler80.OutputMemoryToCom(_filename: string);
 var
-  lowest, highest: integer;
+  lowest: integer;
   bcount: integer;
   strm: TFileStream;
 begin
+  // To output a .com file, we need one single segment and it
+  // must be fixed
   if _filename = '' then
     Exit;
-  lowest := $0000;
-  highest := $FFFF;
-  while (highest > 0) and (not FMemoryUsed[highest]) do
-    Dec(highest);
-  while (lowest < 65536) and (not FMemoryUsed[lowest]) do
-    Inc(lowest);
+  if (FSegments.Count <> 1) or (not (smFixed in FSegments[0].Modifiers)) then
+    ErrorObj.Show(ltError,E2066_COM_FILE_SEGMENT_ISSUE);
+  bcount := FSegments.CurrentSegment.Bytes;
+  if bcount = 0 then
+    ErrorObj.Show(ltWarning,W1011_COM_FILE_IS_EMPTY);
+  lowest := FSegments.CurrentSegment.FirstAddress;
   strm := TFileStream.Create(_filename, fmCreate);
   try
-    bcount := highest - lowest + 1;
     if bcount > 0 then
-      strm.Write(FMemory[lowest], bcount);
+      strm.Write(FSegments.CurrentSegment.Buf[lowest], bcount);
   finally
     FreeAndNil(strm);
   end;
@@ -2317,36 +2317,40 @@ procedure TAssembler80.OutputMemoryToHex(_filename: string);
 var
   sl: TStringList;
   i: integer;
+  bcount: integer;
   addr: integer;
   remaining: integer;
   checksum: integer;
   s: string;
   lowest, highest: integer;
 begin
+  // To output a .hex file, we need one single segment and it
+  // must be fixed
   if _filename = '' then
     Exit;
-  lowest := $0000;
-  highest := $FFFF;
-  while (highest > 0) and (not FMemoryUsed[highest]) do
-    Dec(highest);
-  while (lowest < 65536) and (not FMemoryUsed[lowest]) do
-    Inc(lowest);
+  if (FSegments.Count <> 1) or (not (smFixed in FSegments[0].Modifiers)) then
+    ErrorObj.Show(ltError,E2067_HEX_FILE_SEGMENT_ISSUE);
+  bcount := FSegments.CurrentSegment.Bytes;
+  if bcount = 0 then
+    ErrorObj.Show(ltWarning,W1012_HEX_FILE_IS_EMPTY);
+  lowest := FSegments.CurrentSegment.FirstAddress;
+  highest := lowest + bcount - 1;
   sl := TStringList.Create;
   try
     addr := lowest;
-    while addr < Highest do
+    while addr < highest do
     begin
       // Do a line
       s := ':';
-      remaining := Highest + 1 - addr;
+      remaining := highest + 1 - addr;
       if remaining > 16 then
         remaining := 16;
       s := s + Format('%2.2X%4.4X00', [remaining, addr]);
       checksum := remaining + (addr and $ff) + ((addr shr 8) and $ff);
       for i := 0 to remaining - 1 do
       begin
-        s := s + Format('%2.2X', [FMemory[addr + i]]);
-        checksum := checksum + FMemory[addr + i];
+        s := s + Format('%2.2X', [FSegments.CurrentSegment.Buf[addr + i]]);
+        checksum := checksum + FSegments.CurrentSegment.Buf[addr + i];
       end;
       s := s + Format('%2.2X', [(-checksum) and $ff]);
       sl.Add(s);
@@ -2889,6 +2893,7 @@ begin
 end;
 
 procedure TAssembler80.SetOrg(_neworg: integer);
+var _seg: TSegment;
 begin
   if (_neworg > $FFFF) or (_neworg < 0) then
   begin
@@ -2897,7 +2902,27 @@ begin
     _neworg := _neworg and $FFFF;
   end;
   FOrg := _neworg;
-  FSegments.SetOrg(FOrg);
+  // Check if an existing segment exists, if not created it as a fixed
+  // segment and set the origin
+  _seg := FSegments.CurrentSegment;
+  if _seg = nil then
+    FSegments.CreateSegment(DEFAULT_CODE_SEGMENT,[smFixed],FOrg)
+  else
+    begin
+      // There's an existing segment. If it's not fixed, make it fixed and
+      // issue a warning
+      if not (smFixed in _seg.Modifiers) then
+        begin
+          if _seg.Bytes > 0 then
+            ErrorObj.Show(ltError,E2068_CANNOT_MAKE_SEGMENT_FIXED)
+          else
+            begin
+              ErrorObj.Show(ltWarning,W1013_MAKING_RELOCATABLE_SEGMENT_FIXED,[_seg.Segname]);
+              _seg.Modifiers := _seg.Modifiers + [smFixed];
+            end;
+        end;
+      FSegments.SetOrg(FOrg);
+    end;
 end;
 
 procedure TAssembler80.SetTitle(_title: string);
