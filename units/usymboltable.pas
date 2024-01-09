@@ -33,12 +33,12 @@ type
 
   TSymbolDataType = (stUnknown,stAddress,stWord,stString);
 
-  TSymbolArea = (saInternal,saExported,saExternal);
+  TSymbolScope = (ssUndefined,ssLocal,ssGlobal,ssExternal);
 
   TSymbol = record
     Name:         string;
 //  SymType:      TSymbolDataType;
-    Area:         TSymbolArea;
+    Scope:        TSymbolScope;
     Seg:          TSegment;
     IValue:       Word;
     SValue:       string;
@@ -63,7 +63,7 @@ type
       MixedCase: boolean;
       constructor Create;
       destructor Destroy; override;
-      function  Add(_name: string; _seg: TSegment; _datatype: TSymbolDataType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean; _src: TExpressionSource): integer; reintroduce;
+      function  Add(_name: string; _seg: TSegment; _datatype: TSymbolDataType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean; _src: TExpressionSource; _scope: TSymbolScope = ssUndefined): integer; reintroduce;
       procedure Clear;
       function  CalcHash(const _txt:string): integer;
       function  Defined(const _name: string): boolean;
@@ -79,11 +79,13 @@ type
       property  Title: string read FTitle write FTitle;
   end;
 
+function ScopeToStr(_scope: TSymbolScope): string; // Forward
+
 
 implementation
 
 uses
-  Generics.Defaults, uutility;
+  Generics.Defaults, uutility, lacogen_types, umessages;
 
 const
   HASH_RATIO = 3;
@@ -129,6 +131,19 @@ begin
 end;
 
 
+function ScopeToStr(_scope: TSymbolScope): string;
+begin
+  case _scope of
+    ssUndefined: ScopeToStr := 'Undefined';
+    ssLocal:     ScopeToStr := 'Local';
+    ssGlobal:    ScopeToStr := 'Global';
+    ssExternal:  ScopeToStr := 'External';
+    otherwise
+      ErrorObj.Show(ltInternal,X3017_UNHANDLED_SCOPE);
+  end;
+end;
+
+
 constructor TSymbolTable.Create;
 begin
   inherited Create;
@@ -158,7 +173,7 @@ begin
     SetHashSize(NextPrime(HashSize * HASH_EXPANSION));
 end;
 
-function TSymbolTable.Add(_name: string; _seg: TSegment; _datatype: TSymbolDataType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean; _src: TExpressionSource): integer;
+function TSymbolTable.Add(_name: string; _seg: TSegment; _datatype: TSymbolDataType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean; _src: TExpressionSource; _scope: TSymbolScope): integer;
 var idx: integer;
     sym: TSymbol;
 begin
@@ -174,6 +189,7 @@ begin
   // Finally use the base Add() procedure
   sym.Name         := _name;
   sym.Seg          := _seg;
+  sym.Scope        := _scope;
   sym.IValue       := _ival;
   sym.SValue       := _sval;
   sym.Defined      := _defined;
@@ -235,6 +251,8 @@ var i: integer;
     segname: string;
     segment: TSegment;
     source:  string;
+    scope:   string;
+    refstr:  string;
 
   procedure MyWrite(const _buf: string);
   begin
@@ -250,8 +268,8 @@ var i: integer;
     MyWrite(_caption + Space(spc div 2) + Title + Space(spc - spc div 2) + pagestr + LINE_TERMINATOR);
     MyWrite(StringOfChar('-',PAGE_WIDTH) + LINE_TERMINATOR);
     MyWrite(LINE_TERMINATOR);
-    MyWrite('  HEX   DEC SEGMENT              SOURCE    NAME' + LINE_TERMINATOR);
-    MyWrite('----- ----- -------------------- --------- ----' + LINE_TERMINATOR);
+    MyWrite('HEX    DEC SEGMENT              SOURCE    SCOPE     NAME' + LINE_TERMINATOR);
+    MyWrite('---- ----- -------------------- --------- --------- ----' + LINE_TERMINATOR);
     line := 7;
   end;
 
@@ -270,29 +288,20 @@ begin
           FormFeed;
           Header;
         end;
-      {
-      case Items[i].SymType of
-        stAddress: t_chs := 'Address';
-        stWord:    t_chs := 'Integer';
-        stString:  t_chs := 'String';
-        otherwise
-          t_chs := '?';
-      end;
-      }
       source := ExpressionSourceToStr(Items[i].Source);
-      {
-      if not Items[i].Defined then
-        t_chs := '?';
-      }
+      scope := ScopeToStr(Items[i].Scope);
+      refstr := ' ';
+      if not Items[i].Referenced then
+        refstr := '*';
       segment := Items[i].Seg;
       if not Assigned(segment) then
         segname := '<nil>'
       else
         segname := segment.Segname;
       if Items[i].Source = esConstantS then
-        s := Format('$%4.4X %5d %-20s %-9s %s "%s"',[Items[i].IValue,Items[i].IValue,segname,source,Items[i].Name,Items[i].SValue])
+        s := Format('%4.4X %5d %-20s %-9s %-9s%s%s "%s"',[Items[i].IValue,Items[i].IValue,segname,source,scope,refstr,Items[i].Name,Items[i].SValue])
       else
-        s := Format('$%4.4X %5d %-20s %-9s %s',[Items[i].IValue,Items[i].IValue,segname,source,Items[i].Name]);
+        s := Format('%4.4X %5d %-20s %-9s %-9s%s%s',[Items[i].IValue,Items[i].IValue,segname,source,scope,refstr,Items[i].Name]);
       MyWrite(s + LINE_TERMINATOR);
       Inc(line);
     end;
@@ -370,16 +379,6 @@ var i: integer;
     hash: integer;
     s: string;
 begin
-  {
-  IndexOf := -1;
-  if not MixedCase then
-    _name := UpperCase(_name);
-  i := 0;
-  while (i < Count) and (Items[i].Name <> _name) do
-    Inc(i);
-  if (i < Count) then
-    IndexOf := i;
-  }
   if not MixedCase then
     _name := UpperCase(_name);
   hash := CalcHash(_name);

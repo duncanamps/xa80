@@ -154,6 +154,8 @@ type
                      E2066_COM_FILE_SEGMENT_ISSUE,
                      E2067_HEX_FILE_SEGMENT_ISSUE,
                      E2068_CANNOT_MAKE_SEGMENT_FIXED,
+                     E2069_GLOBAL_SYMBOL_NOT_FOUND,
+                     E2070_EXTERN_DEFINED_LOCALLY,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -170,6 +172,7 @@ type
                      X3013_LEXER_SET_ERROR,
                      X3015_POP_FROM_EMPTY_STACK,
                      X3016_UNHANDLED_EXPRESSION_SOURCE,
+                     X3017_UNHANDLED_SCOPE,
 
                      X3999_UNHANDLED_EXCEPTION
                     );
@@ -308,6 +311,8 @@ var
     'Cannot create .COM file as only 1 fixed segment must be present',
     'Cannot create .HEX file as only 1 fixed segment must be present',
     'Cannot change Relocatable segment to Fixed after code has been generated',
+    'Global symbol %s not found in this module',
+    'External symbol %s has already been defined locally',
 
     'Unhandled case option at %s',
     'Preparser peeek error',
@@ -324,6 +329,7 @@ var
     'Attempt to set lexer buffer size while in the middle of an activity',
     'Attempt to pop from empty execution stack',
     'Unhandled expression source',
+    'Unhandled scope',
 
     'Unhandled exception %s'
   );

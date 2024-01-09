@@ -34,7 +34,7 @@ type
       function  IsEmpty: boolean;
       function  LastAddress: word;
       function  ModifiersAsText: string;
-      property Address:   word              read FAddress;
+      property Address:   word              read FAddress    write FAddress;
       property Buf:       TBlock64K         read FBuf;
       property Defined:   boolean           read FDefined    write FDefined;
       property Modifiers: TSegmentModifiers read FModifiers  write FModifiers;
@@ -184,7 +184,10 @@ procedure TSegments.ClearDefined;
 var _seg: TSegment;
 begin
   for _seg in Self do
-    _seg.FDefined := False;
+    begin
+      _seg.FDefined := False;
+      _seg.Address := 0;
+    end;
 end;
 
 procedure TSegments.CreateSegment(const _segname: string; _modifiers: TSegmentModifiers; _address: word = 0);

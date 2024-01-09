@@ -69,7 +69,7 @@ type
     FOptionHex: string;
     FOptionListing: string;
     FOptionMap: string;
-    FOrg: integer;
+//  FOrg: integer;
     FPass: integer;
     FPreparser: TPreparser;
     FProcArray: array of TLCGParserProc;
@@ -201,6 +201,7 @@ type
     procedure ExpandMacro(macro_entry: TMacroEntry);
     function GetDFA: TLCGDFA;
     function GetFilenameListing: string;
+    function GetOrg: integer;
     function MakeFilename(const _base_asm, _option, _ext: string): string;
     procedure NeedNumber(_index: integer; const _msg: string);
     procedure NeedNumberCompare;
@@ -266,7 +267,7 @@ type
     property OptionHex:       string  read FOptionHex         write FOptionHex;
     property OptionListing:   string  read FOptionListing     write FOptionListing;
     property OptionMap:       string  read FOptionMap         write FOptionMap;
-    property Org:             integer read FOrg               write SetOrg;
+    property Org:             integer read GetOrg             write SetOrg;
     property Pass:            integer read FPass;
     property Processor:       string read FProcessor;
     property Title:           string read FTitle              write SetTitle;
@@ -310,7 +311,7 @@ begin
   SetLength(FProcArray, Rules);
   RegisterProcs;
   FEnded := False;
-  FOrg := 0;
+//FOrg := 0;
   FPass := 0;
   Title := '';
   OnPostReduce := @PostReduce;
@@ -901,7 +902,7 @@ var _seg: TSegment;
 begin
   _seg := FSegments.CurrentSegment;
   Result := ParserM1;
-  Result.BufInt := FOrg;
+  Result.BufInt := Org;
   if smFixed in _seg.Modifiers then
     Result.Source := esAddressF
   else
@@ -1049,7 +1050,7 @@ begin
             if (FSymbolTable[_index].Source = esUndefined) and
               (FSymbolTable[_index].Defined = False) then
             begin
-              _symbol.IValue := FOrg;
+              _symbol.IValue := Org;
               _symbol.Defined := True;
               _symbol.Seg     := _seg;
               if smFixed in _seg.Modifiers then
@@ -1066,9 +1067,9 @@ begin
         // Add the symbol at the current address
         begin
           if smFixed in _seg.Modifiers then
-            FSymbolTable.Add(StripColon(_label),_seg, stAddress, FOrg, '', True, False, esAddressF)
+            FSymbolTable.Add(StripColon(_label),_seg, stAddress, Org, '', True, False, esAddressF, ssLocal)
           else
-            FSymbolTable.Add(StripColon(_label),_seg, stAddress, FOrg, '', True, False, esAddressR);
+            FSymbolTable.Add(StripColon(_label),_seg, stAddress, Org, '', True, False, esAddressR, ssLocal);
         end;
     end;
 end;
@@ -1225,7 +1226,7 @@ begin
             FCodeBuffer.Push(0)
           else
           begin
-            newaddr := opval - (FOrg + 2);
+            newaddr := opval - (Org + 2);
             if (newaddr < -128) or (newaddr > 127) then
               ErrorObj.Show(ltError, E2027_RELATIVE_DISTANCE, [newaddr]);
             FCodeBuffer.Push(newaddr and $FF);
@@ -1256,43 +1257,28 @@ begin
   // Add macro line if required
   if (FPass = 1) and FDefiningMacro then
     FDefMacro.Content.Add(_s);
-  // Do the listing and increase FOrg
+  // Do the listing
   if (FPass = 2) then
-  begin
-    // Listing
-    // @@@@@ Set macro indent here if required
-    indent_str := Format('%5d', [FInputLine]);
-    if FSolGenerate then
-      indent_str := indent_str + ' |'
-    else
-      indent_str := indent_str + ' :';
-    if FSolGenerate and (FCodeBuffer.Contains > 0) then
-      s := Format('%4.4X: %s %s %s', [FOrg, FCodeBuffer.AsString, indent_str, _s])
-    else
-      s := Format('%s %s %s', [Space(6 + MAX_HEX_WIDTH), indent_str, _s]);
+    begin
+      // Listing
+      // @@@@@ Set macro indent here if required
+      indent_str := Format('%5d', [FInputLine]);
+      if FSolGenerate then
+        indent_str := indent_str + ' |'
+      else
+        indent_str := indent_str + ' :';
+      if FSolGenerate and (FCodeBuffer.Contains > 0) then
+        s := Format('%4.4X: %s %s %s', [Org, FCodeBuffer.AsString, indent_str, _s])
+      else
+        s := Format('%s %s %s', [Space(6 + MAX_HEX_WIDTH), indent_str, _s]);
     FListing.Output(s);
-    // Code
-    if (FCodeBuffer.Contains > 0) and (FSolGenerate) then
-      begin
-        FSegments.AddBuf(FCodeBuffer);
-        Org := FSegments.CurrentSegment.Address;
-      end;
-    {
-    for i := 0 to FCodeBuffer.Contains - 1 do
-      begin
-        if FSolGenerate then
-          begin
-//          FMemory[Org] := FCodeBuffer.Buffer[i];
-//          FMemoryUsed[Org] := True;
-            FSegments.CurrentSegment.AddBuf(FCodeBuffer);
-          end;
-        Org := Org + 1;
-      end;
-    }
-    end
-  else
-  if FSolGenerate and (FCodeBuffer.Contains > 0) then
-    Org := Org + FCodeBuffer.Contains;
+    end;
+  // If code to output, ensure we have a segment
+  if (FCodeBuffer.Contains > 0) and FSolGenerate then
+    begin
+      FSegments.EnsureCurrentSegment;
+      FSegments.AddBuf(FCodeBuffer);
+    end;
   // Process the include file if required
   ProcessInclude;
   // Push the macro details if available
@@ -1323,7 +1309,7 @@ begin
   DefiningMacro := False;
   FEnded := False;
   FNextInclude := '';
-  FOrg := 0;
+//FOrg := 0;
   FMacroList.Init;
   FCmdList.InitPass;
   ProcessFile(filename);
@@ -1353,7 +1339,7 @@ procedure TAssembler80.CheckLabelsDefined;
 var sym: TSymbol;
 begin
   for sym in FSymbolTable do
-    if (not sym.Defined) and (sym.Area in [saInternal,saExported]) then
+    if (not sym.Defined) and (sym.Scope in [ssLocal,ssGlobal]) then
       ErrorObj.Show(ltWarning,W1005_SYMBOL_UNDEFINED,[sym.Name]);
 end;
 
@@ -1627,11 +1613,48 @@ begin
 end;
 
 procedure TAssembler80.CmdEXTERN(const _label: string; _preparser: TPreparserBase);
+var index: integer;
+    itm:   TParserProp;
+    i:     integer;
 begin
+  // Only operate on pass 1
+  if FPass = 1 then
+    begin
+      CheckOperandCount(1,9999); // At least one operand required!
+      for i := 0 to _preparser.Count - 1 do
+      begin
+        itm := _preparser[i];
+        index := FSymbolTable.IndexOf(itm.Payload);
+        ErrorObj.ColNumber := itm.Column;
+        if index >= 0 then
+          ErrorObj.Show(ltError,E2070_EXTERN_DEFINED_LOCALLY,[itm.Payload]);
+        FSymbolTable.Add(itm.Payload,nil,stAddress,0,'',True,False,esExtern,ssExternal);
+      end;
+    end;
 end;
 
 procedure TAssembler80.CmdGLOBAL(const _label: string; _preparser: TPreparserBase);
+var index: integer;
+    itm:   TParserProp;
+    _sym:  TSymbol;
+    i:     integer;
 begin
+  // Only operate on pass 2
+  if FPass = 2 then
+    begin
+      CheckOperandCount(1,9999); // At least one operand required!
+      for i := 0 to _preparser.Count - 1 do
+      begin
+        itm := _preparser[i];
+        index := FSymbolTable.IndexOf(itm.Payload);
+        ErrorObj.ColNumber := itm.Column;
+        if index < 0 then
+          ErrorObj.Show(ltError,E2069_GLOBAL_SYMBOL_NOT_FOUND,[itm.Payload]);
+        _sym := FSymbolTable.Items[index];
+        _sym.Scope := ssGlobal;
+        FSymbolTable.Items[index] := _sym;
+      end;
+    end;
 end;
 
 procedure TAssembler80.CmdIF(const _label: string; _preparser: TPreparserBase);
@@ -1785,6 +1808,7 @@ begin
 end;
 
 procedure TAssembler80.CmdORG(const _label: string; _preparser: TPreparserBase);
+var _seg: TSegment;
 begin
   // Set the origin for the assembly
   // There should be one and only one operand and no label
@@ -1795,6 +1819,27 @@ begin
     pstString: ErrorObj.Show(ltError, E2019_EXPECTED_INTEGER);
     pstINT32: begin
       CheckOperandInteger(0, 0, $FFFF);
+      // Check if an existing segment exists, if not created it as a fixed
+      // segment and set the origin
+      _seg := FSegments.CurrentSegment;
+      if _seg = nil then
+        FSegments.CreateSegment(DEFAULT_CODE_SEGMENT,[smFixed],Org)
+      else
+        begin
+          // There's an existing segment. If it's not fixed, make it fixed and
+          // issue a warning
+          if not (smFixed in _seg.Modifiers) then
+            begin
+              if _seg.Bytes > 0 then
+                ErrorObj.Show(ltError,E2068_CANNOT_MAKE_SEGMENT_FIXED)
+              else
+                begin
+                  ErrorObj.Show(ltWarning,W1013_MAKING_RELOCATABLE_SEGMENT_FIXED,[_seg.Segname]);
+                  _seg.Modifiers := _seg.Modifiers + [smFixed];
+                end;
+            end;
+      FSegments.SetOrg(Org);
+    end;
       Org := _preparser[0].IntValue;
     end;
   end; // case
@@ -1924,7 +1969,7 @@ begin
         end;
     end;
   // Finally, set ORG to the correct value
-  FOrg := FSegments.GetOrg;
+//  Org := FSegments.GetOrg;
 end;
 
 procedure TAssembler80.CmdTITLE(const _label: string; _preparser: TPreparserBase);
@@ -2116,8 +2161,8 @@ begin
       ErrorObj.Show(ltError, E2030_USING_RESERVED_AS_LABEL, [_label]);
     case _preparser[0].DataType of
       pstNone: ErrorObj.Show(ltError, E2018_OPERAND_NO_DATA_TYPE, [1]);
-      pstINT32: FSymbolTable.Add(_label,  nil, stWord, _preparser[0].IntValue, '', True, False, esConstantI);
-      pstString: FSymbolTable.Add(_label, nil, stString, 0, _preparser[0].StrValue, True, False, esConstantS);
+      pstINT32: FSymbolTable.Add(_label,  nil, stWord, _preparser[0].IntValue, '', True, False, esConstantI, ssLocal);
+      pstString: FSymbolTable.Add(_label, nil, stString, 0, _preparser[0].StrValue, True, False, esConstantS,ssLocal);
     end; // case
   end
   else
@@ -2226,6 +2271,11 @@ end;
 function TAssembler80.GetFilenameListing: string;
 begin
   GetFilenameListing := FListing.Filename;
+end;
+
+function TAssembler80.GetOrg: integer;
+begin
+  result := FSegments.CurrentSegment.Address;
 end;
 
 function TAssembler80.MakeFilename(const _base_asm, _option, _ext: string): string;
@@ -2724,8 +2774,8 @@ begin
   FCmdList.RegisterCommand('.ENDR',      [cfBypass],                @CmdENDR);
   FCmdList.RegisterCommand('.ENDW',      [cfBypass],                @CmdENDW);
   FCmdList.RegisterCommand('.EQU',       [cfLabel,cfEQU],           @CmdEQU);
-  FCmdList.RegisterCommand('.EXTERN',    [],                        @CmdEXTERN);
-  FCmdList.RegisterCommand('.GLOBAL',    [],                        @CmdGLOBAL);
+  FCmdList.RegisterCommand('.EXTERN',    [cfNoPlaceholder],         @CmdEXTERN);
+  FCmdList.RegisterCommand('.GLOBAL',    [cfNoPlaceholder],         @CmdGLOBAL);
   FCmdList.RegisterCommand('.IF',        [cfNoPlaceholder,cfBypass],@CmdIF);
   FCmdList.RegisterCommand('.IFDEF',     [cfNoPlaceholder,cfBypass],@CmdIFDEF);
   FCmdList.RegisterCommand('.IFNDEF',    [cfNoPlaceholder,cfBypass],@CmdIFNDEF);
@@ -2762,8 +2812,8 @@ begin
   FCmdList.RegisterCommand('ENDR',       [cfBypass],                @CmdENDR);
   FCmdList.RegisterCommand('ENDW',       [cfBypass],                @CmdENDW);
   FCmdList.RegisterCommand('EQU',        [cfLabel,cfEQU],           @CmdEQU);
-  FCmdList.RegisterCommand('EXTERN',     [],                        @CmdEXTERN);
-  FCmdList.RegisterCommand('GLOBAL',     [],                        @CmdGLOBAL);
+  FCmdList.RegisterCommand('EXTERN',     [cfNoPlaceholder],         @CmdEXTERN);
+  FCmdList.RegisterCommand('GLOBAL',     [cfNoPlaceholder],         @CmdGLOBAL);
   FCmdList.RegisterCommand('IF',         [cfNoPlaceholder,cfBypass],@CmdIF);
   FCmdList.RegisterCommand('IFDEF',      [cfNoPlaceholder,cfBypass],@CmdIFDEF);
   FCmdList.RegisterCommand('IFNDEF',     [cfNoPlaceholder,cfBypass],@CmdIFNDEF);
@@ -2893,36 +2943,14 @@ begin
 end;
 
 procedure TAssembler80.SetOrg(_neworg: integer);
-var _seg: TSegment;
 begin
   if (_neworg > $FFFF) or (_neworg < 0) then
-  begin
-    if Pass = 2 then
-      ErrorObj.Show(ltWarning, W1001_CODE_WRAPPED_ROUND);
-    _neworg := _neworg and $FFFF;
-  end;
-  FOrg := _neworg;
-  // Check if an existing segment exists, if not created it as a fixed
-  // segment and set the origin
-  _seg := FSegments.CurrentSegment;
-  if _seg = nil then
-    FSegments.CreateSegment(DEFAULT_CODE_SEGMENT,[smFixed],FOrg)
-  else
     begin
-      // There's an existing segment. If it's not fixed, make it fixed and
-      // issue a warning
-      if not (smFixed in _seg.Modifiers) then
-        begin
-          if _seg.Bytes > 0 then
-            ErrorObj.Show(ltError,E2068_CANNOT_MAKE_SEGMENT_FIXED)
-          else
-            begin
-              ErrorObj.Show(ltWarning,W1013_MAKING_RELOCATABLE_SEGMENT_FIXED,[_seg.Segname]);
-              _seg.Modifiers := _seg.Modifiers + [smFixed];
-            end;
-        end;
-      FSegments.SetOrg(FOrg);
+      if Pass = 2 then
+        ErrorObj.Show(ltWarning, W1001_CODE_WRAPPED_ROUND);
+      _neworg := _neworg and $FFFF;
     end;
+  FSegments.SetOrg(_neworg);
 end;
 
 procedure TAssembler80.SetTitle(_title: string);
