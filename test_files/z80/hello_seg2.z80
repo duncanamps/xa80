@@ -1,0 +1,20 @@
+;        TITLE   'HELLO_SEG2.Z80 - Hello World with Segments'
+
+BDOS            EQU     0005H   ; BDOS entry address
+C_WRITESTR      EQU     9       ; BDOS command to write $ terminated string
+
+				GLOBAL	WRITESTR
+
+	
+;============================================================================		
+		SEGMENT	CSEG2, RELOCATABLE, READWRITE
+;============================================================================		
+
+; Write a string, call with DE holding the address of the $ terminated string
+
+WRITESTR:
+        LD      C,C_WRITESTR    ; Write string function
+        JP      BDOS            ; Go to BDOS to write the string
+
+        END
+		

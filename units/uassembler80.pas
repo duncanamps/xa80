@@ -1057,6 +1057,8 @@ begin
                 _symbol.Source := esAddressF
               else
                 _symbol.Source := esAddressR;
+              if _symbol.Scope = ssUndefined then
+                _symbol.Scope := ssLocal;
             end
             else
               ErrorObj.Show(ltError, E2015_CODE_SYMBOL_DEFINED, [_label]);

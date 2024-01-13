@@ -233,7 +233,7 @@ var i: integer;
     MyWrite(StringOfChar('-',PAGE_WIDTH) + LINE_TERMINATOR);
     MyWrite(LINE_TERMINATOR);
     MyWrite('SEGMENT              FROM TO   LENX  LEND ATTRIBUTES' + LINE_TERMINATOR);
-    MyWrite('-------------------- ---- ---- ---- ----- ----------------------------------' + LINE_TERMINATOR);
+    MyWrite('-------------------- ---- ---- ---- ----- ------------------------------------' + LINE_TERMINATOR);
     line := 7;
   end;
 
