@@ -84,6 +84,7 @@ type
                      W1011_COM_FILE_IS_EMPTY,
                      W1012_HEX_FILE_IS_EMPTY,
                      W1013_MAKING_RELOCATABLE_SEGMENT_FIXED,
+                     W1014_UNUSABLE_VALUE,
 
                      E2000_USER_ERROR,
                      E2001_ILLEGAL_ESCAPE_CHARACTER,
@@ -173,6 +174,7 @@ type
                      X3015_POP_FROM_EMPTY_STACK,
                      X3016_UNHANDLED_EXPRESSION_SOURCE,
                      X3017_UNHANDLED_SCOPE,
+                     X3018_SYMBOL_NOT_PROPAGATED,
 
                      X3999_UNHANDLED_EXCEPTION
                     );
@@ -241,6 +243,7 @@ var
     '.COM file is empty',
     '.HEX file is empty',
     'ORG command is forcing Relocatable segment %s to become Fixed',
+    'Unusable value',
 
     '%s',
     'Illegal escape character %s, valid are %s',
@@ -330,6 +333,7 @@ var
     'Attempt to pop from empty execution stack',
     'Unhandled expression source',
     'Unhandled scope',
+    'Symbol "%s" not propagated correctly',
 
     'Unhandled exception %s'
   );

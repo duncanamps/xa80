@@ -12,9 +12,10 @@
 
 
 HELLO:
-        LD      DE,MSG      	; Get address of msg
+        LD      DE,MSG      	; Get address of msg		
 		CALL	WRITESTR		; Write it out
 		RET						; Back to caller
+
 		
 ;============================================================================		
 		SEGMENT CONSTANTS, RELOCATABLE, READONLY
@@ -29,7 +30,7 @@ MSG: 		DB      'Hello World',13,10
 			DB		'Assembled:       ',DATE(),' ',TIME(),13,10
 			DB		"Version:         ",VERSION(),13,10
 			DB		"Build:           ",BUILD(),13,10
-MSG_TERM:	DB		'$'
-
+			DB		'$'
+			
         END
 		

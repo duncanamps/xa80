@@ -126,13 +126,13 @@ type
   end;
   }
 
-  TExpressionSource = (esUndefined, // Known about, but not defined/declared
+  TExpressionSource = (esUnusable,  // A mish mash of the below which is unusable
+                       esUndefined, // Known about, but not defined/declared
                        esConstantI, // Constant value we know about now (int)
+                       esAddressF,  // Fixed address internally in same segment
                        esConstantS, // Constant value we know about now (str)
                        esExtern,    // External 16 bit value (constant or reloc)
-                       esAddressF,  // Fixed address internally in same segment
-                       esAddressR,  // Relocatable address in the same module
-                       esUnusable); // A mish mash of the above which is unusable
+                       esAddressR); // Relocatable address in the same module
 
   TCodeRecord = record
     start_address: word;

@@ -26,7 +26,8 @@ unit usymboltable;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, ucodesegment, uasmglobals;
+  Classes, SysUtils, Generics.Collections, ucodesegment, uasmglobals,
+  ufixups;
 
 type
   // Addresses are relocatable, integers are not
@@ -70,8 +71,8 @@ type
       procedure Dump(_strm: TFileStream; const _caption: string);
       procedure DumpByAddress(_strm: TFileStream);
       procedure DumpByAddress(const filename: string);
-      procedure DumpByBoth(_strm: TFileStream; _segments: TSegments);
-      procedure DumpByBoth(const filename: string; _segments: TSegments);
+      procedure DumpByBoth(_strm: TFileStream; _segments: TSegments; _fixups: TFixupList);
+      procedure DumpByBoth(const filename: string; _segments: TSegments; _fixups: TFixupList);
       procedure DumpByName(_strm: TFileStream);
       procedure DumpByName(const filename: string);
       function  IndexOf(_name: string): integer; reintroduce;
@@ -295,7 +296,7 @@ begin
         refstr := '*';
       segment := Items[i].Seg;
       if not Assigned(segment) then
-        segname := '<nil>'
+        segname := '<unknown>'
       else
         segname := segment.Segname;
       if Items[i].Source = esConstantS then
@@ -328,26 +329,27 @@ begin
   end;
 end;
 
-procedure TSymbolTable.DumpByBoth(_strm: TFileSTream; _segments: TSegments);
+procedure TSymbolTable.DumpByBoth(_strm: TFileSTream; _segments: TSegments; _fixups: TFixupList);
 begin
   // This destroys the hashing but we can assume it will only be called
   // after all the assembly is complete
   FPrintPage := 0;
   _segments.Dump(_strm,FPrintPage);
+  _fixups.Dump(_strm,FPrintPage);
   Sort(specialize TComparer<TSymbol>.Construct(@CompareName));
   Dump(_strm,'SYMBOL NAME');
   Sort(specialize TComparer<TSymbol>.Construct(@CompareAddress));
   Dump(_strm,'SYMBOL ADDR');
 end;
 
-procedure TSymbolTable.DumpByBoth(const filename: string; _segments: TSegments);
+procedure TSymbolTable.DumpByBoth(const filename: string; _segments: TSegments; _fixups: TFixupList);
 var strm: TFileStream;
 begin
   if filename <> '' then
     begin
       strm := TFileStream.Create(filename,fmCreate);
       try
-        DumpByBoth(strm,_segments);
+        DumpByBoth(strm,_segments,_fixups);
       finally
         FreeAndNil(strm);
       end;

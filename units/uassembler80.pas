@@ -32,7 +32,7 @@ uses
   Classes, SysUtils, lacogen_types, lacogen_module,
   umessages, uinstruction, usymboltable,
   upreparser3, ucommand, upreparser3_defs, ucodebuffer, ulisting, uinclude,
-  uenvironment, ustack, umacro, ucodesegment, uasmglobals;
+  uenvironment, ustack, umacro, ucodesegment, uasmglobals, ufixups;
 
 type
   TCompareMode = (cmEqual, cmNotEqual, cmLessThan, cmLessEqual, cmGreaterThan,
@@ -53,6 +53,7 @@ type
     FFilenameError: string;
     FFilenameHex: string;
     FFilenameMap: string;
+    FFixupList: TFixupList;
     FInputCol: integer;
     FIncludeStack: TIncludeStack;
     FIncludeList: string;
@@ -151,6 +152,7 @@ type
     procedure AsmProcessLabel(const _label: string; _command_index: integer);
     procedure CheckNoLabel(const _label: string);
     procedure CheckByte(_i: integer);
+    procedure CheckFixup(const oplabel: string; opsrc: TExpressionSource);
     procedure CheckInteger(_i, _min, _max: integer);
     procedure CheckLabelsDefined;
     procedure CheckMacroDone;
@@ -304,6 +306,7 @@ begin
   FMacroStack := TMacroStack.Create;
   FDefMacro   := TMacroEntry.Create;
   FSegments   := TSegments.Create;
+  FFixupList  := TFixupList.Create;
 
   FCmdList.SymbolTable := FSymbolTable;
   FPreparser.MacroList := FMacroList;
@@ -320,6 +323,7 @@ end;
 
 destructor TAssembler80.Destroy;
 begin
+  FreeAndNil(FFixupList);
   FreeAndNil(FSegments);
   FreeAndNil(FDefMacro);
   FreeAndNil(FMacroStack);
@@ -1115,7 +1119,7 @@ begin
   CheckLabelsDefined;
   OutputMemoryToCom(FilenameCom);
   OutputMemoryToHex(FilenameHex);
-  FSymbolTable.DumpByBoth(FFilenameMap,FSegments);
+  FSymbolTable.DumpByBoth(FFilenameMap,FSegments,FFixupList);
   ErrorObj.SetLogFilename('');
 end;
 
@@ -1133,9 +1137,21 @@ var
   indent_str: string;
   elem: TCodeElement;
   i: integer;
+  oplabel: string;
+  opsrc: TExpressionSource;
   opval: integer;
   newaddr: integer;
   macro_entry: TMacroEntry;
+
+  function GetOpLabel(_idx: integer): string;
+  begin
+    GetOpLabel := FPreparser[_idx].Payload;
+  end;
+
+  function GetOpSrc(_idx: integer): TExpressionSource;
+  begin
+    GetOpSrc := FPreparser[_idx].Source;
+  end;
 
   function GetOpVal(_idx: integer): integer;
   begin
@@ -1190,16 +1206,21 @@ begin
     begin
       elem := inst_rec.CodeElements[i];
       opval := 0;
+      opsrc := esUndefined;
       case elem.OperandNo of
         1:
         begin
           ErrorObj.ColNumber := FPreparser[0].Column;
-          opval := GetOpVal(0);
+          oplabel := GetOpLabel(0);
+          opval   := GetOpVal(0);
+          opsrc   := GetOpSrc(0);
         end;
         2:
         begin
           ErrorObj.ColNumber := FPreparser[1].Column;
-          opval := GetOpVal(1);
+          oplabel := GetOpLabel(1);
+          opval   := GetOpVal(1);
+          opsrc   := GetOpSrc(1);
         end;
       end;
       case elem.ElementType of
@@ -1250,6 +1271,7 @@ begin
         end;
         cetU16:
         begin
+          CheckFixup(oplabel,opsrc);
           FCodeBuffer.Push(opval and $FF);
           FCodeBuffer.Push((opval shr 8) and $FF);
         end;
@@ -1323,6 +1345,25 @@ begin
     _i := _i - 65536;
   if (_i < -128) or (_i > 255) then
     ErrorObj.Show(ltError, E2023_BYTE_RANGE_ERROR);
+end;
+
+procedure TAssembler80.CheckFixup(const oplabel: string; opsrc: TExpressionSource);
+var symindex: integer;
+    symbol:   TSymbol;
+begin
+  if (FPass = 2) then
+    begin
+      if opsrc in [esUnusable] then
+        ErrorObj.Show(ltWarning,W1014_UNUSABLE_VALUE);
+      if (opsrc in [esExtern,esAddressR]) then
+        begin // A fixup record will be created
+          symindex := FSymbolTable.IndexOf(oplabel);
+          if symindex < 0 then
+            ErrorObj.Show(ltInternal,X3018_SYMBOL_NOT_PROPAGATED,[oplabel]);
+          symbol := FSymbolTable.Items[symindex];
+          FFixupList.Add(symbol.Name,FSegments.CurrentSegment,Org + FCodeBuffer.Contains);
+        end;
+    end;
 end;
 
 procedure TAssembler80.CheckNoLabel(const _label: string);
@@ -1481,6 +1522,8 @@ procedure TAssembler80.CmdDW(const _label: string; _preparser: TPreparserBase);
 var
   itm: TParserProp;
   i: integer;
+  oplabel: string;
+  opsrc:   TExpressionSource;
 begin
   // Define words
   // There should be one or more operands
@@ -1490,9 +1533,12 @@ begin
   begin
     itm := _preparser[i];
     ErrorObj.ColNumber := itm.Column;
+    oplabel := _preparser[i].Payload;
+    opsrc   := _preparser[i].Source;
     case itm.DataType of
       pstNone: ErrorObj.Show(ltError, E2018_OPERAND_NO_DATA_TYPE, [i + 1]);
       pstINT32: begin
+        CheckFixup(oplabel,opsrc);
         CheckOperandInteger(i, -32768, 65535);
         FCodeBuffer.Push((itm.IntValue and $FF));
         FCodeBuffer.Push((itm.IntValue shr 8) and $FF);
@@ -2747,7 +2793,9 @@ begin
 {$IFDEF DEBUG_LOG}
       Monitor(ltDebug,'Performing reduction on rule %d: %s',[RuleIndex,RuleProcs[RuleIndex]]);
 {$ENDIF}
-    Result := FProcArray[RuleIndex](Parser);
+    begin
+      Result := FProcArray[RuleIndex](Parser);
+    end;
   end
   else
     ErrorObj.Show(ltInternal, X3004_REDUCTION_NOT_DEFINED,
@@ -2999,6 +3047,10 @@ begin
     Result := ParserStack[ParserSP + _a].Source
   else
     Result := ParserStack[ParserSP + _b].Source;
+  if (FPass = 2) and
+     ((ParserStack[ParserSP + _a].Source in [esExtern,esAddressR]) or
+      (ParserStack[ParserSP + _b].Source in [esExtern,esAddressR])) then
+    Result := esUnusable;
 end;
 
 function TAssembler80.SourceCombine3(_a, _b, _c: integer): TExpressionSource;
@@ -3007,6 +3059,11 @@ begin
     Result := SourceCombine2(_a, _b)
   else
     Result := SourceCombine1(_c);
+  if (FPass = 2) and
+     ((ParserStack[ParserSP + _a].Source in [esExtern,esAddressR]) or
+      (ParserStack[ParserSP + _b].Source in [esExtern,esAddressR]) or
+      (ParserStack[ParserSP + _c].Source in [esExtern,esAddressR])) then
+    Result := esUnusable;
 end;
 
 end.
