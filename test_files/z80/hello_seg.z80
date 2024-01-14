@@ -12,13 +12,21 @@
 
 
 HELLO:
+		LD		(SAVSP),SP		; Save stack pointer
+		LD		SP,STACKEND		; Set up new stack pointer
         LD      DE,MSG      	; Get address of msg		
 		CALL	WRITESTR		; Write it out
+		LD		SP,(SAVSP)		; Get old stack pointer back
 		RET						; Back to caller
 
+;============================================================================		
+		SEGMENT VARS, RELOCATABLE, READWRITE
+;============================================================================		
+
+SAVSP:	DW		0				; Saved stack pointer on entry
 		
 ;============================================================================		
-		SEGMENT CONSTANTS, RELOCATABLE, READONLY
+		SEGMENT DATA, RELOCATABLE, READONLY
 ;============================================================================		
 
 ; Text strings
@@ -31,6 +39,13 @@ MSG: 		DB      'Hello World',13,10
 			DB		"Version:         ",VERSION(),13,10
 			DB		"Build:           ",BUILD(),13,10
 			DB		'$'
+		
+;============================================================================		
+		SEGMENT STACK, RELOCATABLE, READWRITE, UNINITIALISED
+;============================================================================		
+
+STACKBASE:	DS		256
+STACKEND:		
 			
         END
 		

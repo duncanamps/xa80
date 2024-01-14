@@ -152,7 +152,7 @@ type
     procedure AsmProcessLabel(const _label: string; _command_index: integer);
     procedure CheckNoLabel(const _label: string);
     procedure CheckByte(_i: integer);
-    procedure CheckFixup(const oplabel: string; opsrc: TExpressionSource);
+    procedure CheckFixup(oplabel: string; opsrc: TExpressionSource);
     procedure CheckInteger(_i, _min, _max: integer);
     procedure CheckLabelsDefined;
     procedure CheckMacroDone;
@@ -1347,16 +1347,20 @@ begin
     ErrorObj.Show(ltError, E2023_BYTE_RANGE_ERROR);
 end;
 
-procedure TAssembler80.CheckFixup(const oplabel: string; opsrc: TExpressionSource);
+procedure TAssembler80.CheckFixup(oplabel: string; opsrc: TExpressionSource);
 var symindex: integer;
     symbol:   TSymbol;
 begin
   if (FPass = 2) then
     begin
       if opsrc in [esUnusable] then
-        ErrorObj.Show(ltWarning,W1014_UNUSABLE_VALUE);
+        ErrorObj.Show(ltWarning,W1014_UNRESOLVABLE_VALUE);
       if (opsrc in [esExtern,esAddressR]) then
         begin // A fixup record will be created
+          oplabel := StringReplace(oplabel,'(','',[rfReplaceAll]);
+          oplabel := StringReplace(oplabel,'[','',[rfReplaceAll]);
+          oplabel := StringReplace(oplabel,')','',[rfReplaceAll]);
+          oplabel := StringReplace(oplabel,']','',[rfReplaceAll]);
           symindex := FSymbolTable.IndexOf(oplabel);
           if symindex < 0 then
             ErrorObj.Show(ltInternal,X3018_SYMBOL_NOT_PROPAGATED,[oplabel]);
@@ -3039,6 +3043,9 @@ function TAssembler80.SourceCombine1(_a: integer): TExpressionSource;
 begin
   // Simple copy
   Result := ParserStack[ParserSP + _a].Source;
+  if (FPass = 2) and
+     (ParserStack[ParserSP + _a].Source in [esExtern,esAddressR]) then
+    Result := esUnusable;
 end;
 
 function TAssembler80.SourceCombine2(_a, _b: integer): TExpressionSource;

@@ -84,7 +84,7 @@ type
                      W1011_COM_FILE_IS_EMPTY,
                      W1012_HEX_FILE_IS_EMPTY,
                      W1013_MAKING_RELOCATABLE_SEGMENT_FIXED,
-                     W1014_UNUSABLE_VALUE,
+                     W1014_UNRESOLVABLE_VALUE,
 
                      E2000_USER_ERROR,
                      E2001_ILLEGAL_ESCAPE_CHARACTER,
@@ -243,7 +243,7 @@ var
     '.COM file is empty',
     '.HEX file is empty',
     'ORG command is forcing Relocatable segment %s to become Fixed',
-    'Unusable value',
+    'Unresolvable value',
 
     '%s',
     'Illegal escape character %s, valid are %s',

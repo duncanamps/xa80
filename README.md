@@ -1,10 +1,10 @@
-# xa80 V0.3
+# xa80 V1.0(DEV)
 
 xa80 - X-Assembler for x80 processors
 
 ![xa80_short](https://github.com/duncanamps/xa80/assets/6016794/5a307bc0-b6b6-458f-91a2-7ae34e710088)
 
-This is V0.3 which is the supported stable release of the software.
+This is V1.0 (Development) which is in development, and therefore incomplete. For the latest stable release, please see [Release Package V0.3.1](https://github.com/duncanamps/xa80/releases/tag/v0.3.1).
 
 #### Synopsis
 
@@ -15,6 +15,7 @@ xa80 is a command line tool that allows the cross assembly of source files aimed
 * .log file containing errors encountered during the assembly
 * .map file containing the symbol information
 * .com file containing the actual machine code which can be executed on, for example, CP/M machines
+* .obj80 file containing object code (fixed/relocatable segments, import/export info, fixup tables)
 
 #### Key features
 
@@ -29,6 +30,7 @@ Here are some of the key features of xa80:
 * Conditional assembly with IF / IFDEF / IFNDEF statements
 * Repetition through REPEAT and WHILE statements
 * Full expression evaluator with many functions and string handling capability
+* Segmented model with fixed and relocatable segments
 * Rich set of command line parameters
 * xa80 Environment variable for commonly used parameters
 * Runs on any hardware supported by Lazarus/FPC (Windows, macOS, Linux, etc. etc.)
@@ -67,22 +69,22 @@ the grammar file and recompiling with LaCoGen; 99.9% of people won't need to loo
 
 #### Documentation
 
-The [docs/](https://github.com/duncanamps/xa80/tree/V0.3/docs) folder contains a user guide explaining how the assembler is used, and also the opcode compiler if you want to get into the detail.
+The [docs/](https://github.com/duncanamps/xa80/tree/V1.0.DEV/docs) folder contains a user guide explaining how the assembler is used, and also the opcode compiler if you want to get into the detail.
 
 #### Folder Structure
 
 Folders are organised as follows:
 
 * [root](https://github.com/duncanamps/xa80/tree/main) the Lazarus project files, licence and .gitignore
-  * [binaries/](https://github.com/duncanamps/xa80/tree/V0.3/docs) - Precompiled binaries for various systems  	
-  * [docs/](https://github.com/duncanamps/xa80/tree/V0.3/docs) - Documentation (user manual, technical notes)
-  * [lac/](https://github.com/duncanamps/xa80/tree/V0.3/lac) - The LaCoGen operand grammar for xa80. The xa80oper.lac file is compiled into xa80oper.lacobj which is loaded into the assembler as a resource file. If you don't need to change the basic grammar for operands, then this can be left alone
-  * [lexer_parser/](https://github.com/duncanamps/xa80/tree/V0.3/lexer_parser) - A lightweight lexical analyser which is used to split or pre-parse the input into labels, commands, instructions, operands and comments
-  * [opcodes/](https://github.com/duncanamps/xa80/tree/V0.3/opcodes) - The folder containing the opcode compiler oc_comp (see readme.txt in the folder)
-    * [opcodes/lac/](https://github.com/duncanamps/xa80/tree/V0.3/opcodes/lac) - Grammar for the opcode compiler, opcode_compiler.lac compiles info opcode_compiler.lacobj
-	* [opcodes/source/](https://github.com/duncanamps/xa80/tree/V0.3/opcodes/source) - The source files describing the different combinations of instructions and operands
-  * [test_files/](https://github.com/duncanamps/xa80/tree/V0.3/test_files) - A set of test files to check that things work, and also includes some deliberate fails to check the assembler response to warning and error conditions
-  * [units/](https://github.com/duncanamps/xa80/tree/V0.3/units) - The bulk of the source code resides in here
+  * [binaries/](https://github.com/duncanamps/xa80/tree/V1.0.DEV/docs) - Precompiled binaries for various systems  	
+  * [docs/](https://github.com/duncanamps/xa80/tree/V1.0.DEV/docs) - Documentation (user manual, technical notes)
+  * [lac/](https://github.com/duncanamps/xa80/tree/V1.0.DEV/lac) - The LaCoGen operand grammar for xa80. The xa80oper.lac file is compiled into xa80oper.lacobj which is loaded into the assembler as a resource file. If you don't need to change the basic grammar for operands, then this can be left alone
+  * [lexer_parser/](https://github.com/duncanamps/xa80/tree/V1.0.DEV/lexer_parser) - A lightweight lexical analyser which is used to split or pre-parse the input into labels, commands, instructions, operands and comments
+  * [opcodes/](https://github.com/duncanamps/xa80/tree/V1.0.DEV/opcodes) - The folder containing the opcode compiler oc_comp (see readme.txt in the folder)
+    * [opcodes/lac/](https://github.com/duncanamps/xa80/tree/V1.0.DEV/opcodes/lac) - Grammar for the opcode compiler, opcode_compiler.lac compiles info opcode_compiler.lacobj
+	* [opcodes/source/](https://github.com/duncanamps/xa80/tree/V1.0.DEV/opcodes/source) - The source files describing the different combinations of instructions and operands
+  * [test_files/](https://github.com/duncanamps/xa80/tree/V1.0.DEV/test_files) - A set of test files to check that things work, and also includes some deliberate fails to check the assembler response to warning and error conditions
+  * [units/](https://github.com/duncanamps/xa80/tree/V1.0.DEV/units) - The bulk of the source code resides in here
 
 #### Known Issues 
 
@@ -90,9 +92,9 @@ Folders are organised as follows:
 
 #### Development roadmap
 
-* V0.3 - **Current Stable Release**
-* V1.0 - FUTURE: Introduce segmented architecture, object files, debug info generation
-* V2.0 - FUTURE: Introduce 24 bit capability
+* V0.3.2 - **Current Stable Release**
+* V1.0   - **Current Development**: Introduce segmented architecture, object files, debug info generation
+* V2.0   - FUTURE: Introduce 24 bit capability
 
 #### Author
 
