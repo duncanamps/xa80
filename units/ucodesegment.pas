@@ -50,6 +50,8 @@ type
       constructor Create(const _segname: string; _modifiers: TSegmentModifiers; _address: word = 0);
       procedure AddBuf(_buf: TCodeBuffer);
       function  Bytes: integer;
+      function  CodeAsJSONArray: string;
+      function  CodeAsText: string;
       function  FirstAddress: word;
       function  IsEmpty: boolean;
       function  LastAddress: word;
@@ -75,6 +77,7 @@ type
       function  GetOrg: word;
       procedure Init;
       procedure SetOrg(_neworg: word);
+      procedure SortSegments;
       property CurrentSegment: TSegment read FCurrentSegment write FCurrentSegment;
   end;
 
@@ -83,7 +86,75 @@ type
 implementation
 
 uses
-  lacogen_types, umessages;
+  lacogen_types, umessages, Generics.Defaults;
+
+function CompareSegment(constref Left,Right: TSegment): integer;
+
+  function IsFixed(_seg: TSegment): boolean;
+  begin
+    IsFixed := smFixed in _seg.Modifiers;
+  end;
+
+  function BothFixed: boolean;
+  begin
+    BothFixed := IsFixed(Left) and IsFixed(Right);
+  end;
+
+  function IsUninitialised(_seg: TSegment): boolean;
+  begin
+    IsUninitialised := (smUninitialised in _seg.Modifiers);
+  end;
+
+  function IsInitialised(_seg: TSegment): boolean;
+  begin
+    IsInitialised := not IsUninitialised(_seg);
+  end;
+
+  function IsReadOnly(_seg: TSegment): boolean;
+  begin
+    IsReadOnly := smReadOnly in _seg.Modifiers;
+  end;
+
+  function IsReadWrite(_seg: TSegment): boolean;
+  begin
+    IsReadWrite := not IsReadOnly(_seg);
+  end;
+
+begin
+  // Order so fixed segments go at start
+  // Fixed segments are ordered by address, lowest first
+  // Followed by relocatable with initialised data (read only)
+  // Followed by relocatable with initialised data (read write)
+  // Then relocatable with uninitialised data
+  if IsFixed(Left) and (not IsFixed(Right)) then
+    CompareSegment := -1
+  else if (not IsFixed(Left)) and IsFixed(Right) then
+    CompareSegment := 1
+  // Both segments are fixed or both are not fixed
+  else if BothFixed then
+    begin
+      if Left.FirstAddress > Right.FirstAddress then
+        CompareSegment := 1
+      else if Left.FirstAddress < Right.FirstAddress then
+        CompareSegment := -1
+      else
+        CompareSegment := 0;
+    end
+  // Both are relocatable if we got to here
+  // Initialised before uninitialised
+  else if IsInitialised(Left) and IsUninitialised(Right) then
+    CompareSegment := -1
+  else if IsUninitialised(Left) and IsInitialised(Right) then
+    CompareSegment := 1
+  // Last check, read only comes before read/write
+  else if IsReadOnly(Left) and IsReadWrite(Right) then
+    CompareSegment := -1
+  else if IsReadWrite(Left) and IsReadOnly(Right) then
+    CompareSegment := 1
+  else
+    CompareSegment := 0;
+end;
+
 
 //----------------------------------------------------------------------
 //
@@ -123,6 +194,73 @@ begin
     Bytes := 0
   else
     Bytes := LastAddress - FirstAddress + 1;
+end;
+
+function TSegment.CodeAsJSONArray: string;
+var s: string;
+    cnt: integer;
+    i:   integer;
+    a:   word;
+    slen: integer;
+begin
+  a := FirstAddress;
+  cnt := Bytes;
+  s := '[]';
+  if not (smUninitialised in FModifiers) then
+    begin
+      s := '[';
+      while cnt > 0 do
+        begin
+          slen := cnt;
+          if slen > 32 then
+            slen := 32;
+          if s <> '[' then
+            s := s + ',';
+          s := s + '"';
+          for i := 0 to slen-1 do
+            begin
+              if FUsed[a] then
+                s := s + Format('%2.2X',[FBuf[a]])
+              else
+                s := s + '--';
+              if a = $FFFF then
+                a := 0
+              else
+                a := a + 1;
+            end;
+          s := s + '"';
+          cnt := cnt - slen;
+        end;
+      s := s + ']';
+    end;
+  CodeAsJSONArray := s;
+end;
+
+function TSegment.CodeAsText: string;
+var s: string;
+    cnt: integer;
+    i:   integer;
+    a:   word;
+begin
+  a := FirstAddress;
+  cnt := Bytes;
+  s := '';
+  if not (smUninitialised in FModifiers) then
+    begin
+      s := '';
+      for i := 0 to cnt-1 do
+        begin
+          if FUsed[a] then
+            s := s + Format('%2.2X',[FBuf[a]])
+          else
+            s := s + '--';
+          if a = $FFFF then
+            a := 0
+          else
+            a := a + 1;
+        end;
+    end;
+  CodeAsText := s;
 end;
 
 function TSegment.FirstAddress: word;
@@ -318,6 +456,11 @@ procedure TSegments.SetOrg(_neworg: word);
 begin
   EnsureCurrentSegment;
   FCurrentSegment.FAddress := _neworg;
+end;
+
+procedure TSegments.SortSegments;
+begin
+  Sort(specialize TComparer<TSegment>.Construct(@CompareSegment));
 end;
 
 end.

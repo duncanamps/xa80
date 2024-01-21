@@ -38,6 +38,8 @@ type
     public
       procedure Add(const _ref: string; _seg: TSegment; _offset: word); reintroduce;
       procedure Dump(_strm: TFileStream; var _printpage: integer);
+      function FixupsAsJSONArray: string;
+      function SegmentFixupsAsJSONArray(const _reqseg: string): string;
   end;
 
 
@@ -168,6 +170,94 @@ begin
     end;
   Purge;
   FormFeed;
+end;
+
+function TFixupList.FixupsAsJSONArray: string;
+var i: integer;
+    s: string;
+    t_ch: char;
+    line: integer;
+    pagestr: string;
+    spc:     integer;
+    fixup:   TFixup;
+    source:  string;
+    lastseg:   string;
+    lastlabel: string;
+    outstr:    string;
+
+begin
+  outstr := '{';
+  // Sort into segment, name, offset
+  Sort(specialize TComparer<TFixup>.Construct(@CompareFixup));
+  // Now do the string compilation
+  lastseg := '';
+  lastlabel := '';
+  for i := 0 to Count-1 do
+    begin
+      fixup := Items[i];
+      if fixup.Seg.Segname <> lastseg then
+        begin
+          if lastseg <> '' then
+            outstr := outstr + ']},';
+          outstr := outstr + '"' + fixup.Seg.Segname + '":{"' + fixup.Reference + '":[';
+          lastlabel := fixup.Reference;
+          lastseg := fixup.Seg.Segname;
+        end;
+      if fixup.Reference <> lastlabel then
+        begin
+          outstr := outstr + '],"' + fixup.Reference + '":[';
+          lastlabel := fixup.Reference;
+        end;
+      if RightStr(outstr,1) = '"' then
+        outstr := outstr + ',';
+      outstr := outstr + '"' + Format('%4.4X',[fixup.Offset]) + '"';
+    end;
+  outstr := outstr + ']}}';
+  FixupsAsJSONArray := outstr;
+end;
+
+function TFixupList.SegmentFixupsAsJSONArray(const _reqseg: string): string;
+var i: integer;
+    s: string;
+    t_ch: char;
+    line: integer;
+    pagestr: string;
+    spc:     integer;
+    fixup:   TFixup;
+    source:  string;
+    lastlabel: string;
+    outstr:    string;
+
+begin
+  outstr := '{';
+  // Sort into segment, name, offset
+  Sort(specialize TComparer<TFixup>.Construct(@CompareFixup));
+  // Now do the string compilation
+  lastlabel := '';
+  for i := 0 to Count-1 do
+    begin
+      fixup := Items[i];
+      if fixup.Seg.Segname = _reqseg then
+        begin
+          if lastlabel = '' then
+            begin
+              lastlabel := fixup.Reference;
+              outstr := outstr + '"' + fixup.Reference + '":[';
+            end;
+          if fixup.Reference <> lastlabel then
+            begin
+              outstr := outstr + '],"' + fixup.Reference + '":[';
+              lastlabel := fixup.Reference;
+            end;
+          if RightStr(outstr,1) = '"' then
+            outstr := outstr + ',';
+          outstr := outstr + '"' + Format('%4.4X',[fixup.Offset]) + '"';
+        end;
+    end;
+  if RightStr(outstr,1) = '"' then
+    outstr := outstr + ']';
+  outstr := outstr + '}';
+  SegmentFixupsAsJSONArray := outstr;
 end;
 
 end.

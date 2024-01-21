@@ -195,7 +195,7 @@ const
         LongOption:   '--object';
         ParamName:    '<on>';
         EnvName:      'FilenameObj';
-        Description:  'Set object output file to <mn>';
+        Description:  'Set object output file to <on>';
         Allowed:      [caEnvironment,caCommandLine];
         Parameter:    paOptional;
         MandateFiles: True;

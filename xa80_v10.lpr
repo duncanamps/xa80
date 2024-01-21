@@ -212,6 +212,7 @@ begin
     Asm80.OptionHex     := AcquireParam('FilenameHex');
     Asm80.OptionListing := AcquireParam('FilenameListing');
     Asm80.OptionMap     := AcquireParam('FilenameMap');
+    Asm80.OptionObj     := AcquireParam('FilenameObj');
 
     verbose := StrToInt(EnvObject.GetValue('Verbose'));
     case verbose of

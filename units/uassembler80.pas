@@ -53,6 +53,7 @@ type
     FFilenameError: string;
     FFilenameHex: string;
     FFilenameMap: string;
+    FFilenameObj: string;
     FFixupList: TFixupList;
     FInputCol: integer;
     FIncludeStack: TIncludeStack;
@@ -68,6 +69,7 @@ type
     FOptionDefines: string;
     FOptionError: string;
     FOptionHex: string;
+    FOptionObj: string;
     FOptionListing: string;
     FOptionMap: string;
 //  FOrg: integer;
@@ -211,6 +213,7 @@ type
     procedure NeedString(_index: integer; const _msg: string);
     procedure OutputMemoryToCom(_filename: string);
     procedure OutputMemoryToHex(_filename: string);
+    procedure OutputMemoryToObj(_filename: string);
     procedure Parse(const _s: string; _cmd_only: boolean);
     procedure Parse(_strm: TStream; _firstcol: integer);
     function ParserM1: TLCGParserStackEntry;
@@ -258,8 +261,9 @@ type
     property FilenameCom:     string  read FFilenameCom       write FFilenameCom;
     property FilenameError:   string  read FFilenameError     write SetFilenameError;
     property FilenameHex:     string  read FFilenameHex       write FFilenameHex;
-    property FilenameMap:     string  read FFilenameMap       write FFilenameMap;
     property FilenameListing: string  read GetFilenameListing write SetFilenameListing;
+    property FilenameMap:     string  read FFilenameMap       write FFilenameMap;
+    property FilenameObj:     string  read FFilenameObj       write FFilenameObj;
     property IncludeList:     string  read FIncludeList       write FIncludeList;
     property InputLine:       integer read FInputLine;
     property InputCol:        integer read FInputCol;
@@ -269,6 +273,7 @@ type
     property OptionHex:       string  read FOptionHex         write FOptionHex;
     property OptionListing:   string  read FOptionListing     write FOptionListing;
     property OptionMap:       string  read FOptionMap         write FOptionMap;
+    property OptionObj:       string  read FOptionObj         write FOptionObj;
     property Org:             integer read GetOrg             write SetOrg;
     property Pass:            integer read FPass;
     property Processor:       string read FProcessor;
@@ -281,7 +286,7 @@ var
 implementation
 
 uses
-  uutility, typinfo;
+  uutility, typinfo, uobject;
 
 constructor TAssembler80.Create(const _processor: string);
 begin
@@ -953,9 +958,12 @@ begin
     end
   else
     begin
-      sym := FSymbolTable[idx];
-      sym.Referenced := True;
-      FSymbolTable[idx] := sym;
+      if not (cfNoPlaceholder in FPreparser.CmdFlags) then
+        begin
+          sym := FSymbolTable[idx];
+          sym.Referenced := True;
+          FSymbolTable[idx] := sym;
+        end;
       // @@@@@ Set up the variable/constant thing from the symbol table
       case sym.Source of
         esUndefined,
@@ -1105,6 +1113,9 @@ begin
   FilenameError := MakeFilename(FilenameAsm, OptionError, '.log');
   if FilenameError <> '' then
     ErrorObj.Show(ltVerbose, I0004_FILENAME_ASSIGNMENT, ['error log', FilenameError]);
+  FilenameObj := MakeFilename(FilenameAsm, OptionObj, '.obj80');
+  if FilenameObj <> '' then
+    ErrorObj.Show(ltVerbose, I0004_FILENAME_ASSIGNMENT, ['obj80', FilenameObj]);
   ApplyCommandLineDefines;
   ErrorObj.SetLogFilename(FilenameError);
   ErrorObj.Show(ltInfo, I0003_ASSEMBLING_FILE, [filename]);
@@ -1117,8 +1128,10 @@ begin
   ErrorObj.LineNumber := 0;
   ErrorObj.Filename   := '';
   CheckLabelsDefined;
+  FSegments.SortSegments;
   OutputMemoryToCom(FilenameCom);
   OutputMemoryToHex(FilenameHex);
+  OutputMemoryToObj(FilenameObj);
   FSymbolTable.DumpByBoth(FFilenameMap,FSegments,FFixupList);
   ErrorObj.SetLogFilename('');
 end;
@@ -2471,6 +2484,21 @@ begin
   end;
 end;
 
+// Output to object file
+
+procedure TAssembler80.OutputMemoryToObj(_filename: string);
+var FObjFile: TObjectFile;
+begin
+  if _filename = '' then
+    Exit;
+  // Create and save the object file
+  FObjFile := TObjectFile.Create(_filename,FSymbolTable,FSegments,FFixupList);
+  try
+    FObjFile.Save;
+  finally
+    FreeAndNil(FObjFile);
+  end;
+end;
 
 // Key routine - parse a single line of text from the input
 
