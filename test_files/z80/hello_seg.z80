@@ -1,8 +1,14 @@
 ;        TITLE   'HELLO_SEG.Z80 - Hello World with Segments'
 
 				EXTERN	WRITESTR
+				EXTERN	MALLOC
 
 				GLOBAL	HELLO
+				
+PRINT	MACRO	stringaddr
+		LD		DE,{stringaddr}
+		CALL	WRITESTR
+		ENDM
 				
 ;============================================================================		
 		SEGMENT	CSEG, FIXED, READONLY
@@ -14,9 +20,9 @@
 HELLO:
 		LD		(SAVSP),SP		; Save stack pointer
 		LD		SP,STACKEND		; Set up new stack pointer
-        LD      DE,MSG      	; Get address of msg		
-		CALL	WRITESTR		; Write it out
+		PRINT	MSG				; Print the "Hello World" message
 		LD		SP,(SAVSP)		; Get old stack pointer back
+GOBACK:		
 		RET						; Back to caller
 
 ;============================================================================		

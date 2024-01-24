@@ -32,7 +32,8 @@ uses
   Classes, SysUtils, lacogen_types, lacogen_module,
   umessages, uinstruction, usymboltable,
   upreparser3, ucommand, upreparser3_defs, ucodebuffer, ulisting, uinclude,
-  uenvironment, ustack, umacro, ucodesegment, uasmglobals, ufixups;
+  uenvironment, ustack, umacro, ucodesegment, uasmglobals, ufixups,
+  udebuglist;
 
 type
   TCompareMode = (cmEqual, cmNotEqual, cmLessThan, cmLessEqual, cmGreaterThan,
@@ -45,6 +46,8 @@ type
     FCmdList: TCommandList;
     FCodeBuffer: TCodeBuffer;
     FCurrentFile: string;
+    FDebugLevel: integer;
+    FDebugList:  TDebugList;
     FDefiningMacro: boolean;
     FDefMacro:      TMacroEntry;
     FEnded: boolean;
@@ -230,6 +233,7 @@ type
     procedure RegisterCommands;
     procedure ResetMemory;
     procedure SetCaseSensitive(_v: boolean);
+    procedure SetDebugLevel(_v: integer);
     procedure SetDefiningMacro(_v: boolean);
     procedure SetFilenameAsm(const _filename: string);
     procedure SetFilenameError(const _filename: string);
@@ -255,6 +259,7 @@ type
     procedure ShowErrorToken(_token: TToken; _logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
     property CaseSensitive:   boolean read FCaseSensitive     write SetCaseSensitive;
     property CurrentFile:     string  read FCurrentFile;
+    property DebugLevel:      integer read FDebugLevel        write SetDebugLevel;
     property DefiningMacro:   boolean read FDefiningMacro     write SetDefiningMacro;
     property DFA:             TLCGDFA read GetDFA;
     property FilenameAsm:     string  read FFilenameAsm       write SetFilenameAsm;
@@ -312,6 +317,7 @@ begin
   FDefMacro   := TMacroEntry.Create;
   FSegments   := TSegments.Create;
   FFixupList  := TFixupList.Create;
+  FDebugList  := TDebugList.Create;
 
   FCmdList.SymbolTable := FSymbolTable;
   FPreparser.MacroList := FMacroList;
@@ -328,6 +334,7 @@ end;
 
 destructor TAssembler80.Destroy;
 begin
+  FreeAndNil(FDebugList);
   FreeAndNil(FFixupList);
   FreeAndNil(FSegments);
   FreeAndNil(FDefMacro);
@@ -933,7 +940,7 @@ var
 
   function SetSource: TExpressionSource;
   begin
-    if sym.Defined then
+    if sfDefined in sym.Flags then
       SetSource := sym.Source
     else
       SetSource := esUndefined;
@@ -957,11 +964,13 @@ begin
         FSymbolTable.Add(Name, nil, stAddress, 0, '', False, True, esUndefined);
     end
   else
-    begin
+    begin // Symbol was found
       if not (cfNoPlaceholder in FPreparser.CmdFlags) then
         begin
           sym := FSymbolTable[idx];
-          sym.Referenced := True;
+          sym.Flags := sym.Flags + [sfReferenced];
+          if (sym.Seg <> FSegments.CurrentSegment) then
+            sym.Flags := sym.Flags + [sfExportLocal];
           FSymbolTable[idx] := sym;
         end;
       // @@@@@ Set up the variable/constant thing from the symbol table
@@ -1060,10 +1069,10 @@ begin
           if (FPass = 1) then
             // Check for forward reference already defined
             if (FSymbolTable[_index].Source = esUndefined) and
-              (FSymbolTable[_index].Defined = False) then
+              (not (sfDefined in FSymbolTable[_index].Flags)) then
             begin
               _symbol.IValue := Org;
-              _symbol.Defined := True;
+              _symbol.Flags := _symbol.Flags + [sfDefined];
               _symbol.Seg     := _seg;
               if smFixed in _seg.Modifiers then
                 _symbol.Source := esAddressF
@@ -1186,6 +1195,10 @@ begin
   // Check for end
   if FEnded and ((command_index > 0) or (opcode_index > 0)) then
     ErrorObj.Show(ltError, E2037_CODE_AFTER_END);
+  // Check for code generation in an uninitialised segment. DS is OK though
+  if (FPass = 2) and (FSegments.CurrentSegment <> nil) and (smUninitialised in FSegments.CurrentSegment.Modifiers) and
+     ((opcode_index >= 0) or ((command_index >= 0) and (cfCodeGen in FCmdList[command_index].CommandFlags))) then
+    ErrorObj.Show(ltError,E2071_CODE_GENERATION_IN_UNINIT);
   // Process commands if available
   if command_index >= 0 then
     if FSolGenerate or (cfBypass in FCmdList[command_index].CommandFlags) then
@@ -1300,6 +1313,12 @@ begin
       // Listing
       // @@@@@ Set macro indent here if required
       indent_str := Format('%5d', [FInputLine]);
+      // Output the debug information should it be required
+      if (DebugLevel > 0) and (FSolGenerate) and (FCodeBuffer.Contains > 0) then
+        begin
+          FSegments.EnsureCurrentSegment;
+          FDebugList.AddRec(ErrorObj.Filename,ErrorObj.LineNumber,FSegments.CurrentSegment,Org);
+        end;
       if FSolGenerate then
         indent_str := indent_str + ' |'
       else
@@ -1399,7 +1418,7 @@ procedure TAssembler80.CheckLabelsDefined;
 var sym: TSymbol;
 begin
   for sym in FSymbolTable do
-    if (not sym.Defined) and (sym.Scope in [ssLocal,ssGlobal]) then
+    if (not (sfDefined in sym.Flags)) and (sym.Scope in [ssLocal,ssGlobal]) then
       ErrorObj.Show(ltWarning,W1005_SYMBOL_UNDEFINED,[sym.Name]);
 end;
 
@@ -1884,6 +1903,7 @@ begin
     pstString: ErrorObj.Show(ltError, E2019_EXPECTED_INTEGER);
     pstINT32: begin
       CheckOperandInteger(0, 0, $FFFF);
+      Org := _preparser[0].IntValue;
       // Check if an existing segment exists, if not created it as a fixed
       // segment and set the origin
       _seg := FSegments.CurrentSegment;
@@ -1903,9 +1923,8 @@ begin
                   _seg.Modifiers := _seg.Modifiers + [smFixed];
                 end;
             end;
-      FSegments.SetOrg(Org);
-    end;
-      Org := _preparser[0].IntValue;
+          FSegments.SetOrg(Org);
+        end;
     end;
   end; // case
 end;
@@ -2015,6 +2034,12 @@ begin
             end;
         end;
     end;
+  // Check for bad combinations of modifiers, e.g. ReadOnly + Uninitialised
+  // or Fixed + uninitialised
+  if ((_allmods * [smFixed,smUninitialised] = [smFixed,smUninitialised]) or
+     (_allmods * [smReadOnly,smUninitialised] = [smReadOnly,smUninitialised])) and
+     (FPass = 1) then
+    ErrorObj.Show(ltWarning,W1015_SEGMENT_MODIFIER_CONFUSING);
   // Check if the segment already exists, if so don't have any other operands
   // If the segment doesn't, exist we create it here
   _seg := FSegments.FindByName(_segname,CaseSensitive);
@@ -2233,9 +2258,9 @@ begin
   else
   begin  // Label exists
     sym := FSymbolTable[_index];
-    if (Pass = 1) and (not _allow_redefine) and (sym.Defined = True) then
+    if (Pass = 1) and (not _allow_redefine) and (sfDefined in sym.Flags) then
       ErrorObj.Show(ltWarning, W1003_LABEL_REDEFINED, [_label]);
-    sym.Defined := True;
+    sym.Flags := sym.Flags + [sfDefined];
     case _preparser[0].DataType of
       pstNone: ErrorObj.Show(ltError, E2018_OPERAND_NO_DATA_TYPE, [1]);
       pstINT32:
@@ -2492,7 +2517,7 @@ begin
   if _filename = '' then
     Exit;
   // Create and save the object file
-  FObjFile := TObjectFile.Create(_filename,FSymbolTable,FSegments,FFixupList);
+  FObjFile := TObjectFile.Create(_filename,FSymbolTable,FSegments,FFixupList,FDebugList);
   try
     FObjFile.Save;
   finally
@@ -2839,16 +2864,16 @@ procedure TAssembler80.RegisterCommands;
 var ival: integer;
 begin
   ival := 0;
-  FCmdList.RegisterCommand('.BYTE',      [cfLabel],                 @CmdDB);
+  FCmdList.RegisterCommand('.BYTE',      [cfLabel,cfCodeGen],       @CmdDB);
   FCmdList.RegisterCommand('.CPU',       [],                        @CmdCPU);
-  FCmdList.RegisterCommand('.DB',        [cfLabel],                 @CmdDB);
-  FCmdList.RegisterCommand('.DC',        [cfLabel],                 @CmdDC);
-  FCmdList.RegisterCommand('.DEFB',      [cfLabel],                 @CmdDB);
-  FCmdList.RegisterCommand('.DEFC',      [cfLabel],                 @CmdDC);
+  FCmdList.RegisterCommand('.DB',        [cfLabel,cfCodeGen],       @CmdDB);
+  FCmdList.RegisterCommand('.DC',        [cfLabel,cfCodeGen],       @CmdDC);
+  FCmdList.RegisterCommand('.DEFB',      [cfLabel,cfCodeGen],       @CmdDB);
+  FCmdList.RegisterCommand('.DEFC',      [cfLabel,cfCodeGen],       @CmdDC);
   FCmdList.RegisterCommand('.DEFS',      [cfLabel],                 @CmdDS);
-  FCmdList.RegisterCommand('.DEFW',      [cfLabel],                 @CmdDW);
+  FCmdList.RegisterCommand('.DEFW',      [cfLabel,cfCodeGen],       @CmdDW);
   FCmdList.RegisterCommand('.DS',        [cfLabel],                 @CmdDS);
-  FCmdList.RegisterCommand('.DW',        [cfLabel],                 @CmdDW);
+  FCmdList.RegisterCommand('.DW',        [cfLabel,cfCodeGen],       @CmdDW);
   FCmdList.RegisterCommand('.ELSE',      [cfBypass],                @CmdELSE);
   FCmdList.RegisterCommand('.END',       [],                        @CmdEND);
   FCmdList.RegisterCommand('.ENDIF',     [cfBypass],                @CmdENDIF);
@@ -2871,50 +2896,51 @@ begin
   FCmdList.RegisterCommand('.ORG',       [],                        @CmdORG);
   FCmdList.RegisterCommand('.REPEAT',    [cfNoPlaceholder,cfBypass],@CmdREPEAT);
   FCmdList.RegisterCommand('.SEGMENT',   [cfNoPlaceholder],         @CMDSEGMENT);
-  FCmdList.RegisterCommand('.TEXT',      [cfLabel],                 @CmdDB);
+  FCmdList.RegisterCommand('.TEXT',      [cfLabel,cfCodeGen],       @CmdDB);
   FCmdList.RegisterCommand('.TITLE',     [],                        @CmdTITLE);
   FCmdList.RegisterCommand('.WARNOFF',   [],                        @CmdWARNOFF);
   FCmdList.RegisterCommand('.WARNON',    [],                        @CmdWARNON);
   FCmdList.RegisterCommand('.WHILE',     [cfNoPlaceholder,cfBypass],@CmdWHILE);
-  FCmdList.RegisterCommand('.WORD',      [cfLabel],                 @CmdDW);
+  FCmdList.RegisterCommand('.WORD',      [cfLabel,cfCodeGen],       @CmdDW);
   FCmdList.RegisterCommand('=',          [cfLabel,cfEQU],           @CmdEQU2);
-  FCmdList.RegisterCommand('CPU',        [],                        @CmdCPU);
-  FCmdList.RegisterCommand('DB',         [cfLabel],                 @CmdDB);
-  FCmdList.RegisterCommand('DC',         [cfLabel],                 @CmdDC);
-  FCmdList.RegisterCommand('DEFB',       [cfLabel],                 @CmdDB);
-  FCmdList.RegisterCommand('DEFC',       [cfLabel],                 @CmdDC);
-  FCmdList.RegisterCommand('DEFS',       [cfLabel],                 @CmdDS);
-  FCmdList.RegisterCommand('DEFW',       [cfLabel],                 @CmdDW);
-  FCmdList.RegisterCommand('DS',         [cfLabel],                 @CmdDS);
-  FCmdList.RegisterCommand('DW',         [cfLabel],                 @CmdDW);
-  FCmdList.RegisterCommand('ELSE',       [cfBypass],                @CmdELSE);
-  FCmdList.RegisterCommand('END',        [],                        @CmdEND);
-  FCmdList.RegisterCommand('ENDIF',      [cfBypass],                @CmdENDIF);
-  FCmdList.RegisterCommand('ENDM',       [cfDuringMD],              @CmdENDM);
-  FCmdList.RegisterCommand('ENDR',       [cfBypass],                @CmdENDR);
-  FCmdList.RegisterCommand('ENDW',       [cfBypass],                @CmdENDW);
-  FCmdList.RegisterCommand('EQU',        [cfLabel,cfEQU],           @CmdEQU);
-  FCmdList.RegisterCommand('EXTERN',     [cfNoPlaceholder],         @CmdEXTERN);
-  FCmdList.RegisterCommand('GLOBAL',     [cfNoPlaceholder],         @CmdGLOBAL);
-  FCmdList.RegisterCommand('IF',         [cfNoPlaceholder,cfBypass],@CmdIF);
-  FCmdList.RegisterCommand('IFDEF',      [cfNoPlaceholder,cfBypass],@CmdIFDEF);
-  FCmdList.RegisterCommand('IFNDEF',     [cfNoPlaceholder,cfBypass],@CmdIFNDEF);
-  FCmdList.RegisterCommand('INCLUDE',    [],                        @CmdINCLUDE);
-  FCmdList.RegisterCommand('LISTOFF',    [],                        @CmdLISTOFF);
-  FCmdList.RegisterCommand('LISTON',     [],                        @CmdLISTON);
-  FCmdList.RegisterCommand('MACRO',      [cfNoPlaceholder,cfLabel,cfDuringMD], @CmdMACRO);
-  FCmdList.RegisterCommand('MSGINFO',    [],                        @CmdMSGINFO);
-  FCmdList.RegisterCommand('MSGERROR',   [],                        @CmdMSGERROR);
-  FCmdList.RegisterCommand('MSGWARNING', [],                        @CmdMSGWARNING);
-  FCmdList.RegisterCommand('ORG',        [],                        @CmdORG);
-  FCmdList.RegisterCommand('REPEAT',     [cfNoPlaceholder,cfBypass],@CmdREPEAT);
-  FCmdList.RegisterCommand('SEGMENT',    [cfNoPlaceholder],         @CMDSEGMENT);
-  FCmdList.RegisterCommand('TEXT',       [cfLabel],                 @CmdDB);
-  FCmdList.RegisterCommand('TITLE',      [],                        @CmdTITLE);
-  FCmdList.RegisterCommand('WARNOFF',    [],                        @CmdWARNOFF);
-  FCmdList.RegisterCommand('WARNON',     [],                        @CmdWARNON);
-  FCmdList.RegisterCommand('WHILE',      [cfNoPlaceholder,cfBypass],@CmdWHILE);
-  FCmdList.RegisterCommand('WORD',       [cfLabel],                 @CmdDW);
+  FCmdList.RegisterCommand('BYTE',      [cfLabel,cfCodeGen],        @CmdDB);
+  FCmdList.RegisterCommand('CPU',       [],                         @CmdCPU);
+  FCmdList.RegisterCommand('DB',        [cfLabel,cfCodeGen],        @CmdDB);
+  FCmdList.RegisterCommand('DC',        [cfLabel,cfCodeGen],        @CmdDC);
+  FCmdList.RegisterCommand('DEFB',      [cfLabel,cfCodeGen],        @CmdDB);
+  FCmdList.RegisterCommand('DEFC',      [cfLabel,cfCodeGen],        @CmdDC);
+  FCmdList.RegisterCommand('DEFS',      [cfLabel],                  @CmdDS);
+  FCmdList.RegisterCommand('DEFW',      [cfLabel,cfCodeGen],        @CmdDW);
+  FCmdList.RegisterCommand('DS',        [cfLabel],                  @CmdDS);
+  FCmdList.RegisterCommand('DW',        [cfLabel,cfCodeGen],        @CmdDW);
+  FCmdList.RegisterCommand('ELSE',      [cfBypass],                 @CmdELSE);
+  FCmdList.RegisterCommand('END',       [],                         @CmdEND);
+  FCmdList.RegisterCommand('ENDIF',     [cfBypass],                 @CmdENDIF);
+  FCmdList.RegisterCommand('ENDM',      [cfDuringMD],               @CmdENDM);
+  FCmdList.RegisterCommand('ENDR',      [cfBypass],                 @CmdENDR);
+  FCmdList.RegisterCommand('ENDW',      [cfBypass],                 @CmdENDW);
+  FCmdList.RegisterCommand('EQU',       [cfLabel,cfEQU],            @CmdEQU);
+  FCmdList.RegisterCommand('EXTERN',    [cfNoPlaceholder],          @CmdEXTERN);
+  FCmdList.RegisterCommand('GLOBAL',    [cfNoPlaceholder],          @CmdGLOBAL);
+  FCmdList.RegisterCommand('IF',        [cfNoPlaceholder,cfBypass], @CmdIF);
+  FCmdList.RegisterCommand('IFDEF',     [cfNoPlaceholder,cfBypass], @CmdIFDEF);
+  FCmdList.RegisterCommand('IFNDEF',    [cfNoPlaceholder,cfBypass], @CmdIFNDEF);
+  FCmdList.RegisterCommand('INCLUDE',   [],                         @CmdINCLUDE);
+  FCmdList.RegisterCommand('LISTOFF',   [],                         @CmdLISTOFF);
+  FCmdList.RegisterCommand('LISTON',    [],                         @CmdLISTON);
+  FCmdList.RegisterCommand('MACRO',     [cfNoPlaceholder,cfLabel,cfDuringMD], @CmdMACRO);
+  FCmdList.RegisterCommand('MSGINFO',   [],                         @CmdMSGINFO);
+  FCmdList.RegisterCommand('MSGERROR',  [],                         @CmdMSGERROR);
+  FCmdList.RegisterCommand('MSGWARNING',[],                         @CmdMSGWARNING);
+  FCmdList.RegisterCommand('ORG',       [],                         @CmdORG);
+  FCmdList.RegisterCommand('REPEAT',    [cfNoPlaceholder,cfBypass], @CmdREPEAT);
+  FCmdList.RegisterCommand('SEGMENT',   [cfNoPlaceholder],          @CMDSEGMENT);
+  FCmdList.RegisterCommand('TEXT',      [cfLabel,cfCodeGen],        @CmdDB);
+  FCmdList.RegisterCommand('TITLE',     [],                         @CmdTITLE);
+  FCmdList.RegisterCommand('WARNOFF',   [],                         @CmdWARNOFF);
+  FCmdList.RegisterCommand('WARNON',    [],                         @CmdWARNON);
+  FCmdList.RegisterCommand('WHILE',     [cfNoPlaceholder,cfBypass], @CmdWHILE);
+  FCmdList.RegisterCommand('WORD',      [cfLabel,cfCodeGen],        @CmdDW);
   if not FInstructionList.FindOpcode('SET',ival) then
     begin
       FCmdList.RegisterCommand('.SET',   [cfLabel,cfEQU],           @CmdEQU2);
@@ -3000,6 +3026,13 @@ procedure TAssembler80.SetCaseSensitive(_v: boolean);
 begin
   FCaseSensitive := _v;
   FSymbolTable.MixedCase := _v;
+end;
+
+procedure TAssembler80.SetDebugLevel(_v: integer);
+begin
+  if (_v < 0) or (_v > 1) then
+    ErrorObj.Show(ltError,E2072_ILLEGAL_DEBUG_LEVEL,[_v]);
+  FDebugLevel := _v;
 end;
 
 procedure TAssembler80.SetDefiningMacro(_v: boolean);

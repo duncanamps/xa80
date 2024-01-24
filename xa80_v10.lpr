@@ -30,7 +30,7 @@ uses
   { you can add units after this }
   uenvironment, ucommandline, typinfo, uutility, uasmglobals,
   uassembler80, uprocessors, umessages, upreparser3, usymboltable,
-  lacogen_types, ustack, umacro, ucodesegment, ufixups;
+  lacogen_types, ustack, umacro, ucodesegment, ufixups, udebuglist;
 
 const
   CRLF = #13 + #10;
@@ -43,8 +43,7 @@ const
               '<b> is the debug info inclusion level and defines what gets added to the object' + CRLF +
               'files, and can be:' + CRLF +
               '  0 No debug info inclusion (default)' + CRLF +
-              '  1 Include line numbers and source file names in object file' + CRLF +
-              '  2 Include line numbers and all source code in object file' + CRLF +
+              '  1 Include source file line numbers and references' + CRLF +
               CRLF +
               '<id> is the define and can be a symbol name, or symbol=value. 16 bit numbers' + CRLF +
               'and strings can be used. The ; separates multiple entries. For example: ' + CRLF +
@@ -138,6 +137,7 @@ begin
         else
           begin // Normal file processing
             Asm80.CaseSensitive := (EnvObject.GetValue('CaseSensitive') <> '0');
+            Asm80.DebugLevel    := EnvObject.GetValueAsInteger('DebugLevel');
             Assemble;
           end;
       finally

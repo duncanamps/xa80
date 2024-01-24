@@ -86,7 +86,7 @@ const
         ShortOption:  '-b';
         LongOption:   '--debug';
         ParamName:    '<d>';
-        EnvName:      'DebugInfo';
+        EnvName:      'DebugLevel';
         Description:  'Set the debug info inclusion level to <d>';
         Allowed:      [caEnvironment,caCommandLine];
         Parameter:    paMandatory;

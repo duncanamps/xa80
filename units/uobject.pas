@@ -41,11 +41,13 @@ unit uobject;
 interface
 
 uses
-  Classes, SysUtils, ucodesegment, usymboltable, ufixups, fpjson;
+  Classes, SysUtils, ucodesegment, usymboltable, ufixups, fpjson,
+  udebuglist;
 
 type
   TObjectFile = class(TObject)
     private
+      FDebugList:   TDebugList;
       FFilename:    string;
       FFixupList:   TFixupList;
       FSegments:    TSegments;
@@ -53,7 +55,7 @@ type
       jData:        TJSONData;
       procedure CreateJSONfromParams;
     public
-      constructor Create(const _filename: string; _symboltable: TSymbolTable; _segmentlist: TSegments; _fixups: TFixupList);
+      constructor Create(const _filename: string; _symboltable: TSymbolTable; _segmentlist: TSegments; _fixups: TFixupList; _debuglist: TDebugList);
       destructor Destroy; override;
       procedure Save;
   end;
@@ -63,10 +65,11 @@ implementation
 uses
   uutility, uenvironment, jsonparser;
 
-constructor TObjectFile.Create(const _filename: string; _symboltable: TSymbolTable; _segmentlist: TSegments; _fixups: TFixupList);
+constructor TObjectFile.Create(const _filename: string; _symboltable: TSymbolTable; _segmentlist: TSegments; _fixups: TFixupList; _debuglist: TDebugList);
 begin
   inherited Create;
   FFilename    := _filename;
+  FDebugList   := _debuglist;
   FSymbolTable := _symboltable;
   FSegments    := _segmentlist;
   FFixupList   := _fixups;
@@ -87,7 +90,7 @@ var jObject: TJSONObject;
 begin
   if Assigned(jData) then
     FreeAndNil(jData); // Clear the JSON if it already exists
-  jData := GetJSON('{"Header":{},"Globals":{},"Locals":{},"Segments":{}}');
+  jData := GetJSON('{"Header":{},"Globals":{},"Locals":{},"DebugFilenames":{},"Segments":{}}');
   // Do header items
   jObject := jData.FindPath('Header') as TJSONObject;
   if Assigned(jObject) then
@@ -119,7 +122,7 @@ begin
   if Assigned(jObject) then
     begin
       for i := 0 to FSymbolTable.Count-1 do
-        if FSymbolTable.Items[i].Scope = ssLocal then
+        if (FSymbolTable.Items[i].Scope = ssLocal) and (FSymbolTable.Items[i].Seg <> nil) and (sfExportLocal in FSymbolTable.Items[i].Flags) then
           with FSymbolTable.Items[i] do
             begin
               if Assigned(Seg) then
@@ -129,20 +132,28 @@ begin
               jObject.Add(Name,jSub);
             end;
     end;
+  // Do debug filenames
+  jObject := jData.FindPath('DebugFilenames') as TJSONObject;
+  if Assigned(jObject) then
+    begin
+      for i := 0 to FDebugList.FilenameList.Count-1 do
+        jObject.Add(Format('File%4.4X',[i]),FDebugList.FilenameList[i]);
+    end;
   // Do segments
   jObject := jData.FindPath('Segments') as TJSONObject;
   if Assigned(jObject) then
     for i := 0 to FSegments.Count-1 do
       with FSegments.Items[i] do
         begin
-          jSub := GetJSON(Format('{"Address":"%4.4X","Length":"%4.4X","IsFixed":"%s","IsReadOnly":"%s","IsUninitialised":"%s","Code":%s,"Fixups":%s}',
+          jSub := GetJSON(Format('{"Address":"%4.4X","Length":"%4.4X","IsFixed":"%s","IsReadOnly":"%s","IsUninitialised":"%s","Code":%s,"Fixups":%s,"DebugList":%s}',
                               [FirstAddress,
                                Bytes,
                                BooleanToYN(smFixed in Modifiers),
                                BooleanToYN(smReadOnly in Modifiers),
                                BooleanToYN(smUninitialised in Modifiers),
                                CodeAsJSONArray,
-                               FFixupList.SegmentFixupsAsJSONArray(SegName)
+                               FFixupList.SegmentFixupsAsJSONArray(SegName),
+                               FDebugList.DebugDataAsJSONArray(FSegments.Items[i])
                                ])) as TJSONObject;
           jObject.Add(Segname,jSub);
         end;

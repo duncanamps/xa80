@@ -36,6 +36,10 @@ type
 
   TSymbolScope = (ssUndefined,ssLocal,ssGlobal,ssExternal);
 
+  TSymbolFlag = (sfReferenced,sfDefined,sfExportLocal);
+
+  TSymbolFlags = set of TSymbolFlag;
+
   TSymbol = record
     Name:         string;
 //  SymType:      TSymbolDataType;
@@ -45,8 +49,9 @@ type
     SValue:       string;
     CreationPass: integer;
     DefinedPass:  integer;
-    Referenced:   boolean;
-    Defined:      boolean;
+    Flags:        TSymbolFlags;
+//  Referenced:   boolean;
+//  Defined:      boolean;
     Source:       TExpressionSource;
   end;
 
@@ -193,9 +198,11 @@ begin
   sym.Scope        := _scope;
   sym.IValue       := _ival;
   sym.SValue       := _sval;
-  sym.Defined      := _defined;
-  sym.Referenced   := _referenced;
-//sym.SymType      := _datatype;
+  sym.Flags        := [];
+  if _defined then
+    sym.Flags := sym.Flags + [sfDefined];
+  if _referenced then
+    sym.Flags := sym.Flags + [sfReferenced];
   sym.Source       := _src;
   sym.CreationPass := FPass;
   if _defined then
@@ -235,7 +242,7 @@ begin
   else
     begin
       sym := Items[idx];
-      Result := sym.Defined and ((sym.DefinedPass = FPass) or (sym.DefinedPass = 0));
+      Result := (sfDefined in sym.Flags) and ((sym.DefinedPass = FPass) or (sym.DefinedPass = 0));
     end;
 end;
 
@@ -292,7 +299,7 @@ begin
       source := ExpressionSourceToStr(Items[i].Source);
       scope := ScopeToStr(Items[i].Scope);
       refstr := ' ';
-      if not Items[i].Referenced then
+      if not (sfReferenced in Items[i].Flags) then
         refstr := '*';
       segment := Items[i].Seg;
       if not Assigned(segment) then

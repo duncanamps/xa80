@@ -115,6 +115,7 @@ type
       procedure ExpandIncludes(_src: TEnvironmentSource);
       function  GetSource(_key: string): TEnvironmentSource;
       function  GetValue(_key: string): string;
+      function  GetValueAsInteger(_key: string): integer;
       procedure ProcessCommandLine;
       procedure ProcessCommandList(_elements: TCommandElementList; _src: TEnvironmentSource);
       procedure ProcessEnvironmentVariable;
@@ -234,6 +235,7 @@ begin
   // environment variable, and command line
   // Key items
   SetValue('CaseSensitive', '0',                 esDefault);
+  SetValue('DebugLevel', '0',                    esDefault);
   SetValue('Defines',    '',                     esDefault);
   SetValue('Includes',   '',                     esDefault);
   SetValue('Processor',  DEFAULT_PROCESSOR,      esDefault);
@@ -335,6 +337,18 @@ begin
       Result := Items[_index].Data;
   finally
     FreeAndNil(_rec);
+  end;
+end;
+
+function TEnvironment.GetValueAsInteger(_key: string): integer;
+var s: string;
+begin
+  GetValueAsInteger := 0;
+  try
+    s := GetValue(_key);
+    GetValueAsInteger := StrToInt(s);
+  except
+    ErrorObj.Show(ltError,E2073_EXPECTED_INTEGER_ENV,[s]);
   end;
 end;
 

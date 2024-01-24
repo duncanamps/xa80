@@ -4,7 +4,6 @@ BDOS            EQU     0005H   ; BDOS entry address
 C_WRITESTR      EQU     9       ; BDOS command to write $ terminated string
 
 				GLOBAL	WRITESTR
-
 	
 ;============================================================================		
 		SEGMENT	CSEG2, RELOCATABLE, READWRITE

@@ -85,6 +85,7 @@ type
                      W1012_HEX_FILE_IS_EMPTY,
                      W1013_MAKING_RELOCATABLE_SEGMENT_FIXED,
                      W1014_UNRESOLVABLE_VALUE,
+                     W1015_SEGMENT_MODIFIER_CONFUSING,
 
                      E2000_USER_ERROR,
                      E2001_ILLEGAL_ESCAPE_CHARACTER,
@@ -157,6 +158,9 @@ type
                      E2068_CANNOT_MAKE_SEGMENT_FIXED,
                      E2069_GLOBAL_SYMBOL_NOT_FOUND,
                      E2070_EXTERN_DEFINED_LOCALLY,
+                     E2071_CODE_GENERATION_IN_UNINIT,
+                     E2072_ILLEGAL_DEBUG_LEVEL,
+                     E2073_EXPECTED_INTEGER_ENV,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -244,6 +248,7 @@ var
     '.HEX file is empty',
     'ORG command is forcing Relocatable segment %s to become Fixed',
     'Unresolvable value',
+    'Segment modifiers are confusing',
 
     '%s',
     'Illegal escape character %s, valid are %s',
@@ -316,9 +321,12 @@ var
     'Cannot change Relocatable segment to Fixed after code has been generated',
     'Global symbol %s not found in this module',
     'External symbol %s has already been defined locally',
+    'Attempt to generate code in an uninitialised segment',
+    'Illegal debug level %d',
+    'Expected integer from command line or environment, got "%s"',
 
     'Unhandled case option at %s',
-    'Preparser peeek error',
+    'Preparser peek error',
     'Could not find procedure %s in grammar',
     'Reduction code not defined for rule no. %d (%s)',
     'Binary constant %s failed to convert',

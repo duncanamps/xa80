@@ -49,8 +49,9 @@ type
   //                    otherwise it's completely unwelcome
   //    cfDuringMD      Execute command during a Macro Definition, everything
   //                    else is blocked from being run in that phase
+  //    cfCodeGen       The command generates output code, e.g. DW or DB
 
-  TCommandFlag = (cfNoPlaceholder,cfEQU,cfBypass,cfLabel,cfDuringMD);
+  TCommandFlag = (cfNoPlaceholder,cfEQU,cfBypass,cfLabel,cfDuringMD,cfCodeGen);
 
   TCommandFlags = set of TCommandFlag;
 
