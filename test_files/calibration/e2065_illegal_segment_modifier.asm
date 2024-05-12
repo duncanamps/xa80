@@ -1,0 +1,9 @@
+//
+// Test E2065_ILLEGAL_SEGMENT_MODIFIER
+// Duncan Munro - 26/01/2024
+//
+
+			SEGMENT	CSEG,BAD_MODIFIER
+			
+			END
+			

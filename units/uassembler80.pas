@@ -241,8 +241,11 @@ type
     procedure SetOrg(_neworg: integer);
     procedure SetTitle(_title: string);
     function SourceCombine1(_a: integer): TExpressionSource;
+    function SourceCombine1(_a: TExpressionSource): TExpressionSource;
     function SourceCombine2(_a, _b: integer): TExpressionSource;
+    function SourceCombine2(_a, _b: TExpressionSource): TExpressionSource;
     function SourceCombine3(_a, _b, _c: integer): TExpressionSource;
+    function SourceCombine3(_a, _b, _c: TExpressionSource): TExpressionSource;
   public
     FinalVal: TLCGParserStackEntry;
     ParsedOperandOption: TOperandOption;
@@ -919,10 +922,13 @@ begin
   _seg := FSegments.CurrentSegment;
   Result := ParserM1;
   Result.BufInt := Org;
+  Result.Source := esAddressF;
+  {
   if smFixed in _seg.Modifiers then
     Result.Source := esAddressF
   else
     Result.Source := esAddressR;
+  }
   Result.BufType := pstINT32;
 end;
 
@@ -965,11 +971,11 @@ begin
     end
   else
     begin // Symbol was found
+      sym := FSymbolTable[idx];
       if not (cfNoPlaceholder in FPreparser.CmdFlags) then
         begin
-          sym := FSymbolTable[idx];
           sym.Flags := sym.Flags + [sfReferenced];
-          if (sym.Seg <> FSegments.CurrentSegment) then
+          if Assigned(sym.Seg) and (sym.Seg <> FSegments.CurrentSegment) then
             sym.Flags := sym.Flags + [sfExportLocal];
           FSymbolTable[idx] := sym;
         end;
@@ -979,7 +985,6 @@ begin
         esUnusable: begin
           Result.BufType := pstINT32;
           Result.BufInt := 0;
-          Result.Source := esUndefined;
         end;
         esConstantI,
         esExtern,
@@ -1333,7 +1338,7 @@ begin
   if (FCodeBuffer.Contains > 0) and FSolGenerate then
     begin
       FSegments.EnsureCurrentSegment;
-      FSegments.AddBuf(FCodeBuffer);
+      FSegments.AddBuf(FCodeBuffer,FPass);
     end;
   // Process the include file if required
   ProcessInclude;
@@ -1418,7 +1423,7 @@ procedure TAssembler80.CheckLabelsDefined;
 var sym: TSymbol;
 begin
   for sym in FSymbolTable do
-    if (not (sfDefined in sym.Flags)) and (sym.Scope in [ssLocal,ssGlobal]) then
+    if (not (sfDefined in sym.Flags)) and (sym.Scope in [ssUndefined,ssLocal,ssGlobal]) then
       ErrorObj.Show(ltWarning,W1005_SYMBOL_UNDEFINED,[sym.Name]);
 end;
 
@@ -1533,25 +1538,16 @@ var
   bval: integer;
 begin
   // Define storage
-  // Two forms of this command:
+  // Was Two forms of this command:
   //    DS <storagesize>
   //    DS <storagesize>,<bytetofill>
-  CheckOperandCount(1, 2);
-  case _preparser.Count of
-    1: begin
-      CheckOperandInteger(0, 0, MAX_BYTES_PER_CODE_RECORD - 1);
-      bcount := _preparser[0].IntValue;
-      bval := 0;
-    end;
-    2: begin
-      CheckOperandInteger(0, 0, MAX_BYTES_PER_CODE_RECORD - 1);
-      CheckOperandByte(1);
-      bcount := _preparser[0].IntValue;
-      bval := _preparser[1].IntValue;
-    end;
-  end;
+  // Now there is just >> DS <storagesize> <<
+  CheckOperandCount(1, 1);
+  CheckOperandInteger(0, 0, MAX_BYTES_PER_CODE_RECORD - 1);
+  bcount := _preparser[0].IntValue;
+  bval := 0;
   // Go through the operands populating the code buffer
-  FCodeBuffer.PushMany(bcount, (bval and $FF), (_preparser.Count = 2));
+  FCodeBuffer.PushMany(bcount, 0, False);
 end;
 
 procedure TAssembler80.CmdDW(const _label: string; _preparser: TPreparserBase);
@@ -2026,7 +2022,10 @@ begin
       else
         begin
           if _dealtwith[_dealing[_index]] then
-            ErrorObj.Show(ltWarning,W1010_SEGMENT_MODIFIER_CLASH,[_operand])
+            begin
+              if FPass = 1 then
+                ErrorObj.Show(ltWarning,W1010_SEGMENT_MODIFIER_CLASH,[_operand])
+            end
           else
             begin
               _allmods := _allmods + _mods[_index];
@@ -2052,7 +2051,7 @@ begin
       FSegments.CurrentSegment := _seg;
       if (FPreparser.Count > 1) then
         begin
-          if _seg.Defined then
+          if _seg.Defined and (FPass = 1) then
             ErrorObj.Show(ltWarning,W1009_SEGMENT_MODIFIERS_IGNORED,[_segname])
           else
             _seg.Defined := True;
@@ -3102,15 +3101,38 @@ end;
 
 function TAssembler80.SourceCombine1(_a: integer): TExpressionSource;
 begin
+  SourceCombine1 := SourceCombine1(ParserStack[ParserSP + _a].Source);
+  {
   // Simple copy
   Result := ParserStack[ParserSP + _a].Source;
   if (FPass = 2) and
      (ParserStack[ParserSP + _a].Source in [esExtern,esAddressR]) then
     Result := esUnusable;
+  }
+end;
+
+function TAssembler80.SourceCombine1(_a: TExpressionSource): TExpressionSource;
+begin
+  // Simple copy
+  if (FPass = 2) and (_a in [esExtern,esAddressR]) then
+    SourceCombine1 := esUnusable
+  else
+    SourceCombine1 := _a;
+  {
+  Result := ParserStack[ParserSP + _a].Source;
+  if (FPass = 2) and
+     (ParserStack[ParserSP + _a].Source in [esExtern,esAddressR]) then
+    Result := esUnusable;
+  }
 end;
 
 function TAssembler80.SourceCombine2(_a, _b: integer): TExpressionSource;
+var resa, resb: TExpressionSource;
 begin
+  resa := SourceCombine1(_a);
+  resb := SourceCombine1(_b);
+  SourceCombine2 := SourceCombine2(resa,resb);
+  {
   if ParserStack[ParserSP + _a].Source < ParserStack[ParserSP + _b].Source then
     Result := ParserStack[ParserSP + _a].Source
   else
@@ -3119,10 +3141,32 @@ begin
      ((ParserStack[ParserSP + _a].Source in [esExtern,esAddressR]) or
       (ParserStack[ParserSP + _b].Source in [esExtern,esAddressR])) then
     Result := esUnusable;
+  }
+end;
+
+function TAssembler80.SourceCombine2(_a, _b: TExpressionSource): TExpressionSource;
+const expres: array[TExpressionSource,TExpressionSOurce] of TExpressionSource =
+                 {esUnusable  esUndefined esConstantI esAddressF  esConstantS esExtern    esAddressR }
+  ({esUnusable}  (esUnusable, esUnusable, esUnusable, esUnusable, esUnusable, esUnusable, esUnusable),
+   {esUndefined} (esUnusable, esUndefined,esUndefined,esUndefined,esUndefined,esUnusable, esUnusable),
+   {esConstantI} (esUnusable, esUndefined,esConstantI,esConstantI,esUnusable, esUnusable, esUnusable),
+   {esAddressF}  (esUnusable, esUndefined,esAddressF, esUnusable, esUnusable, esUnusable, esUnusable),
+   {esConstantS} (esUnusable, esUndefined,esUnusable, esUnusable, esConstantS,esUnusable, esUnusable),
+   {esExtern}    (esUnusable, esUndefined,esUnusable, esUnusable, esUnusable, esUnusable, esUnusable),
+   {esAddressR}  (esUnusable, esUndefined,esUnusable, esUnusable, esUnusable, esUnusable, esUnusable));
+var resa, resb: TExpressionSource;
+begin
+  SourceCombine2 := expres[_a,_b];
 end;
 
 function TAssembler80.SourceCombine3(_a, _b, _c: integer): TExpressionSource;
+var resa, resb, resc: TExpressionSource;
 begin
+  resa := SourceCombine1(_a);
+  resb := SourceCombine1(_b);
+  resc := SourceCombine1(_c);
+  SourceCombine3 := SourceCombine3(resa,resb,resc);
+  {
   if SourceCombine2(_a, _b) < SourceCombine1(_c) then
     Result := SourceCombine2(_a, _b)
   else
@@ -3132,6 +3176,15 @@ begin
       (ParserStack[ParserSP + _b].Source in [esExtern,esAddressR]) or
       (ParserStack[ParserSP + _c].Source in [esExtern,esAddressR])) then
     Result := esUnusable;
+  }
+end;
+
+function TAssembler80.SourceCombine3(_a, _b, _c: TExpressionSource): TExpressionSource;
+var resab, resbc: TExpressionSource;
+begin
+  resab := SourceCombine2(_a,_b);
+  resbc := SourceCombine2(_b,_c);
+  SourceCombine3 := SourceCombine2(resab,resbc);
 end;
 
 end.

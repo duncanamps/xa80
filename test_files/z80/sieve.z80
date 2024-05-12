@@ -152,7 +152,7 @@ PRINT_NEXT:
 			POP		DE				; Get DE back
 			POP		HL				; also HL
 			JR		C,PRINT_LOOP	; Loop back if not done MAX_PRIMES yet
-			RET						; Back to CP/M
+			JP		0				; Back to CP/M with warm boot
 			
 			
 

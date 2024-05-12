@@ -1,0 +1,13 @@
+//
+// Test W1013_MAKING_RELOCATABLE_SEGMENT_FIXED
+// Duncan Munro - 24/01/2024
+//
+
+		SEGMENT	CSEG,RELOCATABLE
+		
+		ORG		$0100
+		
+		DB		123
+		
+		END
+			

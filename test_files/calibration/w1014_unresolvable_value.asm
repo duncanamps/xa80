@@ -1,0 +1,19 @@
+//
+// Test W1014_UNRESOLVABLE_VALUE
+// Duncan Munro - 24/01/2024
+//
+
+			SEGMENT	CSEG,FIXED
+		
+			ORG		$0100
+		
+		
+			DW		123 + DATAVAR
+		
+			SEGMENT DATA,RELOCATABLE
+		
+DATAVAR: 	DW		0
+		
+		
+			END
+			

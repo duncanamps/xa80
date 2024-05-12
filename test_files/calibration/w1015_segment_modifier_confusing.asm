@@ -1,0 +1,17 @@
+//
+// Test W1015_SEGMENT_MODIFIER_CONFUSING
+// Duncan Munro - 24/01/2024
+//
+
+			SEGMENT	CSEG,FIXED,UNINITIALISED
+		
+			ORG		$0100
+		
+		
+			SEGMENT DATA,RELOCATABLE
+		
+DATAVAR: 	DW		0
+		
+		
+			END
+			

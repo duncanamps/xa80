@@ -48,7 +48,7 @@ type
       FUsed:       array[word] of boolean;
     public
       constructor Create(const _segname: string; _modifiers: TSegmentModifiers; _address: word = 0);
-      procedure AddBuf(_buf: TCodeBuffer);
+      procedure AddBuf(_buf: TCodeBuffer; _pass: integer);
       function  Bytes: integer;
       function  CodeAsJSONArray: string;
       function  CodeAsText: string;
@@ -67,7 +67,7 @@ type
     private
       FCurrentSegment: TSegment;
     public
-      procedure AddBuf(_buf: TCodeBuffer); reintroduce;
+      procedure AddBuf(_buf: TCodeBuffer; _pass: integer); reintroduce;
       procedure ClearDefined;
       procedure CreateSegment(const _segname: string; _modifiers: TSegmentModifiers; _address: word = 0);
       function  CurrentSegmentName: string;
@@ -177,14 +177,21 @@ begin
     end;
 end;
 
-procedure TSegment.AddBuf(_buf: TCodeBuffer);
+procedure TSegment.AddBuf(_buf: TCodeBuffer; _pass: integer);
 var i: integer;
 begin
   for i := 0 to _buf.Contains-1 do
     begin
       FBuf[FAddress] := _buf.Buffer[i];
       FUsed[FAddress] := True;
-      Inc(FAddress);
+      if (FAddress = $FFFF) then
+        begin
+          FAddress := 0;
+          if _pass = 2 then
+            ErrorObj.Show(ltWarning,W1001_CODE_WRAPPED_ROUND);
+        end
+      else
+        Inc(FAddress);
     end;
 end;
 
@@ -332,10 +339,10 @@ end;
 //
 //----------------------------------------------------------------------
 
-procedure TSegments.AddBuf(_buf: TCodeBuffer);
+procedure TSegments.AddBuf(_buf: TCodeBuffer; _pass: integer);
 begin
   EnsureCurrentSegment;
-  FCurrentSegment.AddBuf(_buf);
+  FCurrentSegment.AddBuf(_buf,_pass);
 end;
 
 procedure TSegments.ClearDefined;
@@ -422,8 +429,8 @@ procedure TSegments.EnsureCurrentSegment;
 begin
   if not Assigned(FCurrentSegment) then
     begin // Segment doesn't exist, create a default
-      ErrorObj.Show(ltWarning,W1008_NO_DEFAULT_SEGMENT);
-      CreateSegment(DEFAULT_CODE_SEGMENT,[]);
+//    ErrorObj.Show(ltWarning,W1008_NO_DEFAULT_SEGMENT); // Turned off for now
+      CreateSegment(DEFAULT_CODE_SEGMENT,[smFixed]);
     end;
 end;
 

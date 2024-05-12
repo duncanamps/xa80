@@ -1,0 +1,9 @@
+//
+// Test E2069_GLOBAL_SYMBOL_NOT_FOUND
+// Duncan Munro - 26/01/2024
+//
+
+			GLOBAL	NON_EXISTENT_LABEL
+			
+			END
+			

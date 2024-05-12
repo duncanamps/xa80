@@ -24,7 +24,8 @@ unit uasmglobals;
 
 
 //
-// Global definitions for the assembler
+// Global definitions for the assembler and other tools like the
+// linker (XLINK80) and librarian (XLIB80)
 //
 
 interface
@@ -49,6 +50,7 @@ const
   FILETYPE_COM                      = '.com';
   FILETYPE_DEBUG                    = '.dbg80';
   FILETYPE_HEX                      = '.hex';
+  FILETYPE_LIBRARY                  = '.lib80';
   FILETYPE_LIST                     = '.lst';
   FILETYPE_LOG                      = '.log';
   FILETYPE_MAP                      = '.map';

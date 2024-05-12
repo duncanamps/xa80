@@ -1,0 +1,12 @@
+//
+// Test E2071_CODE_GENERATION_IN_UNINIT
+// Duncan Munro - 26/01/2024
+//
+
+			SEGMENT	USEG,RELOCATABLE,READWRITE,UNINITIALISED
+			
+FULL:		DB	1,2,3,4			
+			
+			
+			END
+			

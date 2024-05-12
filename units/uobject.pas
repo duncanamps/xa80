@@ -86,11 +86,12 @@ end;
 procedure TObjectFile.CreateJSONfromParams;
 var jObject: TJSONObject;
     jSub:    TJSONObject;
+    jArray:  TJSONArray;
     i:       integer;
 begin
   if Assigned(jData) then
     FreeAndNil(jData); // Clear the JSON if it already exists
-  jData := GetJSON('{"Header":{},"Globals":{},"Locals":{},"DebugFilenames":{},"Segments":{}}');
+  jData := GetJSON('{"Header":{},"Globals":{},"Locals":{},"DebugFilenames":[],"Segments":{}}');
   // Do header items
   jObject := jData.FindPath('Header') as TJSONObject;
   if Assigned(jObject) then
@@ -133,11 +134,11 @@ begin
             end;
     end;
   // Do debug filenames
-  jObject := jData.FindPath('DebugFilenames') as TJSONObject;
-  if Assigned(jObject) then
+  jArray := jData.FindPath('DebugFilenames') as TJSONArray;
+  if Assigned(jArray) then
     begin
       for i := 0 to FDebugList.FilenameList.Count-1 do
-        jObject.Add(Format('File%4.4X',[i]),FDebugList.FilenameList[i]);
+        jArray.Add(FDebugList.FilenameList[i]);
     end;
   // Do segments
   jObject := jData.FindPath('Segments') as TJSONObject;
