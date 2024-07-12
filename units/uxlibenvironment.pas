@@ -23,8 +23,7 @@ unit uxlibenvironment;
 //
 // Sets up the environment in the following order:
 //   Default values
-//   Values from the grammar file
-//   Values from the environment variable XA80
+//   Values from the environment variable XLIB80
 //   Values from the command line
 //
 // Note that the grammar entry in the environment variable and command line
@@ -35,18 +34,9 @@ unit uxlibenvironment;
 // The items dealt with here are:
 //
 //   High level control:
-//     Grammar type
-//     Processor type (overrides the default processor in the grammar)
-//
-//   Folders:
-//     Debug file folder
-//     Hex file folder
-//     Listing file folder
-//     Map file folder
-//     Object file folder
-//
-//   Folder lists:
-//     Include file folder list
+//     Add object
+//     List modules
+//     Remove module
 //
 //   Misc parameters:
 //     Defines
@@ -60,7 +50,7 @@ unit uxlibenvironment;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, Generics.Defaults, ucommandline;
+  Classes, SysUtils, Generics.Collections, Generics.Defaults, uxlibcommandline;
 
 type
 
@@ -235,22 +225,10 @@ begin
   // environment variable, and command line
   // Key items
   SetValue('CaseSensitive', '0',                 esDefault);
-  SetValue('DebugLevel', '0',                    esDefault);
-  SetValue('Defines',    '',                     esDefault);
-  SetValue('Includes',   '',                     esDefault);
-  SetValue('Processor',  DEFAULT_PROCESSOR,      esDefault);
-  SetValue('Tab',        4,                      esDefault);
   SetValue('Verbose',    3,                      esDefault);
-  SetValue('Warnings',   DEFAULT_WARNINGS,       esDefault);
-  SetValue('SourceFiles','',                     esDefault);
   // File specific
-  SetValue('FilenameCom',       '',              esDefault);
-  SetValue('FilenameDebug',     '',              esDefault);
-  SetValue('FilenameError',     '',              esDefault);
-  SetValue('FilenameHex',       '',              esDefault);
-  SetValue('FilenameListing',   '',              esDefault);
-  SetValue('FilenameMap',       '',              esDefault);
-  SetValue('FilenameObj',       '',              esDefault);
+  SetValue('FilenameAdd',       '',              esDefault);
+  SetValue('ModuleRemove',      '',              esDefault);
 end;
 
 procedure TXlibEnvironment.Dump;

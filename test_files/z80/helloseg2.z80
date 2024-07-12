@@ -6,7 +6,7 @@ C_WRITESTR      EQU     9       ; BDOS command to write $ terminated string
 				GLOBAL	WRITESTR
 	
 ;============================================================================		
-		SEGMENT	CSEG2, RELOCATABLE, READWRITE
+		SEGMENT	CSEG2, RELOCATABLE, READONLY
 ;============================================================================		
 
 ; Write a string, call with DE holding the address of the $ terminated string

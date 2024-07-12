@@ -24,3 +24,4 @@ test_files/imported/
 test_prog/
 xa80_dev_tasks.xlsx
 *.obj80
+*.bin

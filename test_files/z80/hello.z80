@@ -1,15 +1,17 @@
 ;        TITLE   'HELLO.Z80 - Hello World'
 
-        ORG     0100H
-
 BDOS            EQU     0005H   ; BDOS entry address
 C_WRITESTR      EQU     9       ; BDOS command to write $ terminated string
+
+
+        ORG     0100H
 
 HELLO:
         LD      DE,MSG      	; Get address of msg
         LD      C,C_WRITESTR    ; Write string function
         CALL    BDOS            ; Go to BDOS to write the string
 		JP		0				; Warm boot
+
 
 ; Text strings
 
@@ -22,6 +24,7 @@ MSG: 	DB      'Hello World',13,10
 		DB		"Build:           ",BUILD(),13,10
 		
 		DB		'$'
+	
 
         END
 		

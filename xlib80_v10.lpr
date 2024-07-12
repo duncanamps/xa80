@@ -27,6 +27,7 @@ const
               '  0: Just show the module names <default>' + CRLF +
               '  1: Show modules and segments' + CRLF +
               '  2: Show modules, segments and exports' + CRLF +
+              '  3: Show modules, segments and exports as CSV' + CRLF +
               CRLF +
               '<n> can be one of:' + CRLF +
               '  0: Silent, only show fatal and internal software errors' + CRLF +
