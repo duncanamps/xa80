@@ -47,27 +47,55 @@ uses
 type
   TObjectFile = class(TObject)
     private
-      FDebugList:   TDebugList;
-      FFilename:    string;
-      FFixupList:   TFixupList;
-      FSegments:    TSegments;
-      FSymbolTable: TSymbolTable;
-      jData:        TJSONData;
+      FDebugList:       TDebugList;
+      FDestroyElements: boolean;
+      FFilename:        string;
+      FFixupList:       TFixupList;
+      FSegments:        TSegments;
+      FSymbolTable:     TSymbolTable;
+      jData:            TJSONData;
       procedure CreateJSONfromParams;
     public
+      constructor Create;
+      constructor Create(const _filename: string);
       constructor Create(const _filename: string; _symboltable: TSymbolTable; _segmentlist: TSegments; _fixups: TFixupList; _debuglist: TDebugList);
       destructor Destroy; override;
+      procedure Clear;
+      procedure Load;
+      procedure Load(_stream: TStream);
+      procedure Load(const _filename: string);
       procedure Save;
+      procedure Save(_stream: TStream);
   end;
 
 implementation
 
 uses
-  uutility, uenvironment, jsonparser;
+  uutility, uenvironment, jsonparser, uasmglobals;
+
+
+constructor TObjectFile.Create;
+begin
+  inherited Create;
+  FDestroyElements := True;
+  FDebugList := TDebugList.Create;
+  FSymbolTable := TSymbolTable.Create;
+  FSegments := TSegments.Create;
+  FFixupList := TFixupList.Create;
+end;
+
+constructor TObjectFile.Create(const _filename: string);
+begin
+  inherited Create;
+  Create;
+  FFilename := _filename;
+  Load;
+end;
 
 constructor TObjectFile.Create(const _filename: string; _symboltable: TSymbolTable; _segmentlist: TSegments; _fixups: TFixupList; _debuglist: TDebugList);
 begin
   inherited Create;
+  FDestroyElements := False;
   FFilename    := _filename;
   FDebugList   := _debuglist;
   FSymbolTable := _symboltable;
@@ -78,9 +106,27 @@ end;
 
 destructor TObjectFile.Destroy;
 begin
-  FreeAndNil(jData);
+  if FDestroyElements then
+    begin
+      FreeAndNil(FFixupList);
+      FreeAndNil(FSegments);
+      FreeAndNil(FSymbolTable);
+      FreeAndNil(FDebugList);
+    end;
+  if Assigned(jData) then
+    FreeAndNil(jData);
   // Finally...
   inherited Destroy;
+end;
+
+procedure TObjectFile.Clear;
+begin
+  if Assigned(jData) then
+    FreeAndNil(jData); // Clear the JSON if it already exists
+  FDebugList.Clear;
+  FSymbolTable.Clear;
+  FSegments.Clear;
+  FFixupList.Clear;
 end;
 
 procedure TObjectFile.CreateJSONfromParams;
@@ -160,17 +206,65 @@ begin
         end;
 end;
 
-procedure TObjectFile.Save;
+procedure TObjectFile.Load;
 var s: string;
+    filelen: int64;
     fstream: TFileStream;
 begin
-  s := jData.FormatJSON;
-  fstream := TFileStream.Create(FFilename,fmCreate);
+  if not FileExists(FFilename) then
+    raise Exception.Create('Cannot find object file ' + FFilename);
+  fstream := TFileStream.Create(FFilename,fmOpenRead);
   try
-    fstream.Write(s[1],Length(s));
+    filelen := fstream.Size;
+    if filelen > MAX_OBJECT_SIZE then
+      raise Exception.Create(Format('Attempt to load object file exceeding %d bytes',[MAX_OBJECT_SIZE]));
+    SetLength(s,filelen);
+    fstream.Read(s[1],filelen);
   finally
     FreeAndNil(fstream);
   end;
+end;
+
+procedure TObjectFile.Load(_stream: TStream);
+var s: string;
+    filelen: int64;
+begin
+  filelen := _stream.Size;
+  if filelen > MAX_OBJECT_SIZE then
+    raise Exception.Create(Format('Attempt to load object file exceeding %d bytes',[MAX_OBJECT_SIZE]));
+  SetLength(s,filelen);
+  _stream.Read(s[1],filelen);
+  // @@@@@
+  // Process the string into the bits and pieces here
+  // @@@@@
+end;
+
+procedure TObjectFile.Load(const _filename: string);
+begin
+  FFilename := _filename;
+  Load;
+end;
+
+procedure TObjectFile.Save;
+var fstream: TFileStream;
+begin
+  if FFilename = '' then
+    raise Exception.Create('Attempting to save object file with no filename');
+  fstream := TFileStream.Create(FFilename,fmCreate);
+  try
+    Save(fstream);
+  finally
+    FreeAndNil(fstream);
+  end;
+end;
+
+procedure TObjectFile.Save(_stream: TStream);
+var s: string;
+begin
+  s := jData.FormatJSON;
+  if Length(s) > MAX_OBJECT_SIZE then
+    raise Exception.Create(Format('Attempt to save object file exceeding %d bytes',[MAX_OBJECT_SIZE]));
+  _stream.Write(s[1],Length(s));
 end;
 
 end.

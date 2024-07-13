@@ -103,11 +103,11 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="units\uxlibenvironment.pas"/>
+        <Filename Value="units\uasmglobals.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="units\uxlib80.pas"/>
+        <Filename Value="units\uenvironment.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
@@ -115,7 +115,11 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="units\uasmglobals.pas"/>
+        <Filename Value="units\uxlib80.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="units\uobject.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>

@@ -25,13 +25,18 @@ unit uxlib80;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, uobject, generics.collections;
 
 type
-  TLib80 = class(TObject)
+  TLib80 = class(specialize TObjectList<TObjectFile>)
+    private
+      FFilename: string;
     public
-      constructor Create;
+      constructor Create(const _filename: string);
       destructor Destroy; override;
+      procedure AddFile(const _objfilename: string);
+      procedure Load;
+      procedure Save;
   end;
 
 var
@@ -39,14 +44,41 @@ var
 
 implementation
 
-constructor TLib80.Create;
+constructor TLib80.Create(const _filename: string);
 begin
   inherited Create;
+  FFilename := _filename;
+  // Load from disk or create new and save
+  if FileExists(FFilename) then
+    Load
+  else
+    begin
+      Clear;
+      Save;
+    end;
 end;
 
 destructor TLib80.Destroy;
 begin
   inherited Destroy;
+end;
+
+procedure TLib80.AddFile(const _objfilename: string);
+var obj: TObjectFile;
+begin
+  obj := TObjectFile.Create(_objfilename);
+  Add(obj);
+  Save;
+end;
+
+procedure TLib80.Load;
+begin
+
+end;
+
+procedure TLib80.Save;
+begin
+
 end;
 
 end.

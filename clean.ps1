@@ -1,0 +1,14 @@
+Get-ChildItem -Path binaries\*.*  -Filter *.exe      -Recurse | foreach {$_.Delete()}
+Get-ChildItem -Path binaries\*.*  -Filter *.dbg      -Recurse | foreach {$_.Delete()}
+Get-ChildItem -Path lib\*.*       -Filter *.compiled -Recurse | foreach {$_.Delete()}
+Get-ChildItem -Path lib\*.*       -Filter *.o        -Recurse | foreach {$_.Delete()}
+Get-ChildItem -Path lib\*.*       -Filter *.obj      -Recurse | foreach {$_.Delete()}
+Get-ChildItem -Path lib\*.*       -Filter *.ppu      -Recurse | foreach {$_.Delete()}
+Get-ChildItem -Path lib\*.*       -Filter *.res      -Recurse | foreach {$_.Delete()}
+Get-ChildItem -Path test_prog\*.* -Filter *.compiled -Recurse | foreach {$_.Delete()}
+Get-ChildItem -Path test_prog\*.* -Filter *.dbg      -Recurse | foreach {$_.Delete()}
+Get-ChildItem -Path test_prog\*.* -Filter *.exe      -Recurse | foreach {$_.Delete()}
+Get-ChildItem -Path test_prog\*.* -Filter *.o        -Recurse | foreach {$_.Delete()}
+Get-ChildItem -Path test_prog\*.* -Filter *.obj      -Recurse | foreach {$_.Delete()}
+Get-ChildItem -Path test_prog\*.* -Filter *.ppu      -Recurse | foreach {$_.Delete()}
+Get-ChildItem -Path test_prog\*.* -Filter *.res      -Recurse | foreach {$_.Delete()}

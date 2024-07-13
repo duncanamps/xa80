@@ -1,375 +1,135 @@
 unit uxlibcommandline;
 
-{
-    XLIB80 - Cross Assembler for x80 processors
-    Copyright (C)2020-2024 Duncan Munro
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    Contact: Duncan Munro  duncan@duncanamps.com
-}
-
-//
-// Deal with command line and environment variable processing
-//
-
-{$mode ObjFPC}
+{$mode ObjFPC}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, typinfo;
+  Classes, SysUtils;
 
 type
-  TCommandAllowed = (caEnvironment,caCommandline);
+  TLibCommandType = (lctUnknown,lctAdd,lctList,lctRemove);
 
-  TCommandAllowedSet = set of TCommandAllowed;
-
-  TParameterAllowed = (paNever,paOptional,paMandatory);
-
-  TCommandRec = record
-    ShortOption:  string;
-    LongOption:   string;
-    ParamName:    string;
-    EnvName:      string;
-    Description:  string;
-    Allowed:      TCommandAllowedSet;
-    Parameter:    TParameterAllowed;
-    MandateFiles: boolean;
-    Terminal:     boolean;
-    Value:        string;
-  end;
-
-  TCommandList = class(specialize TSortedList<TCommandRec>)
+  TLibCommandLine = class(TObject)
+    protected
+      FCommandType: TLibCommandType;
+      FLibName:     string;
+      FTargets:     TStringList;
+      procedure SetCommandType(_cmdtyp: TLibCommandType);
     public
+      property CommandType: TLibCommandType read FCommandType write SetCommandType;
+      property LibName: string read FLibName;
+      property Targets: TStringList read FTargets;
       constructor Create;
-      function  CommandRecFromSwitch(const _switch: string): TCommandRec;
-      procedure ShowHelp;
-  end;
-
-  TCommandElementType = (cetShortswitch,cetLongswitch,cetEquals,cetData);
-
-  TCommandElement = record
-    ElementType: TCommandElementType;
-    ElementData: string;
-  end;
-
-  TCommandElementList = class(specialize TList<TCommandElement>)
-    public
-      procedure ParseString(_str: string);
+      destructor Destroy; override;
       procedure ProcessCommandLine;
-      procedure ProcessEnvironmentVariable;
+      procedure TidyLibraryName(_mustexist: boolean);
+      procedure TidyTargetFilenames;
   end;
+
+var
+  CmdObject: TLibCommandLine;
 
 
 implementation
 
 uses
-  Dos, uasmglobals, umessages, lacogen_types;
+  uasmglobals;
 
-const
-
-  CommandEntries: array[0..6] of TCommandRec =
-    (
-      (
-        ShortOption:  '-a';
-        LongOption:   '--add';
-        ParamName:    '<on>';
-        EnvName:      '';
-        Description:  'Add object file to library';
-        Allowed:      [caCommandLine];
-        Parameter:    paMandatory;
-        MandateFiles: True;
-        Terminal:     False;
-        Value:        ''
-      ),
-      (
-        ShortOption:  '-h';
-        LongOption:   '--help';
-        ParamName:    '';
-        EnvName:      '';
-        Description:  'Display help message';
-        Allowed:      [caCommandLine];
-        Parameter:    paNever;
-        MandateFiles: False;
-        Terminal:     True;
-        Value:        ''
-      ),
-      (
-        ShortOption:  '-l';
-        LongOption:   '--list';
-        ParamName:    '';
-        EnvName:      '';
-        Description:  'List contents of library';
-        Allowed:      [caCommandLine];
-        Parameter:    paNever;
-        MandateFiles: True;
-        Terminal:     False;
-        Value:        ''
-      ),
-      (
-        ShortOption:  '-r';
-        LongOption:   '--remove';
-        ParamName:    '<mn>';
-        EnvName:      '';
-        Description:  'Remove module name from library';
-        Allowed:      [caCommandLine];
-        Parameter:    paMandatory;
-        MandateFiles: True;
-        Terminal:     False;
-        Value:        ''
-      ),
-      (
-        ShortOption:  '-s';
-        LongOption:   '--show';
-        ParamName:    '<tp>';
-        EnvName:      '';
-        Description:  'Show more information on topic <tp>';
-        Allowed:      [caCommandLine];
-        Parameter:    paMandatory;
-        MandateFiles: False;
-        Terminal:     True;
-        Value:        ''
-      ),
-      (
-        ShortOption:  '-x';
-        LongOption:   '--extra';
-        ParamName:    '<n>';
-        EnvName:      'ExtraLibListDetail';
-        Description:  'Set library listing detail to <x>';
-        Allowed:      [caEnvironment,caCommandLine];
-        Parameter:    paMandatory;
-        MandateFiles: True;
-        Terminal:     False;
-        Value:        ''
-      ),
-      (
-        ShortOption:  '-v';
-        LongOption:   '--verbose';
-        ParamName:    '<n>';
-        EnvName:      'Verbose';
-        Description:  'Set verbosity to <n>';
-        Allowed:      [caEnvironment,caCommandLine];
-        Parameter:    paMandatory;
-        MandateFiles: False;
-        Terminal:     False;
-        Value:        ''
-      )
-    );
-
-
-//------------------------------------------------------------------------------
-//
-//  TCommandElementList code
-//
-//------------------------------------------------------------------------------
-
-// Break the string up into a list of elements which could be a short switch,
-// long switch, equals sign or data
-
-procedure TCommandElementList.ParseString(_str: string);
-var filename: string;
-    src:      string;
-  function Peek: Char;
-  begin
-    if _str = '' then
-      Result := #0
-    else
-      Result := _str[1];
-  end;
-  function Fetch: Char;
-  begin
-    Result := Peek;
-    System.Delete(_str,1,1);
-  end;
-  procedure EatWhitespace;
-  begin
-    while Peek in [#9,' '] do
-      Fetch;
-  end;
-  procedure GrabSwitch;
-  var switch: string;
-      r:      TCommandElement;
-  begin
-    switch := '';
-    while not (Peek in [#0,#9,' ','=']) do
-      switch := switch + Fetch;
-    r.ElementType := cetShortswitch;
-    r.ElementData := switch;
-    if (Length(switch) >= 2) and (LeftStr(switch,2) = '--') then
-      r.ElementType := cetLongswitch;
-    Add(r);
-    EatWhitespace;
-  end;
-  procedure GrabEquals;
-    var r: TCommandElement;
-  begin
-    if Peek <> '=' then
-      ErrorObj.Show(ltError,E2040_MISSING_EQUALS);
-    r.ElementType := cetEquals;
-    r.ElementData := '=';
-    Fetch;
-    Add(r);
-  end;
-  procedure GrabData;
-  var dat: string;
-      done: boolean;
-      quoting: boolean;
-      r: TCommandElement;
-  begin
-    dat := '';
-    quoting := False;
-    done := False;
-    while not done do
-      begin
-        if quoting then
-          begin // Quoting
-            if Peek = #0 then
-              ErrorObj.Show(ltError,E2041_PREMATURE_STRING_END,[src]);
-            if Peek = #34 then
-              quoting := False;
-            dat := dat + Fetch;
-          end
-        else
-          begin // Not quoting
-            if Peek = #34 then
-              quoting := True;
-            if Peek in [#0,#9] then
-              done := True
-            else
-              dat := dat + Fetch;
-          end;
-      end;
-    r.ElementType := cetData;
-    r.ElementData := dat;
-    Add(r);
-    EatWhitespace;
-  end;
+constructor TLibCommandLine.Create;
 begin
-  src := _str;
-  Clear; // Ensure list if empty
-  while _str <> '' do
-    begin
-      // Check for a - comming up, this is a switch
-      // otherwise it will be a filename (could be in quotes)
-      if Peek = '-' then
-        GrabSwitch
-      else if Peek = '=' then
-        GrabEquals
-      else
-        GrabData;
-    end;
+  inherited Create;
+  FCommandType := lctUnknown;
+  FTargets := TStringList.Create;
 end;
 
-procedure TCommandElementList.ProcessCommandLine;
-var cmd_line:  string;
-    i:         integer;
+destructor TLibCommandLine.Destroy;
 begin
-  cmd_line := '';
+  FreeAndNil(FTargets);
+  inherited Destroy;
+end;
+
+procedure TLibCommandLine.ProcessCommandLine;
+var i: integer;
+begin
+  // Command line will be a combo of
+  //   switches
+  //   library name
+  //   module or filenames (targets)
+  // Switch can appear anywhere but library name must appear before targets
   for i := 1 to ParamCount do
     begin
-      if i > 1 then
-        cmd_line := cmd_line + #9;
-      cmd_line := cmd_line + ParamStr(i);
+      case ParamStr(i) of
+        '-a': CommandType := lctAdd;
+        '-l': CommandType := lctList;
+        '-r': CommandType := lctRemove;
+        otherwise
+          begin
+            if FLibName = '' then
+              FLibName := ParamStr(i)
+            else
+              FTargets.Add(ParamStr(i));
+          end;
+      end;
     end;
-  if cmd_line = '' then
-    exit; // No need to do anything
-  ParseString(cmd_line);
+  // If the library name is missing, we are screwed
+  if FLibName = '' then
+    raise Exception.Create('Library name not specified');
+  if (Pos('*',FLibName) > 0) or (Pos('?',FLibName) > 0) then
+    raise Exception.Create('Library name cannot contain wildcards');
 end;
 
-procedure TCommandElementList.ProcessEnvironmentVariable;
-var env_var:  string;
-    i:        integer;
-    quoting:  boolean;
+
+procedure TLibCommandLine.SetCommandType(_cmdtyp: TLibCommandType);
 begin
-  env_var := GetEnv(ENVIRONMENT_VARIABLE);
-  if env_var = '' then
-    exit; // No need to do anything
-  // Replace any unquoted spaces with tabs
-  quoting := False;
-  for i := 1 to Length(env_var) do
+  if FCommandType <> lctUnknown then
+    raise Exception.Create('More than one flag specified on command line');
+  FCommandType := _cmdtyp;
+end;
+
+procedure TLibCommandLine.TidyLibraryName(_mustexist: boolean);
+begin
+  FLibName := ExpandFilename(FLibName);
+  if Pos('.',FLibName) = 0 then
+    FLibName := FLibName + FILETYPE_LIBRARY;
+  if _mustexist and (not FileExists(FLibName)) then
+    raise Exception.Create('Library ' + FLibName + ' cannot be found');
+end;
+
+procedure TLibCommandLine.TidyTargetFilenames;
+var ptr, nptr: integer;
+    srchname: UnicodeString;
+    srchrec:  TUnicodeSearchRec;
+begin
+  // Sort out wildcards first
+  // Work from the end backwards
+  ptr := FTargets.Count-1;
+  while ptr >= 0 do
     begin
-      if quoting then
-        begin
-          if env_var[i] = #34 then
-            quoting := False;
-        end
-      else
-        if env_var[i] = ' ' then
-          env_var[i] := #9
-        else if env_var[i] = #34 then
-          quoting := True;
-    end;
-  // Remove any double quotes
-  for i := Length(env_var) downto 1 do
-    if env_var[i] = #34 then
-      System.Delete(env_var,i,1);
-  // And parse
-  ParseString(env_var);
-end;
-
-
-
-//------------------------------------------------------------------------------
-//
-//  TCommandList code
-//
-//------------------------------------------------------------------------------
-
-constructor TCommandList.Create;
-var i: integer;
-begin
-  for i := Low(CommandEntries) to High(CommandEntries) do
-    Add(CommandEntries[i]);
-end;
-
-function TCommandList.CommandRecFromSwitch(const _switch: string): TCommandRec;
-var i: integer;
-// @@@@@ MAKE THIS LOOKUP MORE EFFICIENT!
-begin
-  i := 0;
-  while i <= Count-1 do
-    begin
-      if (Items[i].ShortOption = _switch) or (Items[i].LongOption = _switch) then
-        begin
-          Result := Items[i];
-          Exit;
+      FTargets[ptr] := ExpandFilename(FTargets[ptr]);
+      if (Pos('?',FTargets[ptr]) > 0) or (Pos('*',FTargets[ptr]) > 0) then
+        begin  // Process wildcard
+          srchname := UnicodeString(FTargets[ptr]);
+          FTargets.Delete(ptr);
+          nptr := ptr;
+          if FindFirst(srchname,faReadonly or faArchive,srchrec) = 0 then
+            begin
+              repeat
+                FTargets.Insert(nptr,ExtractFilePath(srchname)+string(srchrec.Name));
+                nptr := nptr + 1;
+              until FindNext(srchrec) <> 0;
+              FindClose(srchrec);
+            end;
         end;
-      Inc(i);
+      ptr := ptr-1; // Move back one
     end;
-  if i = Count then
-    ErrorObj.Show(ltError,E2042_INVALID_COMMAND_LINE_SWITCH,[_switch]);
-end;
-
-procedure TCommandList.ShowHelp;
-var i: integer;
-    short_opt, long_opt, desc: string;
-begin
-  WriteLn('Switches:');
-  WriteLn;
-  for i := 0 to Count-1 do
+  // Add .obj80 if required
+  for ptr := 0 to FTargets.Count-1 do
     begin
-      short_opt := Items[i].ShortOption + ' ' + Items[i].ParamName;
-      long_opt  := Items[i].LongOption;
-      if Items[i].ParamName <> '' then
-        long_opt := long_opt + '=' + Items[i].ParamName;
-      desc := Items[i].Description;
-      WriteLn(Format('%-7s %-20s %s',[short_opt,long_opt,desc]));
+      if Pos('.',FTargets[ptr]) = 0 then
+        FTargets[ptr] := FTargets[ptr] + FILETYPE_OBJECT;
     end;
-  WriteLn;
 end;
 
 end.
-
 

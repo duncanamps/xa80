@@ -62,8 +62,10 @@ const
   MAX_DIGITS_PAGENUMBER             = 4;
   MAX_HEX_BYTES_IN_LISTING          = 6;
   MAX_INDENT_DISPLAY                = 5; // Number of >>> to show for include and macro
+  MAX_LIBRARY_SIZE                  = (1 << 24); // 16MB maximum library file size
   MAX_LINE_LENGTH                   = 4096;
   MAX_NESTED_INCLUDES               = 16;
+  MAX_OBJECT_SIZE                   = (1 << 24); // 16MB maximum object file size
   MAX_OPERANDS                      = 2;
   MAX_SOURCE_BYTES_PER_LISTING_LINE = 4;
   OPCODE_VERSION                    = 2; // File format version number
