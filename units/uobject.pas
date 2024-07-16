@@ -41,8 +41,7 @@ unit uobject;
 interface
 
 uses
-  Classes, SysUtils, ucodesegment, usymboltable, ufixups, fpjson,
-  udebuglist;
+  Classes, SysUtils, ucodesegment, usymboltable, fpjson;
 
 type
   TObjectFile = class(TObject)
@@ -53,9 +52,15 @@ type
       FFixupList:       TFixupList;
       FSegments:        TSegments;
       FSymbolTable:     TSymbolTable;
-      jData:            TJSONData;
+      jData:            TJSONdata;
       procedure CreateJSONfromParams;
+      procedure CreateParamsFromJSON;
     public
+      property DebugList:   TDebugList read FDebugList;
+      property Filename:    string     read FFilename;
+      property FixupList:   TFixupList read FFixupList;
+      property Segments:    TSegments  read FSegments;
+      property SymbolTable: TSymbolTable read FSymbolTable;
       constructor Create;
       constructor Create(const _filename: string);
       constructor Create(const _filename: string; _symboltable: TSymbolTable; _segmentlist: TSegments; _fixups: TFixupList; _debuglist: TDebugList);
@@ -101,7 +106,7 @@ begin
   FSymbolTable := _symboltable;
   FSegments    := _segmentlist;
   FFixupList   := _fixups;
-  CreateJSONfromParams;
+//  CreateJSONfromParams;
 end;
 
 destructor TObjectFile.Destroy;
@@ -139,71 +144,20 @@ begin
     FreeAndNil(jData); // Clear the JSON if it already exists
   jData := GetJSON('{"Header":{},"Globals":{},"Locals":{},"DebugFilenames":[],"Segments":{}}');
   // Do header items
-  jObject := jData.FindPath('Header') as TJSONObject;
-  if Assigned(jObject) then
-    begin
-      jObject.Add('FileName',FFilename);
-      jObject.Add('FileType','xa80 Object File V1');
-      jObject.Add('FileCreated',FormatDateTime('yyyy-mm-dd hh:nn:ss',Now));
-      jObject.Add('HostOS',{$I %FPCTARGETOS%});
-      jObject.Add('HostAppName','xa80');
-      jObject.Add('HostAppVersion','V' + EnvObject.Version + ' build ' + EnvObject.Build);
-    end;
-  // Do Globals
-  jObject := jData.FindPath('Globals') as TJSONObject;
-  if Assigned(jObject) then
-    begin
-      for i := 0 to FSymbolTable.Count-1 do
-        if FSymbolTable.Items[i].Scope = ssGlobal then
-          with FSymbolTable.Items[i] do
-            begin
-              if Assigned(Seg) then
-                jSub := GetJSON(Format('{"Segment":"%s","Offset":"%4.4X"}',[Seg.Segname,IValue])) as TJSONObject
-              else
-                jSub := GetJSON(Format('{"Segment":"%s","Offset":"%4.4X"}',['<nil>',IValue])) as TJSONObject;
-              jObject.Add(Name,jSub);
-            end;
-    end;
-  // Do Locals
-  jObject := jData.FindPath('Locals') as TJSONObject;
-  if Assigned(jObject) then
-    begin
-      for i := 0 to FSymbolTable.Count-1 do
-        if (FSymbolTable.Items[i].Scope = ssLocal) and (FSymbolTable.Items[i].Seg <> nil) and (sfExportLocal in FSymbolTable.Items[i].Flags) then
-          with FSymbolTable.Items[i] do
-            begin
-              if Assigned(Seg) then
-                jSub := GetJSON(Format('{"Segment":"%s","Offset":"%4.4X"}',[Seg.Segname,IValue])) as TJSONObject
-              else
-                jSub := GetJSON(Format('{"Segment":"%s","Offset":"%4.4X"}',['<nil>',IValue])) as TJSONObject;
-              jObject.Add(Name,jSub);
-            end;
-    end;
+  EnvObject.ToJSONobject(jData,FFilename);
+  // Do Globals and Locals
+  FSymbolTable.ToJSONobject(jData,ssGlobal);
+  FSymbolTable.ToJSONobject(jData,ssLocal);
   // Do debug filenames
-  jArray := jData.FindPath('DebugFilenames') as TJSONArray;
-  if Assigned(jArray) then
-    begin
-      for i := 0 to FDebugList.FilenameList.Count-1 do
-        jArray.Add(FDebugList.FilenameList[i]);
-    end;
+  FDebugList.ToJSONobject(jData);
   // Do segments
-  jObject := jData.FindPath('Segments') as TJSONObject;
-  if Assigned(jObject) then
-    for i := 0 to FSegments.Count-1 do
-      with FSegments.Items[i] do
-        begin
-          jSub := GetJSON(Format('{"Address":"%4.4X","Length":"%4.4X","IsFixed":"%s","IsReadOnly":"%s","IsUninitialised":"%s","Code":%s,"Fixups":%s,"DebugList":%s}',
-                              [FirstAddress,
-                               Bytes,
-                               BooleanToYN(smFixed in Modifiers),
-                               BooleanToYN(smReadOnly in Modifiers),
-                               BooleanToYN(smUninitialised in Modifiers),
-                               CodeAsJSONArray,
-                               FFixupList.SegmentFixupsAsJSONArray(SegName),
-                               FDebugList.DebugDataAsJSONArray(FSegments.Items[i])
-                               ])) as TJSONObject;
-          jObject.Add(Segname,jSub);
-        end;
+  FSegments.ToJSONobject(jData,FFixupList,FDebugList);
+end;
+
+procedure TObjectFile.CreateParamsFromJSON;
+begin
+  // Do segments, fixup list and debug list first of all
+  FSegments.FromJSONobject(jData,FFixupList,FDebugList);
 end;
 
 procedure TObjectFile.Load;
@@ -215,11 +169,7 @@ begin
     raise Exception.Create('Cannot find object file ' + FFilename);
   fstream := TFileStream.Create(FFilename,fmOpenRead);
   try
-    filelen := fstream.Size;
-    if filelen > MAX_OBJECT_SIZE then
-      raise Exception.Create(Format('Attempt to load object file exceeding %d bytes',[MAX_OBJECT_SIZE]));
-    SetLength(s,filelen);
-    fstream.Read(s[1],filelen);
+    Load(fstream);
   finally
     FreeAndNil(fstream);
   end;
@@ -228,6 +178,7 @@ end;
 procedure TObjectFile.Load(_stream: TStream);
 var s: string;
     filelen: int64;
+
 begin
   filelen := _stream.Size;
   if filelen > MAX_OBJECT_SIZE then
@@ -237,6 +188,10 @@ begin
   // @@@@@
   // Process the string into the bits and pieces here
   // @@@@@
+  if Assigned(jData) then
+    FreeAndNil(jData); // Clear the JSON if it already exists
+  jData := GetJSON(s);
+  CreateParamsFromJSON;
 end;
 
 procedure TObjectFile.Load(const _filename: string);
@@ -261,6 +216,7 @@ end;
 procedure TObjectFile.Save(_stream: TStream);
 var s: string;
 begin
+  CreateJSONfromParams;
   s := jData.FormatJSON;
   if Length(s) > MAX_OBJECT_SIZE then
     raise Exception.Create(Format('Attempt to save object file exceeding %d bytes',[MAX_OBJECT_SIZE]));

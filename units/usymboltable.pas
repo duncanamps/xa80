@@ -27,7 +27,7 @@ interface
 
 uses
   Classes, SysUtils, Generics.Collections, ucodesegment, uasmglobals,
-  ufixups;
+  fpjson;
 
 type
   // Addresses are relocatable, integers are not
@@ -81,6 +81,7 @@ type
       procedure DumpByName(_strm: TFileStream);
       procedure DumpByName(const filename: string);
       function  IndexOf(_name: string): integer; reintroduce;
+      procedure ToJSONobject(_parent: TJSONdata; _symbolscope: TSymbolScope);
       property  Pass: integer read FPass write FPass;
       property  Title: string read FTitle write FTitle;
   end;
@@ -97,6 +98,8 @@ const
   HASH_RATIO = 3;
   HASH_EXPANSION = 3;
   INITIAL_HASH_BASE = 1000;
+  JSON_TITLE_GLOBAL = 'Globals';
+  JSON_TITLE_LOCAL  = 'Locals';
 
 function CompareName(constref Left,Right: TSymbol): integer;
 begin
@@ -418,6 +421,34 @@ begin
   HashSize := _sz;
   SetLength(HashTable,HashSize);
   ReHash;
+end;
+
+procedure TSymbolTable.ToJSONobject(_parent: TJSONdata; _symbolscope: TSymbolScope);
+var jObject:     TJSONobject;
+    jSub:        TJSONobject;
+    titlestring: string;
+    i:           integer;
+begin
+  case _symbolscope of
+    ssLocal:  titlestring := JSON_TITLE_LOCAL;
+    ssGlobal: titlestring := JSON_TITLE_GLOBAL;
+    otherwise
+      ErrorObj.Show(ltInternal,X3001_UNHANDLED_CASE_OPTION,['TSymbolTable.ToJSONobject']);
+  end;
+  jObject := _parent.FindPath(titlestring) as TJSONObject;
+  if Assigned(jObject) then
+    begin
+      for i := 0 to Count-1 do
+        if Items[i].Scope = _symbolscope then
+          with Items[i] do
+            begin
+              if Assigned(Seg) then
+                jSub := GetJSON(Format('{"Segment":"%s","Offset":"%4.4X"}',[Seg.Segname,IValue])) as TJSONObject
+              else
+                jSub := GetJSON(Format('{"Segment":"%s","Offset":"%4.4X"}',['<nil>',IValue])) as TJSONObject;
+              jObject.Add(Name,jSub);
+            end;
+    end;
 end;
 
 end.

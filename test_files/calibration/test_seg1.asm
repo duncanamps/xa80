@@ -1,0 +1,54 @@
+;        TITLE   'HELLO_SEG.Z80 - Hello World with Segments'
+
+				EXTERN	WRITESTR
+				EXTERN	MALLOC
+
+				GLOBAL	HELLO
+				
+PRINT	MACRO	stringaddr
+		LD		DE,{stringaddr}
+		CALL	WRITESTR
+		ENDM
+				
+;============================================================================		
+		SEGMENT	CSEG, FIXED, READONLY
+;============================================================================		
+		
+        ORG     0100H
+
+
+HELLO:
+		LD		(SAVSP),SP		; Save stack pointer
+		LD		SP,STACKEND		; Set up new stack pointer
+		PRINT	MSG				; Print the "Hello World" message
+		LD		SP,(SAVSP)		; Get old stack pointer back
+GOBACK:		
+		RET						; Back to caller
+
+;============================================================================		
+		SEGMENT VARS, RELOCATABLE, READWRITE
+;============================================================================		
+
+SAVSP:	DW		0				; Saved stack pointer on entry
+		
+;============================================================================		
+		SEGMENT DATA, RELOCATABLE, READONLY
+;============================================================================		
+
+; Text strings
+
+
+MSG: 		DB      'Hello World',13,10
+			DB		'Created with XA80 cross assembler',13,10
+			DB		'---------------------------------',13,10,10
+			DB		'$'
+		
+;============================================================================		
+		SEGMENT STACK, RELOCATABLE, READWRITE, UNINITIALISED
+;============================================================================		
+
+STACKBASE:	DS		256
+STACKEND:		
+			
+        END
+		

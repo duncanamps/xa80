@@ -32,8 +32,7 @@ uses
   Classes, SysUtils, lacogen_types, lacogen_module,
   umessages, uinstruction, usymboltable,
   upreparser3, ucommand, upreparser3_defs, ucodebuffer, ulisting, uinclude,
-  uenvironment, ustack, umacro, ucodesegment, uasmglobals, ufixups,
-  udebuglist;
+  uenvironment, ustack, umacro, ucodesegment, uasmglobals;
 
 type
   TCompareMode = (cmEqual, cmNotEqual, cmLessThan, cmLessEqual, cmGreaterThan,

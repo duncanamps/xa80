@@ -31,9 +31,48 @@ unit ucodesegment;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, ucodebuffer, uasmglobals;
+  Classes, SysUtils, Generics.Collections, ucodebuffer, uasmglobals, fpjson;
 
 type
+  TSegment = class;
+
+  TFixup = record
+    Reference: string;   // Name of external symbol to link to
+    Seg:       TSegment; // Segment object where fixup is required
+    Offset:    word;     // Offset within the segment
+  end;
+
+  TFixupList = class(specialize TList<TFixup>)
+    public
+      procedure Add(const _ref: string; _seg: TSegment; _offset: word); reintroduce;
+      procedure Dump(_strm: TFileStream; var _printpage: integer);
+      function FixupsAsJSONArray: string;
+      function SegmentFixupsAsJSONArray(const _reqseg: string): string;
+  end;
+
+  TDebugLine = class(TObject)
+    private
+      FFileIndex: integer;
+      FLine:      integer;
+      FSeg:       TSegment;
+      FOffset:    word;
+    public
+      constructor Create(_fileindex: integer; _line: integer; _seg: TSegment; _offset: word);
+  end;
+
+  TDebugList = class(specialize TObjectList<TDebugLine>)
+    private
+      FFilenameList: TStringList;
+    public
+      constructor Create;
+      destructor Destroy; override;
+      procedure AddRec(const _filename: string; _line: integer; _seg: TSegment; _offset: word);
+      function  DebugDataAsJSONArray(_seg: TSegment): string;
+      function  FilenamesAsJSONArray: string;
+      procedure ToJSONobject(_parent: TJSONdata);
+      property FilenameList: TStringList read FFilenameList;
+  end;
+
   TSegmentModifier = (smFixed,smReadOnly,smUninitialised);
 
   TSegmentModifiers = set of TSegmentModifier;
@@ -71,13 +110,15 @@ type
       procedure ClearDefined;
       procedure CreateSegment(const _segname: string; _modifiers: TSegmentModifiers; _address: word = 0);
       function  CurrentSegmentName: string;
-      procedure Dump(_strm: TFileStream; var _printpage: integer);
+      procedure Dump(_strm: TStream; var _printpage: integer);
       procedure EnsureCurrentSegment;
       function  FindByName(const _segname: string; _casesensitive: boolean = False): TSegment;
+      procedure FromJSONobject(_object: TJSONdata; _fixuplist: TFixupList; _debuglist: TDebugList);
       function  GetOrg: word;
       procedure Init;
       procedure SetOrg(_neworg: word);
       procedure SortSegments;
+      procedure ToJSONobject(_parent: TJSONdata; _fixuplist: TFixupList; _debuglist: TDebugList);
       property CurrentSegment: TSegment read FCurrentSegment write FCurrentSegment;
   end;
 
@@ -86,7 +127,314 @@ type
 implementation
 
 uses
-  lacogen_types, umessages, Generics.Defaults;
+  lacogen_types, umessages, Generics.Defaults, uutility;
+
+const
+  JSON_TITLE_SEGMENTS = 'Segments';
+  JSON_TITLE_DEBUG_FILENAMES = 'DebugFilenames';
+
+function CompareFixup(constref Left,Right: TFixup): integer;
+begin
+  if Left.Seg.Segname > Right.Seg.Segname then
+    CompareFixup := 1
+  else if Left.Seg.Segname < Right.Seg.Segname then
+    CompareFixup := -1
+  else if Left.Reference > Right.Reference then
+    CompareFixup := 1
+  else if Left.Reference < Right.Reference then
+    CompareFixup := -1
+  else if Left.Offset > Right.Offset then
+    CompareFixup := 1
+  else if Left.Offset < Right.Offset then
+    CompareFixup := -1
+  else
+    CompareFixup := 0;
+end;
+
+procedure TFixupList.Add(const _ref: string; _seg: TSegment; _offset: word);
+var _fixup: TFixup;
+begin
+  _fixup.Reference := _ref;
+  _fixup.Seg       := _seg;
+  _fixup.Offset    := _offset;
+  inherited Add(_fixup);
+end;
+
+procedure TFixupList.Dump(_strm: TFileStream; var _printpage: integer);
+const PAGE_WIDTH = 78;
+      PAGE_DEPTH = 60;
+      _caption = 'FIXUP LIST';
+var i: integer;
+    s: string;
+    t_ch: char;
+    line: integer;
+    pagestr: string;
+    spc:     integer;
+    fixup:   TFixup;
+    source:  string;
+    lastseg:   string;
+    lastlabel: string;
+
+  procedure MyWrite(const _buf: string);
+  begin
+    _strm.Write(_buf[1],Length(_buf));
+  end;
+
+  procedure Header;
+  begin
+    Inc(_PrintPage);
+    pagestr := 'Page: ' + IntToStr(_PrintPage);
+    spc := PAGE_WIDTH - Length(_caption) - Length(pagestr);
+    MyWrite(LINE_TERMINATOR);
+    MyWrite(_caption + Space(spc div 2) + Space(spc - spc div 2) + pagestr + LINE_TERMINATOR);
+    MyWrite(StringOfChar('-',PAGE_WIDTH) + LINE_TERMINATOR);
+    MyWrite(LINE_TERMINATOR);
+    MyWrite('TARGET SEGMENT' + LINE_TERMINATOR);
+    MyWrite('        LABEL: FIXUP OFFSET(S)' + LINE_TERMINATOR);
+    MyWrite(StringOfChar('-',PAGE_WIDTH) + LINE_TERMINATOR);
+    line := 7;
+  end;
+
+  procedure FormFeed;
+  begin
+    MyWrite(FF);
+  end;
+
+  procedure CheckLine;
+  begin
+    if line >= PAGE_DEPTH then
+      begin
+        FormFeed;
+        Header;
+      end;
+  end;
+
+  procedure Purge;
+  begin
+    if s = '' then
+      Exit;
+    CheckLine;
+    MyWrite(s + LINE_TERMINATOR);
+    Inc(line);
+    s := '';
+  end;
+
+begin
+  line := 0;
+  Header;
+  // Sort into segment, name, offset
+  Sort(specialize TComparer<TFixup>.Construct(@CompareFixup));
+  // Now do the printing
+  lastseg := '';
+  lastlabel := '';
+  s := '';
+  for i := 0 to Count-1 do
+    begin
+      fixup := Items[i];
+      if fixup.Seg.Segname <> lastseg then
+        begin
+          Purge;
+          lastseg := fixup.Seg.Segname;
+          CheckLine;
+          MyWrite(lastseg + LINE_TERMINATOR);
+          Inc(line);
+          lastlabel := '';
+        end;
+      if fixup.Reference <> lastlabel then
+        begin
+          Purge;
+          lastlabel := fixup.Reference;
+          s := '        ' + LastLabel + ':';
+        end;
+      if Length(s) > (PAGE_WIDTH-5) then
+        begin
+          Purge;
+          s := Space(9+Length(LastLabel));
+        end;
+      s := s + Format(' %4.4X',[fixup.Offset]);
+    end;
+  Purge;
+  FormFeed;
+end;
+
+function TFixupList.FixupsAsJSONArray: string;
+var i: integer;
+    s: string;
+    t_ch: char;
+    line: integer;
+    pagestr: string;
+    spc:     integer;
+    fixup:   TFixup;
+    source:  string;
+    lastseg:   string;
+    lastlabel: string;
+    outstr:    string;
+
+begin
+  outstr := '{';
+  // Sort into segment, name, offset
+  Sort(specialize TComparer<TFixup>.Construct(@CompareFixup));
+  // Now do the string compilation
+  lastseg := '';
+  lastlabel := '';
+  for i := 0 to Count-1 do
+    begin
+      fixup := Items[i];
+      if fixup.Seg.Segname <> lastseg then
+        begin
+          if lastseg <> '' then
+            outstr := outstr + ']},';
+          outstr := outstr + '"' + fixup.Seg.Segname + '":{"' + fixup.Reference + '":[';
+          lastlabel := fixup.Reference;
+          lastseg := fixup.Seg.Segname;
+        end;
+      if fixup.Reference <> lastlabel then
+        begin
+          outstr := outstr + '],"' + fixup.Reference + '":[';
+          lastlabel := fixup.Reference;
+        end;
+      if RightStr(outstr,1) = '"' then
+        outstr := outstr + ',';
+      outstr := outstr + '"' + Format('%4.4X',[fixup.Offset]) + '"';
+    end;
+  outstr := outstr + ']}}';
+  FixupsAsJSONArray := outstr;
+end;
+
+function TFixupList.SegmentFixupsAsJSONArray(const _reqseg: string): string;
+var i: integer;
+    s: string;
+    t_ch: char;
+    line: integer;
+    pagestr: string;
+    spc:     integer;
+    fixup:   TFixup;
+    source:  string;
+    lastlabel: string;
+    outstr:    string;
+
+begin
+  outstr := '{';
+  // Sort into segment, name, offset
+  Sort(specialize TComparer<TFixup>.Construct(@CompareFixup));
+  // Now do the string compilation
+  lastlabel := '';
+  for i := 0 to Count-1 do
+    begin
+      fixup := Items[i];
+      if fixup.Seg.Segname = _reqseg then
+        begin
+          if lastlabel = '' then
+            begin
+              lastlabel := fixup.Reference;
+              outstr := outstr + '"' + fixup.Reference + '":[';
+            end;
+          if fixup.Reference <> lastlabel then
+            begin
+              outstr := outstr + '],"' + fixup.Reference + '":[';
+              lastlabel := fixup.Reference;
+            end;
+          if RightStr(outstr,1) = '"' then
+            outstr := outstr + ',';
+          outstr := outstr + '"' + Format('%4.4X',[fixup.Offset]) + '"';
+        end;
+    end;
+  if RightStr(outstr,1) = '"' then
+    outstr := outstr + ']';
+  outstr := outstr + '}';
+  SegmentFixupsAsJSONArray := outstr;
+end;
+
+
+//=============================================================================
+//
+//  TDebugLine code
+//
+//=============================================================================
+
+constructor TDebugLine.Create(_fileindex: integer; _line: integer; _seg: TSegment; _offset: word);
+begin
+  inherited Create;
+  FFileIndex := _fileindex;
+  FLine      := _line;
+  FSeg       := _seg;
+  FOffset    := _offset;
+end;
+
+
+
+//=============================================================================
+//
+//  TDebugList code
+//
+//=============================================================================
+
+constructor TDebugList.Create;
+begin
+  inherited Create;
+  FFilenameList := TStringList.Create;
+end;
+
+destructor TDebugList.Destroy;
+begin
+  FreeAndNil(FFilenameList);
+  inherited Destroy;
+end;
+
+procedure TDebugList.AddRec(const _filename: string; _line: integer; _seg: TSegment; _offset: word);
+var _index: integer;
+begin
+  _index := FFilenameList.IndexOf(_filename);
+  if _index < 0 then
+    _index := FFilenameList.Add(_filename);
+  inherited Add(TDebugLine.Create(_index,_line,_seg,_offset));
+end;
+
+function TDebugList.DebugDataAsJSONArray(_seg: TSegment): string;
+var obj: TDebugLine;
+    s:   string;
+begin
+  s := '[';
+  for obj in Self do
+    if obj.FSeg = _seg then
+      begin
+        if s <> '[' then
+          s := s + ',';
+        s := s + Format('"%4.4X%4.4X%4.4X"',[obj.FFileIndex,obj.FLine,obj.FOffset]);
+      end;
+  s := s + ']';
+  DebugDataAsJSONArray := s;
+end;
+
+function TDebugList.FilenamesAsJSONArray: string;
+var s: string;
+    i: integer;
+begin
+  s := '[';
+  for i := 0 to FFilenameList.Count-1 do
+    begin
+      if i > 0 then
+        s := s + ',';
+//      s := s + '"' + FFilenameList[i] + '"';
+      s := s + '"BlahBlah"';
+    end;
+  s := s + ']';
+  FilenamesAsJSONArray := s;
+end;
+
+procedure TDebugList.ToJSONobject(_parent: TJSONdata);
+var jArray: TJSONarray;
+    i:      integer;
+begin
+  jArray := _parent.FindPath(JSON_TITLE_DEBUG_FILENAMES) as TJSONArray;
+  if Assigned(jArray) then
+    begin
+      for i := 0 to FilenameList.Count-1 do
+        jArray.Add(FilenameList[i]);
+    end;
+end;
+
+//==============================================================================
 
 function CompareSegment(constref Left,Right: TSegment): integer;
 
@@ -286,6 +634,15 @@ begin
     end;
 end;
 
+
+procedure TSegments.FromJSONobject(_object: TJSONdata; _fixuplist: TFixupList; _debuglist: TDebugList);
+begin
+  // Reset to blank objects
+  Clear;
+  _fixuplist.Clear;
+  _debuglist.Clear;
+end;
+
 function TSegment.IsEmpty: boolean;
 var w: word;
 begin
@@ -369,7 +726,7 @@ begin
   CurrentSegmentName := FCurrentSegment.FSegName;
 end;
 
-procedure TSegments.Dump(_strm: TFileStream; var _printpage: integer);
+procedure TSegments.Dump(_strm: TStream; var _printpage: integer);
 const PAGE_WIDTH = 78;
       PAGE_DEPTH = 60;
       _caption = 'SEGMENT LIST';
@@ -468,6 +825,30 @@ end;
 procedure TSegments.SortSegments;
 begin
   Sort(specialize TComparer<TSegment>.Construct(@CompareSegment));
+end;
+
+procedure TSegments.ToJSONobject(_parent: TJSONdata; _fixuplist: TFixupList; _debuglist: TDebugList);
+var jObject: TJSONobject;
+    jSub:    TJSONobject;
+    i:       integer;
+begin
+  jObject := _parent.FindPath(JSON_TITLE_SEGMENTS) as TJSONObject;
+  if Assigned(jObject) then
+    for i := 0 to Count-1 do
+      with Items[i] do
+        begin
+          jSub := GetJSON(Format('{"Address":"%4.4X","Length":"%4.4X","IsFixed":"%s","IsReadOnly":"%s","IsUninitialised":"%s","Code":%s,"Fixups":%s,"DebugList":%s}',
+                              [FirstAddress,
+                               Bytes,
+                               BooleanToYN(smFixed in Modifiers),
+                               BooleanToYN(smReadOnly in Modifiers),
+                               BooleanToYN(smUninitialised in Modifiers),
+                               CodeAsJSONArray,
+                               _fixuplist.SegmentFixupsAsJSONArray(SegName),
+                               _debuglist.DebugDataAsJSONArray(Items[i])
+                               ])) as TJSONObject;
+          jObject.Add(Segname,jSub);
+        end;
 end;
 
 end.

@@ -30,7 +30,7 @@ uses
   { you can add units after this }
   uenvironment, ucommandline, typinfo, uutility, uasmglobals,
   uassembler80, uprocessors, umessages, upreparser3, usymboltable,
-  lacogen_types, ustack, umacro, ucodesegment, ufixups, udebuglist;
+  lacogen_types, ustack, umacro, ucodesegment;
 
 const
   CRLF = #13 + #10;
