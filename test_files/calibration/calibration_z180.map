@@ -1,0 +1,67 @@
+
+SEGMENT LIST                                                           Page: 1
+------------------------------------------------------------------------------
+
+SEGMENT              FROM TO   LENX  LEND ATTRIBUTES
+-------------------- ---- ---- ---- ----- ------------------------------------
+CSEG                 0000 0861 0862  2146 Fixed, Read/write, Initialised
+
+FIXUP LIST                                                             Page: 2
+------------------------------------------------------------------------------
+
+TARGET SEGMENT
+        LABEL: FIXUP OFFSET(S)
+------------------------------------------------------------------------------
+
+SYMBOL NAME                                                            Page: 3
+------------------------------------------------------------------------------
+
+HEX    DEC SEGMENT              SOURCE    SCOPE     NAME
+---- ----- -------------------- --------- --------- ----
+0785  1925 CSEG                 Address F Local     DELAY0
+0790  1936 CSEG                 Address F Local     DELAY2
+078A  1930 CSEG                 Address F Local     DELAYX0
+0795  1941 CSEG                 Address F Local     DELAYX2
+0039    57 <unknown>            Const Int Local     DISPL
+0000     0 <unknown>            Const Str Local     FIRST "AC"
+0000     0 <unknown>            Const Str Local     FULL "AC/DC"
+0013    19 <unknown>            Const Int Local     HIGHNUM
+0003     3 <unknown>            Const Int Local     J
+0004     4 <unknown>            Const Int Local     K
+080A  2058 CSEG                 Address F Local    *KEYWDS
+0000     0 <unknown>            Const Str Local     LAST "DC"
+0018    24 <unknown>            Const Int Local     LL
+0000     0 <unknown>            Const Int Local     LOOP_COUNT
+0002     2 <unknown>            Const Int Local     LOWNUM
+0007     7 <unknown>            Const Int Local     MEDNUM
+0007     7 <unknown>            Const Int Local     MEDNUM2
+0813  2067 CSEG                 Address F Local    *TABLK
+15B3  5555 <unknown>            Const Int Local     U16
+0005     5 <unknown>            Const Int Local     U8
+
+SYMBOL ADDR                                                            Page: 4
+------------------------------------------------------------------------------
+
+HEX    DEC SEGMENT              SOURCE    SCOPE     NAME
+---- ----- -------------------- --------- --------- ----
+0000     0 <unknown>            Const Str Local     FIRST "AC"
+0000     0 <unknown>            Const Str Local     FULL "AC/DC"
+0000     0 <unknown>            Const Str Local     LAST "DC"
+0000     0 <unknown>            Const Int Local     LOOP_COUNT
+0002     2 <unknown>            Const Int Local     LOWNUM
+0003     3 <unknown>            Const Int Local     J
+0004     4 <unknown>            Const Int Local     K
+0005     5 <unknown>            Const Int Local     U8
+0007     7 <unknown>            Const Int Local     MEDNUM
+0007     7 <unknown>            Const Int Local     MEDNUM2
+0013    19 <unknown>            Const Int Local     HIGHNUM
+0018    24 <unknown>            Const Int Local     LL
+0039    57 <unknown>            Const Int Local     DISPL
+15B3  5555 <unknown>            Const Int Local     U16
+0785  1925 CSEG                 Address F Local     DELAY0
+078A  1930 CSEG                 Address F Local     DELAYX0
+0790  1936 CSEG                 Address F Local     DELAY2
+0795  1941 CSEG                 Address F Local     DELAYX2
+080A  2058 CSEG                 Address F Local    *KEYWDS
+0813  2067 CSEG                 Address F Local    *TABLK
+

@@ -1,0 +1,1686 @@
+
+Assembly Listing                                                                                                 Page: 1
+------------------------------------------------------------------------------------------------------------------------
+
+                            1 | //===========================================================================
+                            2 | //
+                            3 | //  TEST_Z80.ASM
+                            4 | //
+                            5 | //  Test the Z80 instruction set in full and all of the XA80 commands and
+                            6 | //  functions.
+                            7 | //
+                            8 | //  Duncan Munro  04/06/2023
+                            9 | //
+                           10 | //===========================================================================
+                           11 | 
+                           12 | ;
+                           13 | ; Some defines for testing
+                           14 | ;
+                           15 | 
+                           16 | 
+                           17 | ;----------------------------------------------------------------------------
+                           18 | ;
+                           19 | ; Taken from the Opcode map
+                           20 | ;
+                           21 | ;----------------------------------------------------------------------------
+                           22 | 
+                           23 | U8      EQU     5               // 8 bit unsigned value
+                           24 | U16     EQU     5555            // 16 bit unsigned value
+                           25 | DISPL   EQU     57              // Displacement value
+                           26 | 
+                           27 | ;
+                           28 | ; Z80 - 8 bit load instructions
+                           29 | ;
+                           30 | 
+0000: ED 57                31 |         LD      A,I             // $ED $57                    
+0002: ED 5F                32 |         LD      A,R             // $ED $5F                    
+0004: 7F                   33 |         LD      A,A             // $7F                        
+0005: 78                   34 |         LD      A,B             // $78                        
+0006: 79                   35 |         LD      A,C             // $79                        
+0007: 7A                   36 |         LD      A,D             // $7A                        
+0008: 7B                   37 |         LD      A,E             // $7B                        
+0009: 7C                   38 |         LD      A,H             // $7C                        
+000A: 7D                   39 |         LD      A,L             // $7D                        
+000B: 7E                   40 |         LD      A,(HL)          // $7E                        
+000C: 0A                   41 |         LD      A,(BC)          // $0A                        
+000D: 1A                   42 |         LD      A,(DE)          // $1A                        
+000E: DD 7E 39             43 |         LD      A,(IX+DISPL)    // $DD $7E [2:S8]             
+0011: FD 7E 39             44 |         LD      A,(IY+DISPL)    // $FD $7E [2:S8]             
+0014: 3A B3 15             45 |         LD      A,(U16)         // $3A [2:U16]                
+0017: 3E 05                46 |         LD      A,U8            // $3E [2:U8]                 
+0019: 47                   47 |         LD      B,A             // $47                        
+001A: 40                   48 |         LD      B,B             // $40                        
+001B: 41                   49 |         LD      B,C             // $41                        
+001C: 42                   50 |         LD      B,D             // $42                        
+001D: 43                   51 |         LD      B,E             // $43                        
+001E: 44                   52 |         LD      B,H             // $44                        
+001F: 45                   53 |         LD      B,L             // $45                        
+0020: 46                   54 |         LD      B,(HL)          // $46                        
+0021: DD 46 39             55 |         LD      B,(IX+DISPL)    // $DD $46 [2:S8]             
+0024: FD 46 39             56 |         LD      B,(IY+DISPL)    // $FD $46 [2:S8]             
+
+
+Assembly Listing                                                                                                 Page: 2
+------------------------------------------------------------------------------------------------------------------------
+
+0027: 06 05                57 |         LD      B,U8            // $06 [2:U8]                 
+0029: 4F                   58 |         LD      C,A             // $4F                        
+002A: 48                   59 |         LD      C,B             // $48                        
+002B: 49                   60 |         LD      C,C             // $49                        
+002C: 4A                   61 |         LD      C,D             // $4A                        
+002D: 4B                   62 |         LD      C,E             // $4B                        
+002E: 4C                   63 |         LD      C,H             // $4C                        
+002F: 4D                   64 |         LD      C,L             // $4D                        
+0030: 4E                   65 |         LD      C,(HL)          // $4E                        
+0031: DD 4E 39             66 |         LD      C,(IX+DISPL)    // $DD $4E [2:S8]             
+0034: FD 4E 39             67 |         LD      C,(IY+DISPL)    // $FD $4E [2:S8]             
+0037: 0E 05                68 |         LD      C,U8            // $0E [2:U8]                 
+0039: 57                   69 |         LD      D,A             // $57                        
+003A: 50                   70 |         LD      D,B             // $50                        
+003B: 51                   71 |         LD      D,C             // $51                        
+003C: 52                   72 |         LD      D,D             // $52                        
+003D: 53                   73 |         LD      D,E             // $53                        
+003E: 54                   74 |         LD      D,H             // $54                        
+003F: 55                   75 |         LD      D,L             // $55                        
+0040: 56                   76 |         LD      D,(HL)          // $56                        
+0041: DD 56 39             77 |         LD      D,(IX+DISPL)    // $DD $56 [2:S8]             
+0044: FD 56 39             78 |         LD      D,(IY+DISPL)    // $FD $56 [2:S8]             
+0047: 16 05                79 |         LD      D,U8            // $16 [2:U8]                 
+0049: 5F                   80 |         LD      E,A             // $5F                        
+004A: 58                   81 |         LD      E,B             // $58                        
+004B: 59                   82 |         LD      E,C             // $59                        
+004C: 5A                   83 |         LD      E,D             // $5A                        
+004D: 5B                   84 |         LD      E,E             // $5B                        
+004E: 5C                   85 |         LD      E,H             // $5C                        
+004F: 5D                   86 |         LD      E,L             // $5D                        
+0050: 5E                   87 |         LD      E,(HL)          // $5E                        
+0051: DD 5E 39             88 |         LD      E,(IX+DISPL)    // $DD $5E [2:S8]             
+0054: FD 5E 39             89 |         LD      E,(IY+DISPL)    // $FD $5E [2:S8]             
+0057: 1E 05                90 |         LD      E,U8            // $1E [2:U8]                 
+0059: 67                   91 |         LD      H,A             // $67                        
+005A: 60                   92 |         LD      H,B             // $60                        
+005B: 61                   93 |         LD      H,C             // $61                        
+005C: 62                   94 |         LD      H,D             // $62                        
+005D: 63                   95 |         LD      H,E             // $63                        
+005E: 64                   96 |         LD      H,H             // $64                        
+005F: 65                   97 |         LD      H,L             // $65                        
+0060: 66                   98 |         LD      H,(HL)          // $66                        
+0061: DD 66 39             99 |         LD      H,(IX+DISPL)    // $DD $66 [2:S8]             
+0064: FD 66 39            100 |         LD      H,(IY+DISPL)    // $FD $66 [2:S8]             
+0067: 26 05               101 |         LD      H,U8            // $26 [2:U8]                 
+0069: 6F                  102 |         LD      L,A             // $6F                        
+006A: 68                  103 |         LD      L,B             // $68                        
+006B: 69                  104 |         LD      L,C             // $69                        
+006C: 6A                  105 |         LD      L,D             // $6A                        
+006D: 6B                  106 |         LD      L,E             // $6B                        
+006E: 6C                  107 |         LD      L,H             // $6C                        
+006F: 6D                  108 |         LD      L,L             // $6D                        
+0070: 6E                  109 |         LD      L,(HL)          // $6E                        
+0071: DD 6E 39            110 |         LD      L,(IX+DISPL)    // $DD $6E [2:S8]             
+0074: FD 6E 39            111 |         LD      L,(IY+DISPL)    // $FD $6E [2:S8]             
+0077: 2E 05               112 |         LD      L,U8            // $2E [2:U8]                 
+
+
+Assembly Listing                                                                                                 Page: 3
+------------------------------------------------------------------------------------------------------------------------
+
+0079: 77                  113 |         LD      (HL),A          // $77                        
+007A: 70                  114 |         LD      (HL),B          // $70                        
+007B: 71                  115 |         LD      (HL),C          // $71                        
+007C: 72                  116 |         LD      (HL),D          // $72                        
+007D: 73                  117 |         LD      (HL),E          // $73                        
+007E: 74                  118 |         LD      (HL),H          // $74                        
+007F: 75                  119 |         LD      (HL),L          // $75                        
+0080: 36 05               120 |         LD      (HL),U8         // $36 [2:U8]                        
+0082: 02                  121 |         LD      (BC),A          // $02                        
+0083: 12                  122 |         LD      (DE),A          // $12                        
+0084: DD 77 39            123 |         LD      (IX+DISPL),A    // $DD $77 [1:S8]             
+0087: DD 70 39            124 |         LD      (IX+DISPL),B    // $DD $70 [1:S8]             
+008A: DD 71 39            125 |         LD      (IX+DISPL),C    // $DD $71 [1:S8]             
+008D: DD 72 39            126 |         LD      (IX+DISPL),D    // $DD $72 [1:S8]             
+0090: DD 73 39            127 |         LD      (IX+DISPL),E    // $DD $73 [1:S8]             
+0093: DD 74 39            128 |         LD      (IX+DISPL),H    // $DD $74 [1:S8]             
+0096: DD 75 39            129 |         LD      (IX+DISPL),L    // $DD $75 [1:S8]             
+0099: DD 36 39 05         130 |         LD      (IX+DISPL),U8   // $DD $36 [1:S8] [2:U8]      
+009D: FD 77 39            131 |         LD      (IY+DISPL),A    // $FD $77 [1:S8]             
+00A0: FD 70 39            132 |         LD      (IY+DISPL),B    // $FD $70 [1:S8]             
+00A3: FD 71 39            133 |         LD      (IY+DISPL),C    // $FD $71 [1:S8]             
+00A6: FD 72 39            134 |         LD      (IY+DISPL),D    // $FD $72 [1:S8]             
+00A9: FD 73 39            135 |         LD      (IY+DISPL),E    // $FD $73 [1:S8]             
+00AC: FD 74 39            136 |         LD      (IY+DISPL),H    // $FD $74 [1:S8]             
+00AF: FD 75 39            137 |         LD      (IY+DISPL),L    // $FD $75 [1:S8]             
+00B2: FD 36 39 05         138 |         LD      (IY+DISPL),U8   // $FD $36 [1:S8] [2:U8]      
+00B6: 32 B3 15            139 |         LD      (U16),A         // $32 [1:U16]                
+00B9: ED 47               140 |         LD      I,A             // $ED $47                    
+00BB: ED 4F               141 |         LD      R,A             // $ED $4F                    
+                          142 | 
+                          143 | ;
+                          144 | ; Z80 - 16 bit load instructions
+                          145 | ;
+                          146 | 
+00BD: F1                  147 |         POP     AF              // $F1                        
+00BE: C1                  148 |         POP     BC              // $C1                        
+00BF: D1                  149 |         POP     DE              // $D1                        
+00C0: E1                  150 |         POP     HL              // $E1                        
+00C1: DD E1               151 |         POP     IX              // $DD $E1                    
+00C3: FD E1               152 |         POP     IY              // $FD $E1                    
+00C5: F5                  153 |         PUSH    AF              // $F5                        
+00C6: C5                  154 |         PUSH    BC              // $C5                        
+00C7: D5                  155 |         PUSH    DE              // $D5                        
+00C8: E5                  156 |         PUSH    HL              // $E5                        
+00C9: DD E5               157 |         PUSH    IX              // $DD $E5                    
+00CB: FD E5               158 |         PUSH    IY              // $FD $E5  
+00CD: F9                  159 |         LD      SP,HL           // $F9
+00CE: DD F9               160 |         LD      SP,IX           // $DD $F9
+00D0: FD F9               161 |         LD      SP,IY           // $FD $F9                  
+00D2: 01 B3 15            162 |         LD      BC,U16          // $01 [2:U16]                
+00D5: 11 B3 15            163 |         LD      DE,U16          // $11 [2:U16]                
+00D8: 21 B3 15            164 |         LD      HL,U16          // $21 [2:U16]                
+00DB: 31 B3 15            165 |         LD      SP,U16          // $31 [2:U16]                
+00DE: DD 21 B3 15         166 |         LD      IX,U16          // $DD $21 [2:U16]            
+00E2: FD 21 B3 15         167 |         LD      IY,U16          // $FD $21 [2:U16]            
+00E6: ED 4B B3 15         168 |         LD      BC,(U16)        // $ED $4B [2:U16]            
+
+
+Assembly Listing                                                                                                 Page: 4
+------------------------------------------------------------------------------------------------------------------------
+
+00EA: ED 5B B3 15         169 |         LD      DE,(U16)        // $ED $5B [2:U16]            
+00EE: 2A B3 15            170 |         LD      HL,(U16)        // $2A [2:U16]                
+00F1: ED 7B B3 15         171 |         LD      SP,(U16)        // $ED $7B [2:U16]            
+00F5: DD 2A B3 15         172 |         LD      IX,(U16)        // $DD $2A [2:U16]            
+00F9: FD 2A B3 15         173 |         LD      IY,(U16)        // $FD $2A [2:U16]            
+00FD: ED 43 B3 15         174 |         LD      (U16),BC        // $ED $43 [1:U16]            
+0101: ED 53 B3 15         175 |         LD      (U16),DE        // $ED $53 [1:U16]            
+0105: 22 B3 15            176 |         LD      (U16),HL        // $22 [1:U16]                
+0108: ED 73 B3 15         177 |         LD      (U16),SP        // $ED $73 [1:U16]            
+010C: DD 22 B3 15         178 |         LD      (U16),IX        // $DD $22 [1:U16]            
+0110: FD 22 B3 15         179 |         LD      (U16),IY        // $FD $22 [1:U16]            
+                          180 | 
+                          181 | ;
+                          182 | ; Z80 - Exchanges
+                          183 | ;
+                          184 | 
+0114: EB                  185 |         EX      DE,HL           // $EB                        
+0115: 08                  186 |         EX      AF,AF'          // $08                        
+0116: D9                  187 |         EXX                     // $D9                        
+0117: E3                  188 |         EX      (SP),HL         // $E3                        
+0118: DD E3               189 |         EX      (SP),IX         // $DD $E3                    
+011A: FD E3               190 |         EX      (SP),IY         // $FD $E3                    
+                          191 | 
+                          192 | ; Z80 - Block transfer and search groups
+                          193 | 
+011C: ED A0               194 |         LDI                     // $ED $A0                    
+011E: ED B0               195 |         LDIR                    // $ED $B0                    
+0120: ED A8               196 |         LDD                     // $ED $A8                    
+0122: ED B8               197 |         LDDR                    // $ED $B8                    
+0124: ED A1               198 |         CPI                     // $ED $A1                    
+0126: ED B1               199 |         CPIR                    // $ED $B1                    
+0128: ED A9               200 |         CPD                     // $ED $A9                    
+012A: ED B9               201 |         CPDR                    // $ED $B9                    
+                          202 | 
+                          203 | ;
+                          204 | ; Z80 - 8 bit arithmetic and logic
+                          205 | ;
+                          206 | ; These are in twice for the most part as correct instructions
+                          207 | ; would be XOR A,H or AND A,30H however XOR H and AND 30H are
+                          208 | ; also permitted
+                          209 | ;
+                          210 | 
+012C: 8E                  211 |         ADC     (HL)            // $8E
+012D: DD 8E 39            212 |         ADC     (IX+DISPL)      // $DD $8E [1:S8]
+0130: FD 8E 39            213 |         ADC     (IY+DISPL)      // $FD $8E [1:S8]
+0133: 8F                  214 |         ADC     A               // $8F
+0134: 88                  215 |         ADC     B               // $88
+0135: 89                  216 |         ADC     C               // $89
+0136: 8A                  217 |         ADC     D               // $8A
+0137: 8B                  218 |         ADC     E               // $8B
+0138: 8C                  219 |         ADC     H               // $8C
+0139: 8D                  220 |         ADC     L               // $8D
+013A: CE 05               221 |         ADC     U8              // $CE [1:U8]
+013C: 86                  222 |         ADD     (HL)            // $86
+013D: DD 86 39            223 |         ADD     (IX+DISPL)      // $DD $86 [1:S8]
+0140: FD 86 39            224 |         ADD     (IY+DISPL)      // $FD $86 [1:S8]
+
+
+Assembly Listing                                                                                                 Page: 5
+------------------------------------------------------------------------------------------------------------------------
+
+0143: 87                  225 |         ADD     A               // $87
+0144: 80                  226 |         ADD     B               // $80
+0145: 81                  227 |         ADD     C               // $81
+0146: 82                  228 |         ADD     D               // $82
+0147: 83                  229 |         ADD     E               // $83
+0148: 84                  230 |         ADD     H               // $84
+0149: 85                  231 |         ADD     L               // $85
+014A: C6 05               232 |         ADD     U8              // $C6 [1:U8]
+014C: A6                  233 |         AND     (HL)            // $A6
+014D: DD A6 39            234 |         AND     (IX+DISPL)      // $DD $A6 [1:S8]
+0150: FD A6 39            235 |         AND     (IY+DISPL)      // $FD $A6 [1:S8]
+0153: A7                  236 |         AND     A               // $A7
+0154: A0                  237 |         AND     B               // $A0
+0155: A1                  238 |         AND     C               // $A1
+0156: A2                  239 |         AND     D               // $A2
+0157: A3                  240 |         AND     E               // $A3
+0158: A4                  241 |         AND     H               // $A4
+0159: A5                  242 |         AND     L               // $A5
+015A: E6 05               243 |         AND     U8              // $E6 [1:U8]
+015C: BE                  244 |         CP      (HL)            // $BE
+015D: DD BE 39            245 |         CP      (IX+DISPL)      // $DD $BE [1:S8]
+0160: FD BE 39            246 |         CP      (IY+DISPL)      // $FD $BE [1:S8]
+0163: BF                  247 |         CP      A               // $BF
+0164: B8                  248 |         CP      B               // $B8
+0165: B9                  249 |         CP      C               // $B9
+0166: BA                  250 |         CP      D               // $BA
+0167: BB                  251 |         CP      E               // $BB
+0168: BC                  252 |         CP      H               // $BC
+0169: BD                  253 |         CP      L               // $BD
+016A: FE 05               254 |         CP      U8              // $FE [1:U8]
+016C: B6                  255 |         OR      (HL)            // $B6
+016D: DD B6 39            256 |         OR      (IX+DISPL)      // $DD $B6 [1:S8]
+0170: FD B6 39            257 |         OR      (IY+DISPL)      // $FD $B6 [1:S8]
+0173: B7                  258 |         OR      A               // $B7
+0174: B0                  259 |         OR      B               // $B0
+0175: B1                  260 |         OR      C               // $B1
+0176: B2                  261 |         OR      D               // $B2
+0177: B3                  262 |         OR      E               // $B3
+0178: B4                  263 |         OR      H               // $B4
+0179: B5                  264 |         OR      L               // $B5
+017A: F6 05               265 |         OR      U8              // $F6 [1:U8]
+017C: 9E                  266 |         SBC     (HL)            // $9E
+017D: DD 9E 39            267 |         SBC     (IX+DISPL)      // $DD $9E [1:S8]
+0180: FD 9E 39            268 |         SBC     (IY+DISPL)      // $FD $9E [1:S8]
+0183: 9F                  269 |         SBC     A               // $9F
+0184: 98                  270 |         SBC     B               // $98
+0185: 99                  271 |         SBC     C               // $99
+0186: 9A                  272 |         SBC     D               // $9A
+0187: 9B                  273 |         SBC     E               // $9B
+0188: 9C                  274 |         SBC     H               // $9C
+0189: 9D                  275 |         SBC     L               // $9D
+018A: DE 05               276 |         SBC     U8              // $DE [1:U8]
+018C: 96                  277 |         SUB     (HL)            // $96
+018D: DD 96 39            278 |         SUB     (IX+DISPL)      // $DD $96 [1:S8]
+0190: FD 96 39            279 |         SUB     (IY+DISPL)      // $FD $96 [1:S8]
+0193: 97                  280 |         SUB     A               // $97
+
+
+Assembly Listing                                                                                                 Page: 6
+------------------------------------------------------------------------------------------------------------------------
+
+0194: 90                  281 |         SUB     B               // $90
+0195: 91                  282 |         SUB     C               // $91
+0196: 92                  283 |         SUB     D               // $92
+0197: 93                  284 |         SUB     E               // $93
+0198: 94                  285 |         SUB     H               // $94
+0199: 95                  286 |         SUB     L               // $95
+019A: D6 05               287 |         SUB     U8              // $D6 [1:U8]
+019C: AE                  288 |         XOR     (HL)            // $AE
+019D: DD AE 39            289 |         XOR     (IX+DISPL)      // $DD $AE [1:S8]
+01A0: FD AE 39            290 |         XOR     (IY+DISPL)      // $FD $AE [1:S8]
+01A3: AF                  291 |         XOR     A               // $AF
+01A4: A8                  292 |         XOR     B               // $A8
+01A5: A9                  293 |         XOR     C               // $A9
+01A6: AA                  294 |         XOR     D               // $AA
+01A7: AB                  295 |         XOR     E               // $AB
+01A8: AC                  296 |         XOR     H               // $AC
+01A9: AD                  297 |         XOR     L               // $AD
+01AA: EE 05               298 |         XOR     U8              // $EE [1:U8]
+01AC: 8E                  299 |         ADC     A,(HL)          // $8E                        
+01AD: DD 8E 39            300 |         ADC     A,(IX+DISPL)    // $DD $8E [2:S8]             
+01B0: FD 8E 39            301 |         ADC     A,(IY+DISPL)    // $FD $8E [2:S8]             
+01B3: 8F                  302 |         ADC     A,A             // $8F                        
+01B4: 88                  303 |         ADC     A,B             // $88                        
+01B5: 89                  304 |         ADC     A,C             // $89                        
+01B6: 8A                  305 |         ADC     A,D             // $8A                        
+01B7: 8B                  306 |         ADC     A,E             // $8B                        
+01B8: 8C                  307 |         ADC     A,H             // $8C                        
+01B9: 8D                  308 |         ADC     A,L             // $8D
+01BA: CE 05               309 |         ADC     A,U8            // $CE [2:U8]                        
+01BC: 86                  310 |         ADD     A,(HL)          // $86                        
+01BD: DD 86 39            311 |         ADD     A,(IX+DISPL)    // $DD $86 [2:S8]             
+01C0: FD 86 39            312 |         ADD     A,(IY+DISPL)    // $FD $86 [2:S8]             
+01C3: 87                  313 |         ADD     A,A             // $87                        
+01C4: 80                  314 |         ADD     A,B             // $80                        
+01C5: 81                  315 |         ADD     A,C             // $81                        
+01C6: 82                  316 |         ADD     A,D             // $82                        
+01C7: 83                  317 |         ADD     A,E             // $83                        
+01C8: 84                  318 |         ADD     A,H             // $84                        
+01C9: 85                  319 |         ADD     A,L             // $85                        
+01CA: C6 05               320 |         ADD     A,U8            // $C6 [2:U8]                        
+01CC: A6                  321 |         AND     A,(HL)          // $A6                        
+01CD: DD A6 39            322 |         AND     A,(IX+DISPL)    // $DD $A6 [2:S8]             
+01D0: FD A6 39            323 |         AND     A,(IY+DISPL)    // $FD $A6 [2:S8]             
+01D3: A7                  324 |         AND     A,A             // $A7                        
+01D4: A0                  325 |         AND     A,B             // $A0                        
+01D5: A1                  326 |         AND     A,C             // $A1                        
+01D6: A2                  327 |         AND     A,D             // $A2                        
+01D7: A3                  328 |         AND     A,E             // $A3                        
+01D8: A4                  329 |         AND     A,H             // $A4                        
+01D9: A5                  330 |         AND     A,L             // $A5                        
+01DA: E6 05               331 |         AND     A,U8            // $E6 [2:U8]                        
+01DC: BE                  332 |         CP      A,(HL)          // $BE                        
+01DD: DD BE 39            333 |         CP      A,(IX+DISPL)    // $DD $BE [2:S8]             
+01E0: FD BE 39            334 |         CP      A,(IY+DISPL)    // $FD $BE [2:S8]             
+01E3: BF                  335 |         CP      A,A             // $BF                        
+01E4: B8                  336 |         CP      A,B             // $B8                        
+
+
+Assembly Listing                                                                                                 Page: 7
+------------------------------------------------------------------------------------------------------------------------
+
+01E5: B9                  337 |         CP      A,C             // $B9                        
+01E6: BA                  338 |         CP      A,D             // $BA                        
+01E7: BB                  339 |         CP      A,E             // $BB                        
+01E8: BC                  340 |         CP      A,H             // $BC                        
+01E9: BD                  341 |         CP      A,L             // $BD                        
+01EA: FE 05               342 |         CP      A,U8            // $FE [2:U8]                        
+01EC: 35                  343 |         DEC     (HL)            // $35                        
+01ED: DD 35 39            344 |         DEC     (IX+DISPL)      // $DD $35 [1:S8]             
+01F0: FD 35 39            345 |         DEC     (IY+DISPL)      // $FD $35 [1:S8]             
+01F3: 3D                  346 |         DEC     A               // $3D                        
+01F4: 05                  347 |         DEC     B               // $05                        
+01F5: 0D                  348 |         DEC     C               // $0D                        
+01F6: 15                  349 |         DEC     D               // $15                        
+01F7: 1D                  350 |         DEC     E               // $1D                        
+01F8: 25                  351 |         DEC     H               // $25                        
+01F9: 2D                  352 |         DEC     L               // $2D                        
+01FA: 34                  353 |         INC     (HL)            // $34                        
+01FB: DD 34 39            354 |         INC     (IX+DISPL)      // $DD $34 [1:S8]             
+01FE: FD 34 39            355 |         INC     (IY+DISPL)      // $FD $34 [1:S8]             
+0201: 3C                  356 |         INC     A               // $3C                        
+0202: 04                  357 |         INC     B               // $04                        
+0203: 0C                  358 |         INC     C               // $0C                        
+0204: 14                  359 |         INC     D               // $14                        
+0205: 1C                  360 |         INC     E               // $1C                        
+0206: 24                  361 |         INC     H               // $24                        
+0207: 2C                  362 |         INC     L               // $2C                        
+0208: B6                  363 |         OR      A,(HL)          // $B6                        
+0209: DD B6 39            364 |         OR      A,(IX+DISPL)    // $DD $B6 [2:S8]             
+020C: FD B6 39            365 |         OR      A,(IY+DISPL)    // $FD $B6 [2:S8]             
+020F: B7                  366 |         OR      A,A             // $B7                        
+0210: B0                  367 |         OR      A,B             // $B0                        
+0211: B1                  368 |         OR      A,C             // $B1                        
+0212: B2                  369 |         OR      A,D             // $B2                        
+0213: B3                  370 |         OR      A,E             // $B3                        
+0214: B4                  371 |         OR      A,H             // $B4                        
+0215: B5                  372 |         OR      A,L             // $B5                        
+0216: F6 05               373 |         OR      A,U8            // $F6 [2:U8]                        
+0218: 9E                  374 |         SBC     A,(HL)          // $9E                        
+0219: DD 9E 39            375 |         SBC     A,(IX+DISPL)    // $DD $9E [2:S8]             
+021C: FD 9E 39            376 |         SBC     A,(IY+DISPL)    // $FD $9E [2:S8]             
+021F: 9F                  377 |         SBC     A,A             // $9F                        
+0220: 98                  378 |         SBC     A,B             // $98                        
+0221: 99                  379 |         SBC     A,C             // $99                        
+0222: 9A                  380 |         SBC     A,D             // $9A                        
+0223: 9B                  381 |         SBC     A,E             // $9B                        
+0224: 9C                  382 |         SBC     A,H             // $9C                        
+0225: 9D                  383 |         SBC     A,L             // $9D                        
+0226: DE 05               384 |         SBC     A,U8            // $DE [2:U8]                        
+0228: 96                  385 |         SUB     A,(HL)          // $96                        
+0229: DD 96 39            386 |         SUB     A,(IX+DISPL)    // $DD $96 [2:S8]             
+022C: FD 96 39            387 |         SUB     A,(IY+DISPL)    // $FD $96 [2:S8]             
+022F: 97                  388 |         SUB     A,A             // $97                        
+0230: 90                  389 |         SUB     A,B             // $90                        
+0231: 91                  390 |         SUB     A,C             // $91                        
+0232: 92                  391 |         SUB     A,D             // $92                        
+0233: 93                  392 |         SUB     A,E             // $93                        
+
+
+Assembly Listing                                                                                                 Page: 8
+------------------------------------------------------------------------------------------------------------------------
+
+0234: 94                  393 |         SUB     A,H             // $94                        
+0235: 95                  394 |         SUB     A,L             // $95                        
+0236: D6 05               395 |         SUB     A,U8            // $D6 [2:U8]                        
+0238: AE                  396 |         XOR     A,(HL)          // $AE                        
+0239: DD AE 39            397 |         XOR     A,(IX+DISPL)    // $DD $AE [2:S8]             
+023C: FD AE 39            398 |         XOR     A,(IY+DISPL)    // $FD $AE [2:S8]             
+023F: AF                  399 |         XOR     A,A             // $AF                        
+0240: A8                  400 |         XOR     A,B             // $A8                        
+0241: A9                  401 |         XOR     A,C             // $A9                        
+0242: AA                  402 |         XOR     A,D             // $AA                        
+0243: AB                  403 |         XOR     A,E             // $AB                        
+0244: AC                  404 |         XOR     A,H             // $AC                        
+0245: AD                  405 |         XOR     A,L             // $AD                        
+0246: EE 05               406 |         XOR     A,U8            // $EE [2:U8]                        
+                          407 | 
+                          408 | ;
+                          409 | ; Z80 - General purpose arithmetic and CPU control groups
+                          410 | ;
+                          411 | 
+0248: 27                  412 |         DAA                     // $27                        
+0249: 2F                  413 |         CPL                     // $2F                        
+024A: ED 44               414 |         NEG                     // $ED $44                    
+024C: 3F                  415 |         CCF                     // $3F                        
+024D: 37                  416 |         SCF                     // $37                        
+024E: 00                  417 |         NOP                     // $00                        
+024F: 76                  418 |         HALT                    // $76                        
+0250: F3                  419 |         DI                      // $F3                        
+0251: FB                  420 |         EI                      // $FB                        
+0252: ED 46               421 |         IM      0               // $ED [1:IM]                 
+0254: ED 56               422 |         IM      1               // $ED [1:IM]                 
+0256: ED 5E               423 |         IM      2               // $ED [1:IM]                 
+                          424 | 
+                          425 | ;
+                          426 | ; Z80 - 16 bit arithmetic group
+                          427 | ;
+                          428 | 
+0258: 09                  429 |         ADD     HL,BC           // $09                        
+0259: 19                  430 |         ADD     HL,DE           // $19                        
+025A: 29                  431 |         ADD     HL,HL           // $29                        
+025B: 39                  432 |         ADD     HL,SP           // $39                        
+025C: DD 09               433 |         ADD     IX,BC           // $DD $09                    
+025E: DD 19               434 |         ADD     IX,DE           // $DD $19                    
+0260: DD 39               435 |         ADD     IX,SP           // $DD $39                    
+0262: DD 29               436 |         ADD     IX,IX           // $DD $29                    
+0264: FD 09               437 |         ADD     IY,BC           // $FD $09                    
+0266: FD 19               438 |         ADD     IY,DE           // $FD $19                    
+0268: FD 39               439 |         ADD     IY,SP           // $FD $39                    
+026A: FD 29               440 |         ADD     IY,IY           // $FD $29                    
+026C: ED 4A               441 |         ADC     HL,BC           // $ED $4A                    
+026E: ED 5A               442 |         ADC     HL,DE           // $ED $5A                    
+0270: ED 6A               443 |         ADC     HL,HL           // $ED $6A                    
+0272: ED 7A               444 |         ADC     HL,SP           // $ED $7A                    
+0274: ED 42               445 |         SBC     HL,BC           // $ED $42                    
+0276: ED 52               446 |         SBC     HL,DE           // $ED $52                    
+0278: ED 62               447 |         SBC     HL,HL           // $ED $62                    
+027A: ED 72               448 |         SBC     HL,SP           // $ED $72                    
+
+
+Assembly Listing                                                                                                 Page: 9
+------------------------------------------------------------------------------------------------------------------------
+
+027C: 03                  449 |         INC     BC              // $03                        
+027D: 13                  450 |         INC     DE              // $13                        
+027E: 23                  451 |         INC     HL              // $23                        
+027F: 33                  452 |         INC     SP              // $33                        
+0280: DD 23               453 |         INC     IX              // $DD $23                    
+0282: FD 23               454 |         INC     IY              // $FD $23                    
+0284: 0B                  455 |         DEC     BC              // $0B                        
+0285: 1B                  456 |         DEC     DE              // $1B                        
+0286: 2B                  457 |         DEC     HL              // $2B                        
+0287: 3B                  458 |         DEC     SP              // $3B                        
+0288: DD 2B               459 |         DEC     IX              // $DD $2B                    
+028A: FD 2B               460 |         DEC     IY              // $FD $2B                    
+                          461 | 
+                          462 | ;
+                          463 | ; Z80 - Rotate and shift group
+                          464 | ;
+                          465 | 
+028C: 07                  466 |         RLCA                    // $07                        
+028D: 17                  467 |         RLA                     // $17                        
+028E: 0F                  468 |         RRCA                    // $0F                        
+028F: 1F                  469 |         RRA                     // $1F                        
+0290: CB 00               470 |         RLC     B               // $CB $00                    
+0292: CB 01               471 |         RLC     C               // $CB $01                    
+0294: CB 02               472 |         RLC     D               // $CB $02                    
+0296: CB 03               473 |         RLC     E               // $CB $03                    
+0298: CB 04               474 |         RLC     H               // $CB $04                    
+029A: CB 05               475 |         RLC     L               // $CB $05                    
+029C: CB 07               476 |         RLC     A               // $CB $07                    
+029E: CB 06               477 |         RLC     (HL)            // $CB $06                    
+02A0: DD CB 39 06         478 |         RLC     (IX+DISPL)      // $DD $CB [1:S8] $06         
+02A4: FD CB 39 06         479 |         RLC     (IY+DISPL)      // $FD $CB [1:S8] $06         
+02A8: CB 10               480 |         RL      B               // $CB $10                    
+02AA: CB 11               481 |         RL      C               // $CB $11                    
+02AC: CB 12               482 |         RL      D               // $CB $12                    
+02AE: CB 13               483 |         RL      E               // $CB $13                    
+02B0: CB 14               484 |         RL      H               // $CB $14                    
+02B2: CB 15               485 |         RL      L               // $CB $15                    
+02B4: CB 17               486 |         RL      A               // $CB $17                    
+02B6: CB 16               487 |         RL      (HL)            // $CB $16                    
+02B8: DD CB 39 16         488 |         RL      (IX+DISPL)      // $DD $CB [1:S8] $16         
+02BC: FD CB 39 16         489 |         RL      (IY+DISPL)      // $FD $CB [1:S8] $16         
+02C0: CB 08               490 |         RRC     B               // $CB $08                    
+02C2: CB 09               491 |         RRC     C               // $CB $09                    
+02C4: CB 0A               492 |         RRC     D               // $CB $0A                    
+02C6: CB 0B               493 |         RRC     E               // $CB $0B                    
+02C8: CB 0C               494 |         RRC     H               // $CB $0C                    
+02CA: CB 0D               495 |         RRC     L               // $CB $0D                    
+02CC: CB 0F               496 |         RRC     A               // $CB $0F                    
+02CE: CB 0E               497 |         RRC     (HL)            // $CB $0E                    
+02D0: DD CB 39 0E         498 |         RRC     (IX+DISPL)      // $DD $CB [1:S8] $0E         
+02D4: FD CB 39 0E         499 |         RRC     (IY+DISPL)      // $FD $CB [1:S8] $0E         
+02D8: CB 18               500 |         RR      B               // $CB $18                    
+02DA: CB 19               501 |         RR      C               // $CB $19                    
+02DC: CB 1A               502 |         RR      D               // $CB $1A                    
+02DE: CB 1B               503 |         RR      E               // $CB $1B                    
+02E0: CB 1C               504 |         RR      H               // $CB $1C                    
+
+
+Assembly Listing                                                                                                Page: 10
+------------------------------------------------------------------------------------------------------------------------
+
+02E2: CB 1D               505 |         RR      L               // $CB $1D                    
+02E4: CB 1F               506 |         RR      A               // $CB $1F                    
+02E6: CB 1E               507 |         RR      (HL)            // $CB $1E                    
+02E8: DD CB 39 1E         508 |         RR      (IX+DISPL)      // $DD $CB [1:S8] $1E         
+02EC: FD CB 39 1E         509 |         RR      (IY+DISPL)      // $FD $CB [1:S8] $1E         
+02F0: CB 20               510 |         SLA     B               // $CB $20                    
+02F2: CB 21               511 |         SLA     C               // $CB $21                    
+02F4: CB 22               512 |         SLA     D               // $CB $22                    
+02F6: CB 23               513 |         SLA     E               // $CB $23                    
+02F8: CB 24               514 |         SLA     H               // $CB $24                    
+02FA: CB 25               515 |         SLA     L               // $CB $25                    
+02FC: CB 27               516 |         SLA     A               // $CB $27                    
+02FE: CB 26               517 |         SLA     (HL)            // $CB $26                    
+0300: DD CB 39 26         518 |         SLA     (IX+DISPL)      // $DD $CB [1:S8] $26         
+0304: FD CB 39 26         519 |         SLA     (IY+DISPL)      // $FD $CB [1:S8] $26         
+0308: CB 28               520 |         SRA     B               // $CB $28                    
+030A: CB 29               521 |         SRA     C               // $CB $29                    
+030C: CB 2A               522 |         SRA     D               // $CB $2A                    
+030E: CB 2B               523 |         SRA     E               // $CB $2B                    
+0310: CB 2C               524 |         SRA     H               // $CB $2C                    
+0312: CB 2D               525 |         SRA     L               // $CB $2D                    
+0314: CB 2F               526 |         SRA     A               // $CB $2F                    
+0316: CB 2E               527 |         SRA     (HL)            // $CB $2E                    
+0318: DD CB 39 2E         528 |         SRA     (IX+DISPL)      // $DD $CB [1:S8] $2E         
+031C: FD CB 39 2E         529 |         SRA     (IY+DISPL)      // $FD $CB [1:S8] $2E         
+0320: CB 38               530 |         SRL     B               // $CB $38                    
+0322: CB 39               531 |         SRL     C               // $CB $39                    
+0324: CB 3A               532 |         SRL     D               // $CB $3A                    
+0326: CB 3B               533 |         SRL     E               // $CB $3B                    
+0328: CB 3C               534 |         SRL     H               // $CB $3C                    
+032A: CB 3D               535 |         SRL     L               // $CB $3D                    
+032C: CB 3F               536 |         SRL     A               // $CB $3F                    
+032E: CB 3E               537 |         SRL     (HL)            // $CB $3E                    
+0330: DD CB 39 3E         538 |         SRL     (IX+DISPL)      // $DD $CB [1:S8] $3E         
+0334: FD CB 39 3E         539 |         SRL     (IY+DISPL)      // $FD $CB [1:S8] $3E         
+0338: ED 6F               540 |         RLD                     // $ED $6F                    
+033A: ED 67               541 |         RRD                     // $ED $67                    
+                          542 | 
+                          543 | ;
+                          544 | ; Z80 - Bit set reset and test group
+                          545 | ;
+                          546 | 
+033C: CB 47               547 |         BIT     0,A             // $CB %01[1:B3]111           
+033E: CB 40               548 |         BIT     0,B             // $CB %01[1:B3]000           
+0340: CB 41               549 |         BIT     0,C             // $CB %01[1:B3]001           
+0342: CB 42               550 |         BIT     0,D             // $CB %01[1:B3]010           
+0344: CB 43               551 |         BIT     0,E             // $CB %01[1:B3]011           
+0346: CB 44               552 |         BIT     0,H             // $CB %01[1:B3]100           
+0348: CB 45               553 |         BIT     0,L             // $CB %01[1:B3]101           
+034A: CB 46               554 |         BIT     0,(HL)          // $CB %01[1:B3]110           
+034C: DD CB 39 46         555 |         BIT     0,(IX+DISPL)    // $DD $CB [2:S8] %01[1:B3]110
+0350: FD CB 39 46         556 |         BIT     0,(IY+DISPL)    // $FD $CB [2:S8] %01[1:B3]110
+0354: CB C7               557 |         SET     0,A             // $CB %11[1:B3]111           
+0356: CB C0               558 |         SET     0,B             // $CB %11[1:B3]000           
+0358: CB C1               559 |         SET     0,C             // $CB %11[1:B3]001           
+035A: CB C2               560 |         SET     0,D             // $CB %11[1:B3]010           
+
+
+Assembly Listing                                                                                                Page: 11
+------------------------------------------------------------------------------------------------------------------------
+
+035C: CB C3               561 |         SET     0,E             // $CB %11[1:B3]011           
+035E: CB C4               562 |         SET     0,H             // $CB %11[1:B3]100           
+0360: CB C5               563 |         SET     0,L             // $CB %11[1:B3]101           
+0362: CB C6               564 |         SET     0,(HL)          // $CB %11[1:B3]110           
+0364: DD CB 39 C6         565 |         SET     0,(IX+DISPL)    // $DD $CB [2:S8] %11[1:B3]110
+0368: FD CB 39 C6         566 |         SET     0,(IY+DISPL)    // $FD $CB [2:S8] %11[1:B3]110
+036C: CB 87               567 |         RES     0,A             // $CB %10[1:B3]111           
+036E: CB 80               568 |         RES     0,B             // $CB %10[1:B3]000           
+0370: CB 81               569 |         RES     0,C             // $CB %10[1:B3]001           
+0372: CB 82               570 |         RES     0,D             // $CB %10[1:B3]010           
+0374: CB 83               571 |         RES     0,E             // $CB %10[1:B3]011           
+0376: CB 84               572 |         RES     0,H             // $CB %10[1:B3]100           
+0378: CB 85               573 |         RES     0,L             // $CB %10[1:B3]101           
+037A: CB 86               574 |         RES     0,(HL)          // $CB %10[1:B3]110           
+037C: DD CB 39 86         575 |         RES     0,(IX+DISPL)    // $DD $CB [2:S8] %10[1:B3]110
+0380: FD CB 39 86         576 |         RES     0,(IY+DISPL)    // $FD $CB [2:S8] %10[1:B3]110
+                          577 | 
+0384: CB 4F               578 |         BIT     1,A             // $CB %01[1:B3]111           
+0386: CB 48               579 |         BIT     1,B             // $CB %01[1:B3]000           
+0388: CB 49               580 |         BIT     1,C             // $CB %01[1:B3]001           
+038A: CB 4A               581 |         BIT     1,D             // $CB %01[1:B3]010           
+038C: CB 4B               582 |         BIT     1,E             // $CB %01[1:B3]011           
+038E: CB 4C               583 |         BIT     1,H             // $CB %01[1:B3]100           
+0390: CB 4D               584 |         BIT     1,L             // $CB %01[1:B3]101           
+0392: CB 4E               585 |         BIT     1,(HL)          // $CB %01[1:B3]110           
+0394: DD CB 39 4E         586 |         BIT     1,(IX+DISPL)    // $DD $CB [2:S8] %01[1:B3]110
+0398: FD CB 39 4E         587 |         BIT     1,(IY+DISPL)    // $FD $CB [2:S8] %01[1:B3]110
+039C: CB CF               588 |         SET     1,A             // $CB %11[1:B3]111           
+039E: CB C8               589 |         SET     1,B             // $CB %11[1:B3]000           
+03A0: CB C9               590 |         SET     1,C             // $CB %11[1:B3]001           
+03A2: CB CA               591 |         SET     1,D             // $CB %11[1:B3]010           
+03A4: CB CB               592 |         SET     1,E             // $CB %11[1:B3]011           
+03A6: CB CC               593 |         SET     1,H             // $CB %11[1:B3]100           
+03A8: CB CD               594 |         SET     1,L             // $CB %11[1:B3]101           
+03AA: CB CE               595 |         SET     1,(HL)          // $CB %11[1:B3]110           
+03AC: DD CB 39 CE         596 |         SET     1,(IX+DISPL)    // $DD $CB [2:S8] %11[1:B3]110
+03B0: FD CB 39 CE         597 |         SET     1,(IY+DISPL)    // $FD $CB [2:S8] %11[1:B3]110
+03B4: CB 8F               598 |         RES     1,A             // $CB %10[1:B3]111           
+03B6: CB 88               599 |         RES     1,B             // $CB %10[1:B3]000           
+03B8: CB 89               600 |         RES     1,C             // $CB %10[1:B3]001           
+03BA: CB 8A               601 |         RES     1,D             // $CB %10[1:B3]010           
+03BC: CB 8B               602 |         RES     1,E             // $CB %10[1:B3]011           
+03BE: CB 8C               603 |         RES     1,H             // $CB %10[1:B3]100           
+03C0: CB 8D               604 |         RES     1,L             // $CB %10[1:B3]101           
+03C2: CB 8E               605 |         RES     1,(HL)          // $CB %10[1:B3]110           
+03C4: DD CB 39 8E         606 |         RES     1,(IX+DISPL)    // $DD $CB [2:S8] %10[1:B3]110
+03C8: FD CB 39 8E         607 |         RES     1,(IY+DISPL)    // $FD $CB [2:S8] %10[1:B3]110
+                          608 | 
+03CC: CB 57               609 |         BIT     2,A             // $CB %01[1:B3]111           
+03CE: CB 50               610 |         BIT     2,B             // $CB %01[1:B3]000           
+03D0: CB 51               611 |         BIT     2,C             // $CB %01[1:B3]001           
+03D2: CB 52               612 |         BIT     2,D             // $CB %01[1:B3]010           
+03D4: CB 53               613 |         BIT     2,E             // $CB %01[1:B3]011           
+03D6: CB 54               614 |         BIT     2,H             // $CB %01[1:B3]100           
+03D8: CB 55               615 |         BIT     2,L             // $CB %01[1:B3]101           
+03DA: CB 56               616 |         BIT     2,(HL)          // $CB %01[1:B3]110           
+
+
+Assembly Listing                                                                                                Page: 12
+------------------------------------------------------------------------------------------------------------------------
+
+03DC: DD CB 39 56         617 |         BIT     2,(IX+DISPL)    // $DD $CB [2:S8] %01[1:B3]110
+03E0: FD CB 39 56         618 |         BIT     2,(IY+DISPL)    // $FD $CB [2:S8] %01[1:B3]110
+03E4: CB D7               619 |         SET     2,A             // $CB %11[1:B3]111           
+03E6: CB D0               620 |         SET     2,B             // $CB %11[1:B3]000           
+03E8: CB D1               621 |         SET     2,C             // $CB %11[1:B3]001           
+03EA: CB D2               622 |         SET     2,D             // $CB %11[1:B3]010           
+03EC: CB D3               623 |         SET     2,E             // $CB %11[1:B3]011           
+03EE: CB D4               624 |         SET     2,H             // $CB %11[1:B3]100           
+03F0: CB D5               625 |         SET     2,L             // $CB %11[1:B3]101           
+03F2: CB D6               626 |         SET     2,(HL)          // $CB %11[1:B3]110           
+03F4: DD CB 39 D6         627 |         SET     2,(IX+DISPL)    // $DD $CB [2:S8] %11[1:B3]110
+03F8: FD CB 39 D6         628 |         SET     2,(IY+DISPL)    // $FD $CB [2:S8] %11[1:B3]110
+03FC: CB 97               629 |         RES     2,A             // $CB %10[1:B3]111           
+03FE: CB 90               630 |         RES     2,B             // $CB %10[1:B3]000           
+0400: CB 91               631 |         RES     2,C             // $CB %10[1:B3]001           
+0402: CB 92               632 |         RES     2,D             // $CB %10[1:B3]010           
+0404: CB 93               633 |         RES     2,E             // $CB %10[1:B3]011           
+0406: CB 94               634 |         RES     2,H             // $CB %10[1:B3]100           
+0408: CB 95               635 |         RES     2,L             // $CB %10[1:B3]101           
+040A: CB 96               636 |         RES     2,(HL)          // $CB %10[1:B3]110           
+040C: DD CB 39 96         637 |         RES     2,(IX+DISPL)    // $DD $CB [2:S8] %10[1:B3]110
+0410: FD CB 39 96         638 |         RES     2,(IY+DISPL)    // $FD $CB [2:S8] %10[1:B3]110      
+                          639 | 
+0414: CB 5F               640 |         BIT     3,A             // $CB %01[1:B3]111           
+0416: CB 58               641 |         BIT     3,B             // $CB %01[1:B3]000           
+0418: CB 59               642 |         BIT     3,C             // $CB %01[1:B3]001           
+041A: CB 5A               643 |         BIT     3,D             // $CB %01[1:B3]010           
+041C: CB 5B               644 |         BIT     3,E             // $CB %01[1:B3]011           
+041E: CB 5C               645 |         BIT     3,H             // $CB %01[1:B3]100           
+0420: CB 5D               646 |         BIT     3,L             // $CB %01[1:B3]101           
+0422: CB 5E               647 |         BIT     3,(HL)          // $CB %01[1:B3]110           
+0424: DD CB 39 5E         648 |         BIT     3,(IX+DISPL)    // $DD $CB [2:S8] %01[1:B3]110
+0428: FD CB 39 5E         649 |         BIT     3,(IY+DISPL)    // $FD $CB [2:S8] %01[1:B3]110
+042C: CB DF               650 |         SET     3,A             // $CB %11[1:B3]111           
+042E: CB D8               651 |         SET     3,B             // $CB %11[1:B3]000           
+0430: CB D9               652 |         SET     3,C             // $CB %11[1:B3]001           
+0432: CB DA               653 |         SET     3,D             // $CB %11[1:B3]010           
+0434: CB DB               654 |         SET     3,E             // $CB %11[1:B3]011           
+0436: CB DC               655 |         SET     3,H             // $CB %11[1:B3]100           
+0438: CB DD               656 |         SET     3,L             // $CB %11[1:B3]101           
+043A: CB DE               657 |         SET     3,(HL)          // $CB %11[1:B3]110           
+043C: DD CB 39 DE         658 |         SET     3,(IX+DISPL)    // $DD $CB [2:S8] %11[1:B3]110
+0440: FD CB 39 DE         659 |         SET     3,(IY+DISPL)    // $FD $CB [2:S8] %11[1:B3]110
+0444: CB 9F               660 |         RES     3,A             // $CB %10[1:B3]111           
+0446: CB 98               661 |         RES     3,B             // $CB %10[1:B3]000           
+0448: CB 99               662 |         RES     3,C             // $CB %10[1:B3]001           
+044A: CB 9A               663 |         RES     3,D             // $CB %10[1:B3]010           
+044C: CB 9B               664 |         RES     3,E             // $CB %10[1:B3]011           
+044E: CB 9C               665 |         RES     3,H             // $CB %10[1:B3]100           
+0450: CB 9D               666 |         RES     3,L             // $CB %10[1:B3]101           
+0452: CB 9E               667 |         RES     3,(HL)          // $CB %10[1:B3]110           
+0454: DD CB 39 9E         668 |         RES     3,(IX+DISPL)    // $DD $CB [2:S8] %10[1:B3]110
+0458: FD CB 39 9E         669 |         RES     3,(IY+DISPL)    // $FD $CB [2:S8] %10[1:B3]110
+                          670 | 
+045C: CB 67               671 |         BIT     4,A             // $CB %01[1:B3]111           
+045E: CB 60               672 |         BIT     4,B             // $CB %01[1:B3]000           
+
+
+Assembly Listing                                                                                                Page: 13
+------------------------------------------------------------------------------------------------------------------------
+
+0460: CB 61               673 |         BIT     4,C             // $CB %01[1:B3]001           
+0462: CB 62               674 |         BIT     4,D             // $CB %01[1:B3]010           
+0464: CB 63               675 |         BIT     4,E             // $CB %01[1:B3]011           
+0466: CB 64               676 |         BIT     4,H             // $CB %01[1:B3]100           
+0468: CB 65               677 |         BIT     4,L             // $CB %01[1:B3]101           
+046A: CB 66               678 |         BIT     4,(HL)          // $CB %01[1:B3]110           
+046C: DD CB 39 66         679 |         BIT     4,(IX+DISPL)    // $DD $CB [2:S8] %01[1:B3]110
+0470: FD CB 39 66         680 |         BIT     4,(IY+DISPL)    // $FD $CB [2:S8] %01[1:B3]110
+0474: CB E7               681 |         SET     4,A             // $CB %11[1:B3]111           
+0476: CB E0               682 |         SET     4,B             // $CB %11[1:B3]000           
+0478: CB E1               683 |         SET     4,C             // $CB %11[1:B3]001           
+047A: CB E2               684 |         SET     4,D             // $CB %11[1:B3]010           
+047C: CB E3               685 |         SET     4,E             // $CB %11[1:B3]011           
+047E: CB E4               686 |         SET     4,H             // $CB %11[1:B3]100           
+0480: CB E5               687 |         SET     4,L             // $CB %11[1:B3]101           
+0482: CB E6               688 |         SET     4,(HL)          // $CB %11[1:B3]110           
+0484: DD CB 39 E6         689 |         SET     4,(IX+DISPL)    // $DD $CB [2:S8] %11[1:B3]110
+0488: FD CB 39 E6         690 |         SET     4,(IY+DISPL)    // $FD $CB [2:S8] %11[1:B3]110
+048C: CB A7               691 |         RES     4,A             // $CB %10[1:B3]111           
+048E: CB A0               692 |         RES     4,B             // $CB %10[1:B3]000           
+0490: CB A1               693 |         RES     4,C             // $CB %10[1:B3]001           
+0492: CB A2               694 |         RES     4,D             // $CB %10[1:B3]010           
+0494: CB A3               695 |         RES     4,E             // $CB %10[1:B3]011           
+0496: CB A4               696 |         RES     4,H             // $CB %10[1:B3]100           
+0498: CB A5               697 |         RES     4,L             // $CB %10[1:B3]101           
+049A: CB A6               698 |         RES     4,(HL)          // $CB %10[1:B3]110           
+049C: DD CB 39 A6         699 |         RES     4,(IX+DISPL)    // $DD $CB [2:S8] %10[1:B3]110
+04A0: FD CB 39 A6         700 |         RES     4,(IY+DISPL)    // $FD $CB [2:S8] %10[1:B3]110
+                          701 | 
+04A4: CB 6F               702 |         BIT     5,A             // $CB %01[1:B3]111           
+04A6: CB 68               703 |         BIT     5,B             // $CB %01[1:B3]000           
+04A8: CB 69               704 |         BIT     5,C             // $CB %01[1:B3]001           
+04AA: CB 6A               705 |         BIT     5,D             // $CB %01[1:B3]010           
+04AC: CB 6B               706 |         BIT     5,E             // $CB %01[1:B3]011           
+04AE: CB 6C               707 |         BIT     5,H             // $CB %01[1:B3]100           
+04B0: CB 6D               708 |         BIT     5,L             // $CB %01[1:B3]101           
+04B2: CB 6E               709 |         BIT     5,(HL)          // $CB %01[1:B3]110           
+04B4: DD CB 39 6E         710 |         BIT     5,(IX+DISPL)    // $DD $CB [2:S8] %01[1:B3]110
+04B8: FD CB 39 6E         711 |         BIT     5,(IY+DISPL)    // $FD $CB [2:S8] %01[1:B3]110
+04BC: CB EF               712 |         SET     5,A             // $CB %11[1:B3]111           
+04BE: CB E8               713 |         SET     5,B             // $CB %11[1:B3]000           
+04C0: CB E9               714 |         SET     5,C             // $CB %11[1:B3]001           
+04C2: CB EA               715 |         SET     5,D             // $CB %11[1:B3]010           
+04C4: CB EB               716 |         SET     5,E             // $CB %11[1:B3]011           
+04C6: CB EC               717 |         SET     5,H             // $CB %11[1:B3]100           
+04C8: CB ED               718 |         SET     5,L             // $CB %11[1:B3]101           
+04CA: CB EE               719 |         SET     5,(HL)          // $CB %11[1:B3]110           
+04CC: DD CB 39 EE         720 |         SET     5,(IX+DISPL)    // $DD $CB [2:S8] %11[1:B3]110
+04D0: FD CB 39 EE         721 |         SET     5,(IY+DISPL)    // $FD $CB [2:S8] %11[1:B3]110
+04D4: CB AF               722 |         RES     5,A             // $CB %10[1:B3]111           
+04D6: CB A8               723 |         RES     5,B             // $CB %10[1:B3]000           
+04D8: CB A9               724 |         RES     5,C             // $CB %10[1:B3]001           
+04DA: CB AA               725 |         RES     5,D             // $CB %10[1:B3]010           
+04DC: CB AB               726 |         RES     5,E             // $CB %10[1:B3]011           
+04DE: CB AC               727 |         RES     5,H             // $CB %10[1:B3]100           
+04E0: CB AD               728 |         RES     5,L             // $CB %10[1:B3]101           
+
+
+Assembly Listing                                                                                                Page: 14
+------------------------------------------------------------------------------------------------------------------------
+
+04E2: CB AE               729 |         RES     5,(HL)          // $CB %10[1:B3]110           
+04E4: DD CB 39 AE         730 |         RES     5,(IX+DISPL)    // $DD $CB [2:S8] %10[1:B3]110
+04E8: FD CB 39 AE         731 |         RES     5,(IY+DISPL)    // $FD $CB [2:S8] %10[1:B3]110
+                          732 | 
+04EC: CB 77               733 |         BIT     6,A             // $CB %01[1:B3]111           
+04EE: CB 70               734 |         BIT     6,B             // $CB %01[1:B3]000           
+04F0: CB 71               735 |         BIT     6,C             // $CB %01[1:B3]001           
+04F2: CB 72               736 |         BIT     6,D             // $CB %01[1:B3]010           
+04F4: CB 73               737 |         BIT     6,E             // $CB %01[1:B3]011           
+04F6: CB 74               738 |         BIT     6,H             // $CB %01[1:B3]100           
+04F8: CB 75               739 |         BIT     6,L             // $CB %01[1:B3]101           
+04FA: CB 76               740 |         BIT     6,(HL)          // $CB %01[1:B3]110           
+04FC: DD CB 39 76         741 |         BIT     6,(IX+DISPL)    // $DD $CB [2:S8] %01[1:B3]110
+0500: FD CB 39 76         742 |         BIT     6,(IY+DISPL)    // $FD $CB [2:S8] %01[1:B3]110
+0504: CB F7               743 |         SET     6,A             // $CB %11[1:B3]111           
+0506: CB F0               744 |         SET     6,B             // $CB %11[1:B3]000           
+0508: CB F1               745 |         SET     6,C             // $CB %11[1:B3]001           
+050A: CB F2               746 |         SET     6,D             // $CB %11[1:B3]010           
+050C: CB F3               747 |         SET     6,E             // $CB %11[1:B3]011           
+050E: CB F4               748 |         SET     6,H             // $CB %11[1:B3]100           
+0510: CB F5               749 |         SET     6,L             // $CB %11[1:B3]101           
+0512: CB F6               750 |         SET     6,(HL)          // $CB %11[1:B3]110           
+0514: DD CB 39 F6         751 |         SET     6,(IX+DISPL)    // $DD $CB [2:S8] %11[1:B3]110
+0518: FD CB 39 F6         752 |         SET     6,(IY+DISPL)    // $FD $CB [2:S8] %11[1:B3]110
+051C: CB B7               753 |         RES     6,A             // $CB %10[1:B3]111           
+051E: CB B0               754 |         RES     6,B             // $CB %10[1:B3]000           
+0520: CB B1               755 |         RES     6,C             // $CB %10[1:B3]001           
+0522: CB B2               756 |         RES     6,D             // $CB %10[1:B3]010           
+0524: CB B3               757 |         RES     6,E             // $CB %10[1:B3]011           
+0526: CB B4               758 |         RES     6,H             // $CB %10[1:B3]100           
+0528: CB B5               759 |         RES     6,L             // $CB %10[1:B3]101           
+052A: CB B6               760 |         RES     6,(HL)          // $CB %10[1:B3]110           
+052C: DD CB 39 B6         761 |         RES     6,(IX+DISPL)    // $DD $CB [2:S8] %10[1:B3]110
+0530: FD CB 39 B6         762 |         RES     6,(IY+DISPL)    // $FD $CB [2:S8] %10[1:B3]110
+                          763 | 
+0534: CB 7F               764 |         BIT     7,A             // $CB %01[1:B3]111           
+0536: CB 78               765 |         BIT     7,B             // $CB %01[1:B3]000           
+0538: CB 79               766 |         BIT     7,C             // $CB %01[1:B3]001           
+053A: CB 7A               767 |         BIT     7,D             // $CB %01[1:B3]010           
+053C: CB 7B               768 |         BIT     7,E             // $CB %01[1:B3]011           
+053E: CB 7C               769 |         BIT     7,H             // $CB %01[1:B3]100           
+0540: CB 7D               770 |         BIT     7,L             // $CB %01[1:B3]101           
+0542: CB 7E               771 |         BIT     7,(HL)          // $CB %01[1:B3]110           
+0544: DD CB 39 7E         772 |         BIT     7,(IX+DISPL)    // $DD $CB [2:S8] %01[1:B3]110
+0548: FD CB 39 7E         773 |         BIT     7,(IY+DISPL)    // $FD $CB [2:S8] %01[1:B3]110
+054C: CB FF               774 |         SET     7,A             // $CB %11[1:B3]111           
+054E: CB F8               775 |         SET     7,B             // $CB %11[1:B3]000           
+0550: CB F9               776 |         SET     7,C             // $CB %11[1:B3]001           
+0552: CB FA               777 |         SET     7,D             // $CB %11[1:B3]010           
+0554: CB FB               778 |         SET     7,E             // $CB %11[1:B3]011           
+0556: CB FC               779 |         SET     7,H             // $CB %11[1:B3]100           
+0558: CB FD               780 |         SET     7,L             // $CB %11[1:B3]101           
+055A: CB FE               781 |         SET     7,(HL)          // $CB %11[1:B3]110           
+055C: DD CB 39 FE         782 |         SET     7,(IX+DISPL)    // $DD $CB [2:S8] %11[1:B3]110
+0560: FD CB 39 FE         783 |         SET     7,(IY+DISPL)    // $FD $CB [2:S8] %11[1:B3]110
+0564: CB BF               784 |         RES     7,A             // $CB %10[1:B3]111           
+
+
+Assembly Listing                                                                                                Page: 15
+------------------------------------------------------------------------------------------------------------------------
+
+0566: CB B8               785 |         RES     7,B             // $CB %10[1:B3]000           
+0568: CB B9               786 |         RES     7,C             // $CB %10[1:B3]001           
+056A: CB BA               787 |         RES     7,D             // $CB %10[1:B3]010           
+056C: CB BB               788 |         RES     7,E             // $CB %10[1:B3]011           
+056E: CB BC               789 |         RES     7,H             // $CB %10[1:B3]100           
+0570: CB BD               790 |         RES     7,L             // $CB %10[1:B3]101           
+0572: CB BE               791 |         RES     7,(HL)          // $CB %10[1:B3]110           
+0574: DD CB 39 BE         792 |         RES     7,(IX+DISPL)    // $DD $CB [2:S8] %10[1:B3]110
+0578: FD CB 39 BE         793 |         RES     7,(IY+DISPL)    // $FD $CB [2:S8] %10[1:B3]110
+                          794 | ;
+                          795 | ; Z80 - Jump group
+                          796 | ;
+                          797 | 
+057C: C3 B3 15            798 |         JP      U16             // $C3 [1:U16]                
+057F: C2 B3 15            799 |         JP      NZ,U16          // $C2 [2:U16]                
+0582: CA B3 15            800 |         JP      Z,U16           // $CA [2:U16]                
+0585: D2 B3 15            801 |         JP      NC,U16          // $D2 [2:U16]                
+0588: DA B3 15            802 |         JP      C,U16           // $DA [2:U16]                
+058B: E2 B3 15            803 |         JP      PO,U16          // $E2 [2:U16]                
+058E: EA B3 15            804 |         JP      PE,U16          // $EA [2:U16]                
+0591: F2 B3 15            805 |         JP      P,U16           // $F2 [2:U16]                
+0594: FA B3 15            806 |         JP      M,U16           // $FA [2:U16]                
+0597: 18 7B               807 |         JR      $+125           // $18 [1:R8]                 
+0599: 38 7B               808 |         JR      C,$+125         // $38 [2:R8]                 
+059B: 30 7B               809 |         JR      NC,$+125        // $30 [2:R8]                 
+059D: 28 7B               810 |         JR      Z,$+125         // $28 [2:R8]                 
+059F: 20 7B               811 |         JR      NZ,$+125        // $20 [2:R8]                 
+05A1: E9                  812 |         JP      (HL)            // $E9                        
+05A2: DD E9               813 |         JP      (IX)            // $DD $E9                    
+05A4: FD E9               814 |         JP      (IY)            // $FD $E9                    
+05A6: 10 7B               815 |         DJNZ    $+125           // $10 [1:R8]                 
+                          816 | 
+                          817 | ;
+                          818 | ; Z80 - Call and return group
+                          819 | ;
+                          820 | 
+05A8: CD B3 15            821 |         CALL    U16             // $CD [1:U16]                
+05AB: C4 B3 15            822 |         CALL    NZ,U16          // $C4 [2:U16]                
+05AE: CC B3 15            823 |         CALL    Z,U16           // $CC [2:U16]                
+05B1: D4 B3 15            824 |         CALL    NC,U16          // $D4 [2:U16]                
+05B4: DC B3 15            825 |         CALL    C,U16           // $DC [2:U16]                
+05B7: E4 B3 15            826 |         CALL    PO,U16          // $E4 [2:U16]                
+05BA: EC B3 15            827 |         CALL    PE,U16          // $EC [2:U16]                
+05BD: F4 B3 15            828 |         CALL    P,U16           // $F4 [2:U16]                
+05C0: FC B3 15            829 |         CALL    M,U16           // $FC [2:U16]                
+05C3: C9                  830 |         RET                     // $C9                        
+05C4: C0                  831 |         RET     NZ              // $C0                        
+05C5: C8                  832 |         RET     Z               // $C8                        
+05C6: D0                  833 |         RET     NC              // $D0                        
+05C7: D8                  834 |         RET     C               // $D8                        
+05C8: E0                  835 |         RET     PO              // $E0                        
+05C9: E8                  836 |         RET     PE              // $E8                        
+05CA: F0                  837 |         RET     P               // $F0                        
+05CB: F8                  838 |         RET     M               // $F8                        
+05CC: ED 4D               839 |         RETI                    // $ED $4D                    
+05CE: ED 45               840 |         RETN                    // $ED $45                    
+
+
+Assembly Listing                                                                                                Page: 16
+------------------------------------------------------------------------------------------------------------------------
+
+05D0: C7                  841 |         RST     0               // %11[1:RST]111             
+05D1: CF                  842 |         RST     1               // %11[1:RST]111             
+05D2: D7                  843 |         RST     2               // %11[1:RST]111             
+05D3: DF                  844 |         RST     3               // %11[1:RST]111             
+05D4: E7                  845 |         RST     4               // %11[1:RST]111             
+05D5: EF                  846 |         RST     5               // %11[1:RST]111             
+05D6: F7                  847 |         RST     6               // %11[1:RST]111             
+05D7: FF                  848 |         RST     7               // %11[1:RST]111             
+05D8: CF                  849 |         RST     08H             // %11[1:RST]111             
+05D9: D7                  850 |         RST     10H             // %11[1:RST]111             
+05DA: DF                  851 |         RST     18H             // %11[1:RST]111             
+05DB: E7                  852 |         RST     20H             // %11[1:RST]111             
+05DC: EF                  853 |         RST     28H             // %11[1:RST]111             
+05DD: F7                  854 |         RST     30H             // %11[1:RST]111             
+05DE: FF                  855 |         RST     38H             // %11[1:RST]111             
+                          856 | 
+                          857 | ;
+                          858 | ; Z80 - Input and output group
+                          859 | ;
+                          860 | 
+05DF: DB 05               861 |         IN      A,(U8)          // $DB [2:U8]                 
+05E1: ED 40               862 |         IN      B,(C)           // $ED $40                    
+05E3: ED 48               863 |         IN      C,(C)           // $ED $48                    
+05E5: ED 50               864 |         IN      D,(C)           // $ED $50                    
+05E7: ED 58               865 |         IN      E,(C)           // $ED $58                    
+05E9: ED 60               866 |         IN      H,(C)           // $ED $60                    
+05EB: ED 68               867 |         IN      L,(C)           // $ED $68                    
+05ED: ED 78               868 |         IN      A,(C)           // $ED $78                    
+05EF: ED A2               869 |         INI                     // $ED $A2                    
+05F1: ED B2               870 |         INIR                    // $ED $B2                    
+05F3: ED AA               871 |         IND                     // $ED $AA                    
+05F5: ED BA               872 |         INDR                    // $ED $BA                    
+05F7: D3 05               873 |         OUT     (U8),A          // $D3 [1:U8]                 
+05F9: ED 41               874 |         OUT     (C),B           // $ED $41                    
+05FB: ED 49               875 |         OUT     (C),C           // $ED $49                    
+05FD: ED 51               876 |         OUT     (C),D           // $ED $51                    
+05FF: ED 59               877 |         OUT     (C),E           // $ED $59                    
+0601: ED 61               878 |         OUT     (C),H           // $ED $61                    
+0603: ED 69               879 |         OUT     (C),L           // $ED $69                    
+0605: ED 79               880 |         OUT     (C),A           // $ED $79                    
+0607: ED A3               881 |         OUTI                    // $ED $A3                    
+0609: ED B3               882 |         OTIR                    // $ED $B3                    
+060B: ED AB               883 |         OUTD                    // $ED $AB                    
+060D: ED BB               884 |         OTDR                    // $ED $BB             
+                          885 | 
+                          886 | ;
+                          887 | ; Z80 - Test the pseudo instructions where XXX (IX) --> XXX (IX+0) as there
+                          888 | ;       is no official (IX) or (IY) option other than JP (IX) or JP (IY)
+                          889 | ;
+                          890 | 
+060F: DD 8E 00            891 |         ADC     A,(IX)          // $DD $8E $00  
+0612: FD 8E 00            892 |         ADC     A,(IY)          // $FD $8E $00  
+0615: DD 8E 00            893 |         ADC     (IX)            // $DD $8E $00  
+0618: FD 8E 00            894 |         ADC     (IY)            // $FD $8E $00  
+061B: DD 86 00            895 |         ADD     A,(IX)          // $DD $86 $00  
+061E: FD 86 00            896 |         ADD     A,(IY)          // $FD $86 $00  
+
+
+Assembly Listing                                                                                                Page: 17
+------------------------------------------------------------------------------------------------------------------------
+
+0621: DD 86 00            897 |         ADD     (IX)            // $DD $86 $00  
+0624: FD 86 00            898 |         ADD     (IY)            // $FD $86 $00  
+0627: DD A6 00            899 |         AND     A,(IX)          // $DD $A6 $00  
+062A: FD A6 00            900 |         AND     A,(IY)          // $FD $A6 $00  
+062D: DD A6 00            901 |         AND     (IX)            // $DD $A6 $00  
+0630: FD A6 00            902 |         AND     (IY)            // $FD $A6 $00  
+0633: DD CB 00 6E         903 |         BIT     U8,(IX)         // $DD $CB $00 %01[1:B3]110
+0637: FD CB 00 6E         904 |         BIT     U8,(IY)         // $FD $CB $00 %01[1:B3]110
+063B: DD BE 00            905 |         CP      A,(IX)          // $DD $BE $00  
+063E: FD BE 00            906 |         CP      A,(IY)          // $FD $BE $00  
+0641: DD BE 00            907 |         CP      (IX)            // $DD $BE $00  
+0644: FD BE 00            908 |         CP      (IY)            // $FD $BE $00  
+0647: DD 35 00            909 |         DEC     (IX)            // $DD $35 $00  
+064A: FD 35 00            910 |         DEC     (IY)            // $FD $35 $00  
+064D: DD 34 00            911 |         INC     (IX)            // $DD $34 $00  
+0650: FD 34 00            912 |         INC     (IY)            // $FD $34 $00  
+0653: DD 7E 00            913 |         LD      A,(IX)          // $DD $7E $00  
+0656: FD 7E 00            914 |         LD      A,(IY)          // $FD $7E $00  
+0659: DD 46 00            915 |         LD      B,(IX)          // $DD $46 $00  
+065C: FD 46 00            916 |         LD      B,(IY)          // $FD $46 $00  
+065F: DD 4E 00            917 |         LD      C,(IX)          // $DD $4E $00  
+0662: FD 4E 00            918 |         LD      C,(IY)          // $FD $4E $00  
+0665: DD 56 00            919 |         LD      D,(IX)          // $DD $56 $00  
+0668: FD 56 00            920 |         LD      D,(IY)          // $FD $56 $00  
+066B: DD 5E 00            921 |         LD      E,(IX)          // $DD $5E $00  
+066E: FD 5E 00            922 |         LD      E,(IY)          // $FD $5E $00  
+0671: DD 66 00            923 |         LD      H,(IX)          // $DD $66 $00  
+0674: FD 66 00            924 |         LD      H,(IY)          // $FD $66 $00  
+0677: DD 77 00            925 |         LD      (IX),A          // $DD $77 $00  
+067A: DD 70 00            926 |         LD      (IX),B          // $DD $70 $00  
+067D: DD 71 00            927 |         LD      (IX),C          // $DD $71 $00  
+0680: DD 72 00            928 |         LD      (IX),D          // $DD $72 $00  
+0683: DD 73 00            929 |         LD      (IX),E          // $DD $73 $00  
+0686: DD 74 00            930 |         LD      (IX),H          // $DD $74 $00  
+0689: DD 75 00            931 |         LD      (IX),L          // $DD $75 $00  
+068C: DD 36 00 05         932 |         LD      (IX),U8         // $DD $36 $00 [2:U8]
+0690: FD 77 00            933 |         LD      (IY),A          // $FD $77 $00  
+0693: FD 70 00            934 |         LD      (IY),B          // $FD $70 $00  
+0696: FD 71 00            935 |         LD      (IY),C          // $FD $71 $00  
+0699: FD 72 00            936 |         LD      (IY),D          // $FD $72 $00  
+069C: FD 73 00            937 |         LD      (IY),E          // $FD $73 $00  
+069F: FD 74 00            938 |         LD      (IY),H          // $FD $74 $00  
+06A2: FD 75 00            939 |         LD      (IY),L          // $FD $75 $00  
+06A5: FD 36 00 05         940 |         LD      (IY),U8         // $FD $36 $00 [2:U8]
+06A9: DD 6E 00            941 |         LD      L,(IX)          // $DD $6E $00  
+06AC: FD 6E 00            942 |         LD      L,(IY)          // $FD $6E $00  
+06AF: DD B6 00            943 |         OR      A,(IX)          // $DD $B6 $00  
+06B2: FD B6 00            944 |         OR      A,(IY)          // $FD $B6 $00  
+06B5: DD B6 00            945 |         OR      (IX)            // $DD $B6 $00  
+06B8: FD B6 00            946 |         OR      (IY)            // $FD $B6 $00  
+06BB: DD CB 00 AE         947 |         RES     U8,(IX)         // $DD $CB $00 %10[1:B3]110
+06BF: FD CB 00 AE         948 |         RES     U8,(IY)         // $FD $CB $00 %10[1:B3]110
+06C3: DD CB 00 16         949 |         RL      (IX)            // $DD $CB $00 $16
+06C7: FD CB 00 16         950 |         RL      (IY)            // $FD $CB $00 $16
+06CB: DD CB 00 06         951 |         RLC     (IX)            // $DD $CB $00 $06
+06CF: FD CB 00 06         952 |         RLC     (IY)            // $FD $CB $00 $06
+
+
+Assembly Listing                                                                                                Page: 18
+------------------------------------------------------------------------------------------------------------------------
+
+06D3: DD CB 00 1E         953 |         RR      (IX)            // $DD $CB $00 $1E
+06D7: FD CB 00 1E         954 |         RR      (IY)            // $FD $CB $00 $1E
+06DB: DD CB 00 0E         955 |         RRC     (IX)            // $DD $CB $00 $0E
+06DF: FD CB 00 0E         956 |         RRC     (IY)            // $FD $CB $00 $0E
+06E3: DD 9E 00            957 |         SBC     A,(IX)          // $DD $9E $00  
+06E6: FD 9E 00            958 |         SBC     A,(IY)          // $FD $9E $00  
+06E9: DD 9E 00            959 |         SBC     (IX)            // $DD $9E $00  
+06EC: FD 9E 00            960 |         SBC     (IY)            // $FD $9E $00  
+06EF: DD CB 00 EE         961 |         SET     U8,(IX)         // $DD $CB $00 %11[1:B3]110
+06F3: FD CB 00 EE         962 |         SET     U8,(IY)         // $FD $CB $00 %11[1:B3]110
+06F7: DD CB 00 26         963 |         SLA     (IX)            // $DD $CB $00 $26
+06FB: FD CB 00 26         964 |         SLA     (IY)            // $FD $CB $00 $26
+06FF: DD CB 00 2E         965 |         SRA     (IX)            // $DD $CB $00 $2E
+0703: FD CB 00 2E         966 |         SRA     (IY)            // $FD $CB $00 $2E
+0707: DD CB 00 3E         967 |         SRL     (IX)            // $DD $CB $00 $3E
+070B: FD CB 00 3E         968 |         SRL     (IY)            // $FD $CB $00 $3E
+070F: DD 96 00            969 |         SUB     A,(IX)          // $DD $96 $00  
+0712: FD 96 00            970 |         SUB     A,(IY)          // $FD $96 $00  
+0715: DD 96 00            971 |         SUB     (IX)            // $DD $96 $00  
+0718: FD 96 00            972 |         SUB     (IY)            // $FD $96 $00  
+071B: DD AE 00            973 |         XOR     A,(IX)          // $DD $AE $00  
+071E: FD AE 00            974 |         XOR     A,(IY)          // $FD $AE $00  
+0721: DD AE 00            975 |         XOR     (IX)            // $DD $AE $00  
+0724: FD AE 00            976 |         XOR     (IY)            // $FD $AE $00
+                          977 |                 
+                          978 | 
+                          979 | 
+                          980 | ;----------------------------------------------------------------------------
+                          981 | ;
+                          982 | ; Test macro definition, expansion and nesting
+                          983 | ;
+                          984 | ;----------------------------------------------------------------------------
+                          985 | 
+                          986 | ; Set up a simple macro
+                          987 | 
+                          988 | NOP3        MACRO
+                          989 |             NOP
+                          990 |             NOP
+                          991 |             NOP
+                          992 |             ENDM
+                          993 |             
+                          994 | ; Set up a nested macro with parameters
+                          995 |             
+                          996 | DELAY       MACRO   CYCLES
+                          997 |             LD      A,{CYCLES}
+                          998 |             OR      A,A
+                          999 |             JR      Z,DELAYX{#}
+                         1000 |             LD      B,A
+                         1001 | DELAY{#}:   NOP3
+                         1002 |             DJNZ    DELAY{#}
+                         1003 | DELAYX{#}:
+                         1004 |             ENDM
+                         1005 |             
+                         1006 | ; Now invoke the macro
+                         1007 | 
+                         1008 |             DELAY   123
+
+
+Assembly Listing                                                                                                Page: 19
+------------------------------------------------------------------------------------------------------------------------
+
+0727: 3E 7B              1008 |             LD      A,123
+0729: B7                 1008 |             OR      A,A
+072A: 28 06              1008 |             JR      Z,DELAYX0
+072C: 47                 1008 |             LD      B,A
+                         1008 | DELAY0:   NOP3
+072D: 00                 1008 |             NOP
+072E: 00                 1008 |             NOP
+072F: 00                 1008 |             NOP
+0730: 10 FB              1008 |             DJNZ    DELAY0
+                         1008 | DELAYX0:
+                         1009 |             DELAY   19
+0732: 3E 13              1009 |             LD      A,19
+0734: B7                 1009 |             OR      A,A
+0735: 28 06              1009 |             JR      Z,DELAYX2
+0737: 47                 1009 |             LD      B,A
+                         1009 | DELAY2:   NOP3
+0738: 00                 1009 |             NOP
+0739: 00                 1009 |             NOP
+073A: 00                 1009 |             NOP
+073B: 10 FB              1009 |             DJNZ    DELAY2
+                         1009 | DELAYX2:
+                         1010 |             
+                         1011 |             
+                         1012 | ;----------------------------------------------------------------------------
+                         1013 | ;
+                         1014 | ; Z80 / Z180 specific stuff
+                         1015 | ;
+                         1016 | ;----------------------------------------------------------------------------
+                         1017 | 
+                         1018 | ; Test indirection
+                         1019 | 
+073D: 3A 2C 01           1020 |         LD      A,(200+100)     // $3A $2C $01 Indirection
+0740: 3E 15              1021 |         LD      A,(1+2)*(3+4)   // $3E $15     No indirection 
+                         1022 | 
+                         1023 |             
+                         1024 |             
+                         1025 | ;----------------------------------------------------------------------------
+                         1026 | ;
+                         1027 | ; Test expressions
+                         1028 | ;
+                         1029 | ;----------------------------------------------------------------------------
+                         1030 | 
+                         1031 |         INCLUDE "test_shared.inc"
+                            1 | //===========================================================================
+                            2 | //
+                            3 | //  TEST_SHARED.INC
+                            4 | //
+                            5 | //  Shared file to test common functions, should be included for all
+                            6 | //  processors and saves repeating identical stuff over and over again.
+                            7 | //
+                            8 | //  Duncan Munro  05/06/2023
+                            9 | //
+                           10 | //===========================================================================
+                           11 | 
+                           12 | ;
+                           13 | ; Simple operands
+
+
+Assembly Listing                                                                                                Page: 20
+------------------------------------------------------------------------------------------------------------------------
+
+                           14 | ;
+                           15 | 
+0742: 7B                   16 |         DB      123             // Simple 8 bit number
+0743: 30                   17 |         DB      '0'             // A character
+0744: 7B                   18 |         DB      0x7b            // Hex values
+0745: 7B                   19 |         DB      0X7B
+0746: 7B                   20 |         DB      7BH
+0747: 7B                   21 |         DB      7bh
+0748: 7B                   22 |         DB      $7B
+0749: 7B                   23 |         DB      $7b
+074A: 7B                   24 |         DB      0b01111011      // Binary values
+074B: 7B                   25 |         DB      0B01111011
+074C: 7B                   26 |         DB      01111011b
+074D: 7B                   27 |         DB      01111011B
+074E: 7B                   28 |         DB      %01111011
+                           29 |         
+                           30 | ;
+                           31 | ; Mathematical operators
+                           32 | ;
+                           33 | 
+074F: 03                   34 |         DB      1+2             // 03 Addition
+0750: 03                   35 |         DB      5-2             // 03 Subtraction
+0751: 0A                   36 |         DB      5*2             // 0A Multiplication
+0752: 21                   37 |         DB      99/3            // 21 Division
+0753: 39                   38 |         DB      9+'0'           // 39 Addition using character
+0754: 07                   39 |         DB      1+2*3           // 07 Precedence
+                           40 | ;
+                           41 | ; Unary operators
+                           42 | ;
+                           43 | 
+0755: 84 FF                44 |         DW      ~123            // FF84 Unary NOT
+0757: 85 FF                45 |         DW      -123            // FF85 Unary MINUS
+0759: 7B 00                46 |         DW      +123            // 007B Unary PLUS
+075B: CF FF                47 |         DW      ~'0'            // FFEF Unoary NOT with character
+                           48 | 
+                           49 | ;
+                           50 | ; Binary operators
+                           51 | ;
+                           52 | 
+075D: 38                   53 |         DB      123 & $3C       // 38 Binary AND
+075E: 7F                   54 |         DB      123 | $3C       // 7F Binary OR
+075F: 47                   55 |         DB      123 ^ $3C       // 47 Binary XOR
+0760: 08                   56 |         DB      1 << 3          // 08 Left shift
+0761: 08                   57 |         DB      1 shl 3
+0762: 08                   58 |         DB      0x80 >> 4       // 08 Right shift
+0763: 08                   59 |         DB      0x80 shr 4
+0764: 08                   60 |         DB      123 % 23        // 08 Modulo
+0765: 08                   61 |         DB      123 mod 23
+0766: 09                   62 |         DB      '9' & 0x0f      // 09 Binary AND with character
+                           63 |         
+                           64 | ;
+                           65 | ; Comparison operators
+                           66 | ;
+                           67 | 
+                           68 | LOWNUM  EQU     2
+                           69 | MEDNUM  EQU     7
+
+
+Assembly Listing                                                                                                Page: 21
+------------------------------------------------------------------------------------------------------------------------
+
+                           70 | MEDNUM2 EQU     7
+                           71 | HIGHNUM EQU     19
+                           72 | 
+0767: 01                   73 |         DB      HIGHNUM >= MEDNUM       // 01
+0768: 01                   74 |         DB      MEDNUM2 >= MEDNUM       // 01
+0769: 00                   75 |         DB      LOWNUM  >= MEDNUM       // 00
+076A: 01                   76 |         DB      HIGHNUM >  MEDNUM       // 01
+076B: 00                   77 |         DB      MEDNUM2 >  MEDNUM       // 00
+076C: 00                   78 |         DB      LOWNUM  >  MEDNUM       // 00
+076D: 00                   79 |         DB      HIGHNUM == MEDNUM       // 00
+076E: 01                   80 |         DB      MEDNUM2 == MEDNUM       // 01
+076F: 00                   81 |         DB      LOWNUM  == MEDNUM       // 00
+0770: 01                   82 |         DB      HIGHNUM != MEDNUM       // 01
+0771: 00                   83 |         DB      MEDNUM2 != MEDNUM       // 00
+0772: 01                   84 |         DB      LOWNUM  != MEDNUM       // 01
+0773: 00                   85 |         DB      HIGHNUM <  MEDNUM       // 00
+0774: 00                   86 |         DB      MEDNUM2 <  MEDNUM       // 00
+0775: 01                   87 |         DB      LOWNUM  <  MEDNUM       // 01
+0776: 00                   88 |         DB      HIGHNUM <= MEDNUM       // 00
+0777: 01                   89 |         DB      MEDNUM2 <= MEDNUM       // 01
+0778: 01                   90 |         DB      LOWNUM  <= MEDNUM       // 01
+                           91 | 
+                           92 | ;
+                           93 | ; Numeric function testing      
+                           94 | ;
+                           95 | 
+0779: 37                   96 |         DB      ASC("7")                // 37 ASCII value of character
+077A: 37                   97 |         DB      ASC("765")              // 37 Only first character
+077B: 00                   98 |         DB      ASC("")                 // 00 NULL string gives character 0
+077C: 01                   99 |         DB      DEFINED(HIGHNUM)        // 01 as HIGHNUM is already defined
+077D: 00                  100 |         DB      DEFINED(NONUM)          // 00 as NONUM is not already defined
+077E: 12                  101 |         DB      HIGH(0x1234)            // 12 High byte of word
+077F: 99                  102 |         DB      IIF(1>2,0x12,0x99)      // 99 Immediate IF
+0780: 12                  103 |         DB      IIF(1<2,0x12,0x99)      // 12
+0781: 0C 00               104 |         DW      LENGTH("Duncan Munro")  // 0C Length of a string
+0783: 34                  105 |         DB      LOW(0x1234)             // 34 Low byte of word
+0784: 84 07               106 |         DW      $                       // ?? ?? The origin
+0786: 86 07               107 |         DW      ORG()                   // ?? ?? The origin
+0788: 03                  108 |         DB      POS("N","DUNCAN")       // 03 Pos of substring in string
+0789: 00                  109 |         DB      POS("Z","DUNCAN")       // 00
+078A: 7B                  110 |         DB      VALUE("123")            // 7B Convert string to number
+                          111 | 
+                          112 | ;
+                          113 | ; String function testing
+                          114 | ;
+                          115 | 
+078B: 37                  116 |         DB      CHR(55)                 // 37 Character value of ASCII code
+078C: 31 32 33 34         117 |         DB      HEX(0x1234)             // 31 32 33 34 Hex string of number
+0790: 4E                  118 |         DB      IIF(1>2,"Y","N")        // 4E Immediate IF for string
+0791: 59                  119 |         DB      IIF(1<2,"Y","N")        // 59
+0792: 44 55               120 |         DB      LEFT("DUNCAN",2)        // 44 55 Leftmost characters in string
+0794: 61 62 63 30         121 |         DB      LOWER("AbC0")           // 61 62 63 30 Lower case of string
+0798: 4E 43               122 |         DB      MID("DUNCAN",3,2)       // 4E 43 Middle characters in string
+079A: 41 4E               123 |         DB      RIGHT("DUNCAN",2)       // 41 4E Rightmost characters in string
+079C: 31 32               124 |         DB      STRING(12)              // 31 32 Convert number to string
+079E: 41 42 43 30         125 |         DB      UPPER("AbC0")           // 41 42 43 30 Upper case of string
+
+
+Assembly Listing                                                                                                Page: 22
+------------------------------------------------------------------------------------------------------------------------
+
+                          126 | 
+                          127 | ;
+                          128 | ; Functions commented out as the values will vary and frustrate the
+                          129 | ; automated testing
+                          130 | ;
+                          131 | 
+                          132 | ;       DB      BUILD()                 // ?? Current build number as a string
+                          133 | ;       DB      DATE()                  // ?? Current date as a string
+                          134 | ;       DB      TIME()                  // ?? Current time as a string
+                          135 |         
+                          136 | ;
+                          137 | ; More complex numeric expressions
+                          138 | ;
+                          139 | 
+07A2: A1 00               140 |         DW      19*2+41*3               // 00A1 * precedes +
+07A4: 04 06               141 |         DW      0x04 | 0x03 << 9        // 0604 << precedes |
+                          142 |         
+                          143 | ;
+                          144 | ; String expressions
+                          145 | ;
+                          146 | 
+07A6: 41 42 43            147 |         DB      "A" + "B" + "C"         // 41 42 43 concatenation
+                          148 | FIRST   EQU     "AC"
+                          149 | LAST    EQU     "DC"
+                          150 | FULL    =       FIRST + "/" + LAST
+07A9: 41 43 2F 44 43      151 |         DB      FULL                    // 41 43 2F 44 43...
+07AE: 44 43 41 43         152 |         DB      RIGHT(FULL,2) + LEFT(FULL,2)    // 44 43 41 43 
+                          153 | 
+                          154 | ;
+                          155 | ; Strings with bit 7 set in last character
+                          156 | ;
+                          157 | 
+07B2: 53 47 CE 54 41...   158 | KEYWDS  DC      'SGN', 'TAN', 'COS'
+07BB: 45 4E C4 46 4F...   159 | TABLK   DEFC    'END', 'FOR', 'NEXT', 0, 'PLOT', "VLIN"
+07CE: 45 4E C4 46 4F...   160 |         DC      LEFT("ENDING",3), LEFT("FORTRAN",3), RIGHT("INNEXT",4)
+                          161 | 
+                          162 | ;
+                          163 | ; IF / ELSE / ENDIF
+                          164 | ;
+                          165 | 
+                          166 |         ; Check IF for a true value
+                          167 |         
+                          168 |         IF 1
+                          169 |             MSGINFO "Good"
+                          170 |         ELSE
+                          171 :             MSGERROR "BAD!"
+                          172 :         ENDIF
+                          173 |         
+                          174 |         ; Check IF for a false value
+                          175 |         
+                          176 |         IF 0
+                          177 :             MSGERROR "BAD!"
+                          178 :         ELSE
+                          179 |             MSGINFO "Good"
+                          180 |         ENDIF
+                          181 | 
+
+
+Assembly Listing                                                                                                Page: 23
+------------------------------------------------------------------------------------------------------------------------
+
+                          182 |         ; Check nesting
+                          183 |         
+                          184 |         IF 1
+                          185 |           MSGINFO "Good"
+                          186 |           IF 0
+                          187 :             MSGERROR "Bad"
+                          188 :           ELSE
+                          189 |             MSGINFO "Good"
+                          190 |           ENDIF
+                          191 |         ELSE
+                          192 :           MSGERROR "Bad"
+                          193 :           IF 1
+                          194 :             MSGERROR "Also bad"
+                          195 :           ELSE
+                          196 :             MSGERROR "Also bad"
+                          197 :           ENDIF
+                          198 :         ENDIF
+                          199 | 
+                          200 | ;
+                          201 | ; WHILE / ENDW
+                          202 | ;
+                          203 | 
+                          204 |         ; Simple while
+                          205 |         
+                          206 |         J = 0
+                          207 |         WHILE J < 3
+                          208 |           J = J + 1
+07D8: 01                  209 |           DB J
+                          206 |         ENDW
+                          207 |         WHILE J < 3
+                          208 |           J = J + 1
+07D9: 02                  209 |           DB J
+                          206 |         ENDW
+                          207 |         WHILE J < 3
+                          208 |           J = J + 1
+07DA: 03                  209 |           DB J
+                          206 |         ENDW
+                          207 |         WHILE J < 3
+                          208 :           J = J + 1
+                          209 :           DB J
+                          210 :         ENDW
+                          211 | 
+                          212 |         ; Nested while
+                          213 |         
+                          214 |         J = 0
+                          215 |         WHILE J < 2
+                          216 |           J = J + 1
+                          217 |           K = 0
+                          218 |           WHILE K < 2
+                          219 |             K = K + 1
+07DB: 01 01               220 |             DW (J << 8) + K
+                          217 |           ENDW
+                          218 |           WHILE K < 2
+                          219 |             K = K + 1
+07DD: 02 01               220 |             DW (J << 8) + K
+                          217 |           ENDW
+
+
+Assembly Listing                                                                                                Page: 24
+------------------------------------------------------------------------------------------------------------------------
+
+                          218 |           WHILE K < 2
+                          219 :             K = K + 1
+                          220 :             DW (J << 8) + K
+                          221 :           ENDW
+                          214 |         ENDW
+                          215 |         WHILE J < 2
+                          216 |           J = J + 1
+                          217 |           K = 0
+                          218 |           WHILE K < 2
+                          219 |             K = K + 1
+07DF: 01 02               220 |             DW (J << 8) + K
+                          217 |           ENDW
+                          218 |           WHILE K < 2
+                          219 |             K = K + 1
+07E1: 02 02               220 |             DW (J << 8) + K
+                          217 |           ENDW
+                          218 |           WHILE K < 2
+                          219 :             K = K + 1
+                          220 :             DW (J << 8) + K
+                          221 :           ENDW
+                          214 |         ENDW
+                          215 |         WHILE J < 2
+                          216 :           J = J + 1
+                          217 :           K = 0
+                          218 :           WHILE K < 2
+                          219 :             K = K + 1
+                          220 :             DW (J << 8) + K
+                          221 :           ENDW
+                          222 :         ENDW
+                          223 |         
+                          224 | ;
+                          225 | ; REPEAT / ENDR
+                          226 | ;
+                          227 | 
+                          228 |         ; Simple repeat
+                          229 |         
+                          230 |         loop_count = 0
+                          231 |         
+                          232 |         REPEAT 3
+07E3: 00                  233 |             NOP
+                          234 |             loop_count = loop_count + 1
+                          231 |         ENDR
+                          232 |         REPEAT 3
+07E4: 00                  233 |             NOP
+                          234 |             loop_count = loop_count + 1
+                          231 |         ENDR
+                          232 |         REPEAT 3
+07E5: 00                  233 |             NOP
+                          234 |             loop_count = loop_count + 1
+                          235 |         ENDR
+                          236 |             
+                          237 |         REPEAT loop_count
+07E6: 03                  238 |             DB loop_count
+                          239 |             loop_count = loop_count - 1
+                          236 |         ENDR
+                          237 |         REPEAT loop_count
+
+
+Assembly Listing                                                                                                Page: 25
+------------------------------------------------------------------------------------------------------------------------
+
+07E7: 02                  238 |             DB loop_count
+                          239 |             loop_count = loop_count - 1
+                          236 |         ENDR
+                          237 |         REPEAT loop_count
+07E8: 01                  238 |             DB loop_count
+                          239 |             loop_count = loop_count - 1
+                          240 |         ENDR
+                          241 |             
+                          242 | ;
+                          243 | ; Nested repeat
+                          244 | ;
+                          245 | 
+                          246 |         J = 0
+                          247 |         REPEAT 3
+                          248 |             J = J + 1
+                          249 |             K = 0
+                          250 |             REPEAT 3
+                          251 |                 K = K + 1
+                          252 |                 LL = J << K
+07E9: 02                  253 |                 DB LL
+                          249 |             ENDR
+                          250 |             REPEAT 3
+                          251 |                 K = K + 1
+                          252 |                 LL = J << K
+07EA: 04                  253 |                 DB LL
+                          249 |             ENDR
+                          250 |             REPEAT 3
+                          251 |                 K = K + 1
+                          252 |                 LL = J << K
+07EB: 08                  253 |                 DB LL
+                          254 |             ENDR
+                          246 |         ENDR        
+                          247 |         REPEAT 3
+                          248 |             J = J + 1
+                          249 |             K = 0
+                          250 |             REPEAT 3
+                          251 |                 K = K + 1
+                          252 |                 LL = J << K
+07EC: 04                  253 |                 DB LL
+                          249 |             ENDR
+                          250 |             REPEAT 3
+                          251 |                 K = K + 1
+                          252 |                 LL = J << K
+07ED: 08                  253 |                 DB LL
+                          249 |             ENDR
+                          250 |             REPEAT 3
+                          251 |                 K = K + 1
+                          252 |                 LL = J << K
+07EE: 10                  253 |                 DB LL
+                          254 |             ENDR
+                          246 |         ENDR        
+                          247 |         REPEAT 3
+                          248 |             J = J + 1
+                          249 |             K = 0
+                          250 |             REPEAT 3
+                          251 |                 K = K + 1
+
+
+Assembly Listing                                                                                                Page: 26
+------------------------------------------------------------------------------------------------------------------------
+
+                          252 |                 LL = J << K
+07EF: 06                  253 |                 DB LL
+                          249 |             ENDR
+                          250 |             REPEAT 3
+                          251 |                 K = K + 1
+                          252 |                 LL = J << K
+07F0: 0C                  253 |                 DB LL
+                          249 |             ENDR
+                          250 |             REPEAT 3
+                          251 |                 K = K + 1
+                          252 |                 LL = J << K
+07F1: 18                  253 |                 DB LL
+                          254 |             ENDR
+                          255 |         ENDR        
+                          256 |         
+                          257 | ;
+                          258 | ; Composites of IF / WHILE / REPEAT etc.
+                          259 | ;
+                          260 | 
+                          261 |         IF 1
+                          262 |           K = 0
+                          263 |           WHILE K < 4
+                          264 |             IF (K MOD 2) == 0
+07F2: 45 76 65 6E         265 |               DB "Even"
+                          266 |               REPEAT 2
+07F6: 00                  267 |                 DB K
+                          265 |               ENDR
+                          266 |               REPEAT 2
+07F7: 00                  267 |                 DB K
+                          268 |               ENDR
+                          269 |             ELSE
+                          270 :               DB "Odd"
+                          271 :               REPEAT 3
+                          272 :                 DB K
+                          270 :               ENDR
+                          271 :               REPEAT 3
+                          272 :                 DB K
+                          270 :               ENDR
+                          271 :               REPEAT 3
+                          272 :                 DB K
+                          273 :               ENDR
+                          274 :             ENDIF
+                          275 |             K = K + 1
+                          262 |           ENDW
+                          263 |           WHILE K < 4
+                          264 |             IF (K MOD 2) == 0
+                          265 :               DB "Even"
+                          266 :               REPEAT 2
+                          267 :                 DB K
+                          265 :               ENDR
+                          266 :               REPEAT 2
+                          267 :                 DB K
+                          268 :               ENDR
+                          269 :             ELSE
+07F8: 4F 64 64            270 |               DB "Odd"
+                          271 |               REPEAT 3
+
+
+Assembly Listing                                                                                                Page: 27
+------------------------------------------------------------------------------------------------------------------------
+
+07FB: 01                  272 |                 DB K
+                          270 |               ENDR
+                          271 |               REPEAT 3
+07FC: 01                  272 |                 DB K
+                          270 |               ENDR
+                          271 |               REPEAT 3
+07FD: 01                  272 |                 DB K
+                          273 |               ENDR
+                          274 |             ENDIF
+                          275 |             K = K + 1
+                          262 |           ENDW
+                          263 |           WHILE K < 4
+                          264 |             IF (K MOD 2) == 0
+07FE: 45 76 65 6E         265 |               DB "Even"
+                          266 |               REPEAT 2
+0802: 02                  267 |                 DB K
+                          265 |               ENDR
+                          266 |               REPEAT 2
+0803: 02                  267 |                 DB K
+                          268 |               ENDR
+                          269 |             ELSE
+                          270 :               DB "Odd"
+                          271 :               REPEAT 3
+                          272 :                 DB K
+                          270 :               ENDR
+                          271 :               REPEAT 3
+                          272 :                 DB K
+                          270 :               ENDR
+                          271 :               REPEAT 3
+                          272 :                 DB K
+                          273 :               ENDR
+                          274 :             ENDIF
+                          275 |             K = K + 1
+                          262 |           ENDW
+                          263 |           WHILE K < 4
+                          264 |             IF (K MOD 2) == 0
+                          265 :               DB "Even"
+                          266 :               REPEAT 2
+                          267 :                 DB K
+                          265 :               ENDR
+                          266 :               REPEAT 2
+                          267 :                 DB K
+                          268 :               ENDR
+                          269 :             ELSE
+0804: 4F 64 64            270 |               DB "Odd"
+                          271 |               REPEAT 3
+0807: 03                  272 |                 DB K
+                          270 |               ENDR
+                          271 |               REPEAT 3
+0808: 03                  272 |                 DB K
+                          270 |               ENDR
+                          271 |               REPEAT 3
+0809: 03                  272 |                 DB K
+                          273 |               ENDR
+                          274 |             ENDIF
+                          275 |             K = K + 1
+
+
+Assembly Listing                                                                                                Page: 28
+------------------------------------------------------------------------------------------------------------------------
+
+                          262 |           ENDW
+                          263 |           WHILE K < 4
+                          264 :             IF (K MOD 2) == 0
+                          265 :               DB "Even"
+                          266 :               REPEAT 2
+                          267 :                 DB K
+                          265 :               ENDR
+                          266 :               REPEAT 2
+                          267 :                 DB K
+                          268 :               ENDR
+                          269 :             ELSE
+                          270 :               DB "Odd"
+                          271 :               REPEAT 3
+                          272 :                 DB K
+                          270 :               ENDR
+                          271 :               REPEAT 3
+                          272 :                 DB K
+                          270 :               ENDR
+                          271 :               REPEAT 3
+                          272 :                 DB K
+                          273 :               ENDR
+                          274 :             ENDIF
+                          275 :             K = K + 1
+                          276 :           ENDW
+                          277 |         ELSE
+                          278 :           J = 0
+                          279 :           WHILE J < 2
+                          280 :             J = J + 1
+                          281 :             MSGERROR "Bad"
+                          282 :           ENDW
+                          283 :         ENDIF
+                          284 |         
+                         1032 |         
+                         1033 |         END
+

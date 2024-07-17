@@ -1,0 +1,24 @@
+
+Assembly Listing                                                                                                 Page: 1
+------------------------------------------------------------------------------------------------------------------------
+
+                            1 | ;        TITLE   'HELLO_SEG2.Z80 - Hello World with Segments'
+                            2 | 
+                            3 | BDOS            EQU     0005H   ; BDOS entry address
+                            4 | C_WRITESTR      EQU     9       ; BDOS command to write $ terminated string
+                            5 | 
+                            6 |                 GLOBAL  WRITESTR
+                            7 |     
+                            8 | ;============================================================================       
+                            9 |         SEGMENT CSEG2, RELOCATABLE, READONLY
+                           10 | ;============================================================================       
+                           11 | 
+                           12 | ; Write a string, call with DE holding the address of the $ terminated string
+                           13 | 
+                           14 | WRITESTR:
+0000: 0E 09                15 |         LD      C,C_WRITESTR    ; Write string function
+0002: C3 05 00             16 |         JP      BDOS            ; Go to BDOS to write the string
+                           17 | 
+                           18 |         END
+                           19 |         
+

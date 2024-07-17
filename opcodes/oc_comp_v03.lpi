@@ -88,7 +88,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\binaries\release\$(TargetOS)-$(TargetCPU)\oc_comp_v03"/>
+      <Filename Value="..\binaries\debug\$(TargetOS)-$(TargetCPU)\v03\oc_comp"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
