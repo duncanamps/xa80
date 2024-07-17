@@ -1,4 +1,5 @@
 *.bat
+*.bin
 *.com
 *.dbg
 *.docx
@@ -8,6 +9,7 @@
 *.lst
 *.map
 *.o80
+*.obj80
 *.res
 *.xcf
 _deprecated/
@@ -22,6 +24,8 @@ opcodes/source/archived/
 test_files/backup/
 test_files/imported/
 test_prog/
+clean.ps1
+touchn.ps1
 xa80_dev_tasks.xlsx
-*.obj80
-*.bin
+/touchn.ps1
+/clean.ps1
