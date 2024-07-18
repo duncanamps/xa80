@@ -4,7 +4,7 @@ xa80 - X-Assembler for x80 processors
 
 ![xa80_short](https://github.com/duncanamps/xa80/assets/6016794/5a307bc0-b6b6-458f-91a2-7ae34e710088)
 
-This is V1.0 (Development) which is in development, and therefore incomplete. For the latest stable release, please see [Release Package V0.3.1](https://github.com/duncanamps/xa80/releases/tag/v0.3.1).
+This is V1.0 (Development) which is currently being built up, and therefore incomplete. For the latest stable release, please see [Release Package V0.3.1](https://github.com/duncanamps/xa80/releases/tag/v0.3.1).
 
 #### Synopsis
 
@@ -15,14 +15,15 @@ xa80 is a command line tool that allows the cross assembly of source files aimed
 * .log file containing errors encountered during the assembly
 * .map file containing the symbol information
 * .com file containing the actual machine code which can be executed on, for example, CP/M machines
-* .obj80 file containing object code (fixed/relocatable segments, import/export info, fixup tables)
+* **NEW** .obj80 file containing object code (fixed/relocatable segments, import/export info, fixup tables)
 
 #### Key features
 
 Here are some of the key features of xa80:
 
-* Open source
+* Open source which can be compiled on a variety of 32 and 64 bit systems
 * Two pass assembler
+* **NEW** Companion linker and librarian utilities to create libraries and large applications
 * Supports mnemonics from different processors (8080, 8085, Z80, Z180) as a baked in standard
 * Ability to add additional opcode maps as external files
 * Opcode compiler so you can add your own secret/hidden instructions and extend to other processor variants in the "family"
@@ -30,17 +31,26 @@ Here are some of the key features of xa80:
 * Conditional assembly with IF / IFDEF / IFNDEF statements
 * Repetition through REPEAT and WHILE statements
 * Full expression evaluator with many functions and string handling capability
-* Segmented model with fixed and relocatable segments
+* **NEW** Segmented model with fixed and relocatable segments
 * Rich set of command line parameters
 * xa80 Environment variable for commonly used parameters
 * Runs on any hardware supported by Lazarus/FPC (Windows, macOS, Linux, etc. etc.)
-* Fast - will assemble the CP/M BDOS22.ASM (3,289 lines) and CCP22.ASM files (1,325 lines) with map file and listing outputs (total 105 pages) in approx 0.15 seconds using a Core i7 laptop, Acer Aspire 5 A515-56
+* Fast - will assemble the CP/M BDOS22.ASM (3,289 lines) and CCP22.ASM files (1,325 lines) with map file and listing outputs (total 105 pages) in approx 0.25 - 0.30 seconds using a Core i7 laptop, Acer Aspire 5 A515-56
 
 #### Development Status
 
 This is very much experimental and was developed by the author as a learning tool for how assemblers, lexical analysers and parsers work in general.
 Please don't use this for anything serious that you would object to losing. Whilst having been extensively tested, and coming with 
 working examples, there is no guarantee that it will work correctly with all input files.
+
+Completion status at 17-July-2024 is:
+
+| Deliverable | %Done | Notes |
+| --- | ---: | --- |
+| xa80 Assembler V1.0 | 100% | Works well, producing .obj80 files |
+| xlib80 Library utility | 25% | |
+| Documentation | 20% | Assembler mostly updated, nothing on link/lib | 
+| xlink80 Linker | 0% | Not started |
 
 #### Development Environment
 

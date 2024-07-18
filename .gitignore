@@ -16,6 +16,7 @@ _deprecated/
 backup/
 binaries/debug/
 binaries/debugleak/
+docs/images/
 docs/research/
 grammar/lib/
 lac/xa80oper.txt
