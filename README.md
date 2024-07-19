@@ -46,7 +46,7 @@ working examples, there is no guarantee that it will work correctly with all inp
 Completion status at 17-July-2024 is:
 
 | Deliverable | %Done | Notes |
-| --- | ---: | --- |
+| :--- | ---: | :--- |
 | xa80 Assembler V1.0 | 100% | Works well, producing .obj80 files |
 | xlib80 Library utility | 25% | |
 | Documentation | 20% | Assembler mostly updated, nothing on link/lib | 

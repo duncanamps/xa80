@@ -634,15 +634,6 @@ begin
     end;
 end;
 
-
-procedure TSegments.FromJSONobject(_object: TJSONdata; _fixuplist: TFixupList; _debuglist: TDebugList);
-begin
-  // Reset to blank objects
-  Clear;
-  _fixuplist.Clear;
-  _debuglist.Clear;
-end;
-
 function TSegment.IsEmpty: boolean;
 var w: word;
 begin
@@ -802,6 +793,62 @@ begin
         FindByName := _seg;
         Exit;
       end;
+end;
+
+procedure TSegments.FromJSONobject(_object: TJSONdata; _fixuplist: TFixupList; _debuglist: TDebugList);
+var jObject:   TJSONdata;
+    jSub:      TJSONdata;
+    i:         integer;
+    segname:   string;
+    segment:   TSegment;
+    modifiers: TSegmentModifiers;
+    seg_address:   Word;
+    seg_length:    Word;
+
+ function GetHex(_sub: TJSONdata; const _title: string): Word;
+ var _hexstr: string;
+ begin
+   _hexstr := TJSONObject(_sub).Get(_title);
+   GetHex := StrToInt('$' + _hexstr);
+ end;
+
+begin
+  // Reset to blank objects
+  Clear;
+  _fixuplist.Clear;
+  _debuglist.Clear;
+
+  jObject := _object.FindPath(JSON_TITLE_SEGMENTS) as TJSONData;
+  if Assigned(jObject) then
+    for i := 0 to jObject.Count-1 do
+      begin
+        segname := TJSONObject(jObject).Names[i];
+        jSub := jObject.FindPath(segname);
+        // Process segment header
+        modifiers := [];
+        seg_address := GetHex(jSub,CONST_JSON_SEGMENTS_ADDRESS);
+        seg_length  := GetHex(jSub,CONST_JSON_SEGMENTS_LENGTH);
+        segment := TSegment.Create(segname,modifiers,seg_address);
+        // Finally add to list
+        Add(segment);
+      end;
+{
+    for i := 0 to Count-1 do
+      with Items[i] do
+        begin                 s
+          jSub := GetJSON(Format('{"Address":"%4.4X","Length":"%4.4X","IsFixed":"%s","IsReadOnly":"%s","IsUninitialised":"%s","Code":%s,"Fixups":%s,"DebugList":%s}',
+                              [FirstAddress,
+                               Bytes,
+                               BooleanToYN(smFixed in Modifiers),
+                               BooleanToYN(smReadOnly in Modifiers),
+                               BooleanToYN(smUninitialised in Modifiers),
+                               CodeAsJSONArray,
+                               _fixuplist.SegmentFixupsAsJSONArray(SegName),
+                               _debuglist.DebugDataAsJSONArray(Items[i])
+                               ])) as TJSONObject;
+          jObject.Add(Segname,jSub);
+        end;
+}
 end;
 
 function TSegments.GetOrg: word;

@@ -44,20 +44,36 @@ uses
   Classes, SysUtils, ucodesegment, usymboltable, fpjson;
 
 type
+  TObjectHeader = class(TObject)
+    private
+      FFileName:       string;
+      FFileType:       string;
+      FFileCreated:    TDateTime;
+      FHostOS:         string;
+      FHostAppName:    string;
+      FHostAppVersion: string;
+    public
+      constructor Create;
+      procedure FromJSONobject(_parent: TJSONdata);
+      procedure ToJSONobject(_parent: TJSONdata);
+  end;
+
   TObjectFile = class(TObject)
     private
       FDebugList:       TDebugList;
       FDestroyElements: boolean;
-      FFilename:        string;
+//    FFilename:        string;
       FFixupList:       TFixupList;
+      FHeader:          TObjectHeader;
       FSegments:        TSegments;
       FSymbolTable:     TSymbolTable;
       jData:            TJSONdata;
       procedure CreateJSONfromParams;
       procedure CreateParamsFromJSON;
+      function  GetFilename: string;
     public
       property DebugList:   TDebugList read FDebugList;
-      property Filename:    string     read FFilename;
+      property FileName:    string     read GetFilename;
       property FixupList:   TFixupList read FFixupList;
       property Segments:    TSegments  read FSegments;
       property SymbolTable: TSymbolTable read FSymbolTable;
@@ -65,6 +81,7 @@ type
       constructor Create(const _filename: string);
       constructor Create(const _filename: string; _symboltable: TSymbolTable; _segmentlist: TSegments; _fixups: TFixupList; _debuglist: TDebugList);
       destructor Destroy; override;
+      function  AsText: string;
       procedure Clear;
       procedure Load;
       procedure Load(_stream: TStream);
@@ -79,10 +96,70 @@ uses
   uutility, uenvironment, jsonparser, uasmglobals;
 
 
+//------------------------------------------------------------------------------
+//
+//  TObjectHeader code
+//
+//------------------------------------------------------------------------------
+
+constructor TObjectHeader.Create;
+begin
+  inherited Create;
+  FFileCreated := Now;
+end;
+
+procedure TObjectHeader.FromJSONobject(_parent: TJSONdata);
+var jObject:  TJSONobject;
+    fmt:      TFormatSettings;
+    dtstring: string;
+begin
+  fmt.ShortDateFormat := CONST_JSON_HEADER_DATE_FORMAT;
+  fmt.LongTimeFormat  := CONST_JSON_HEADER_TIME_FORMAT;
+  fmt.DateSeparator   := CONST_JSON_HEADER_DATESEP_FORMAT;
+  fmt.TimeSeparator   := CONST_JSON_HEADER_TIMESEP_FORMAT;
+  jObject := _parent.FindPath(CONST_JSON_HEADER_TITLE) as TJSONobject;
+  if Assigned(jObject) then
+    begin
+      FFileType       := jObject.Get(CONST_JSON_HEADER_FILETYPE);
+      dtstring        := jObject.Get(CONST_JSON_HEADER_FILECREATED);
+      FFileCreated    := StrToDateTime(dtstring,fmt);
+      FHostOS         := jObject.Get(CONST_JSON_HEADER_HOSTOS);
+      FHostAppName    := jObject.Get(CONST_JSON_HEADER_HOSTAPPNAME);
+      FHostAppVersion := jObject.Get(CONST_JSON_HEADER_HOSTAPPVERSION);
+    end;
+end;
+
+procedure TObjectHeader.ToJSONobject(_parent: TJSONdata);
+var jObject: TJSONobject;
+    tmp:     TJSONdata;
+    jArray:  TJSONarray;
+begin
+  jObject := _parent.FindPath(CONST_JSON_HEADER_TITLE) as TJSONobject;
+  if Assigned(jObject) then
+    begin
+      jObject.Clear;
+      jObject.Add(CONST_JSON_HEADER_FILENAME,       FFileName);
+      jObject.Add(CONST_JSON_HEADER_FILETYPE,       'xa80 Object File V1');
+      jObject.Add(CONST_JSON_HEADER_FILECREATED,    FormatDateTime(CONST_JSON_HEADER_DATETIME_FORMAT,FFileCreated));
+      jObject.Add(CONST_JSON_HEADER_HOSTOS,         {$I %FPCTARGETOS%});
+      jObject.Add(CONST_JSON_HEADER_HOSTAPPNAME,    'xa80');
+      jObject.Add(CONST_JSON_HEADER_HOSTAPPVERSION, 'V' + EnvObject.Version + ' build ' + EnvObject.Build);
+    end;
+end;
+
+
+
+//------------------------------------------------------------------------------
+//
+//  TObjectFile code
+//
+//------------------------------------------------------------------------------
+
 constructor TObjectFile.Create;
 begin
   inherited Create;
   FDestroyElements := True;
+  FHeader := TObjectHeader.Create;
   FDebugList := TDebugList.Create;
   FSymbolTable := TSymbolTable.Create;
   FSegments := TSegments.Create;
@@ -93,7 +170,7 @@ constructor TObjectFile.Create(const _filename: string);
 begin
   inherited Create;
   Create;
-  FFilename := _filename;
+  FHeader.FFileName := _filename;
   Load;
 end;
 
@@ -101,7 +178,8 @@ constructor TObjectFile.Create(const _filename: string; _symboltable: TSymbolTab
 begin
   inherited Create;
   FDestroyElements := False;
-  FFilename    := _filename;
+  FHeader := TObjectHeader.Create;
+  FHeader.FFileName := _filename;
   FDebugList   := _debuglist;
   FSymbolTable := _symboltable;
   FSegments    := _segmentlist;
@@ -121,7 +199,14 @@ begin
   if Assigned(jData) then
     FreeAndNil(jData);
   // Finally...
+  FreeAndNil(FHeader);
   inherited Destroy;
+end;
+
+function TObjectFile.AsText: string;
+begin
+  CreateJSONfromParams;
+  AsText := jData.FormatJSON;
 end;
 
 procedure TObjectFile.Clear;
@@ -144,7 +229,7 @@ begin
     FreeAndNil(jData); // Clear the JSON if it already exists
   jData := GetJSON('{"Header":{},"Globals":{},"Locals":{},"DebugFilenames":[],"Segments":{}}');
   // Do header items
-  EnvObject.ToJSONobject(jData,FFilename);
+  FHeader.ToJSONobject(jData);
   // Do Globals and Locals
   FSymbolTable.ToJSONobject(jData,ssGlobal);
   FSymbolTable.ToJSONobject(jData,ssLocal);
@@ -156,8 +241,20 @@ end;
 
 procedure TObjectFile.CreateParamsFromJSON;
 begin
+  // Read the header first
+  FHeader.FromJSONobject(jData);
   // Do segments, fixup list and debug list first of all
   FSegments.FromJSONobject(jData,FFixupList,FDebugList);
+  // Do GLobals and Locals
+  // Do debug filenames
+
+end;
+
+function TObjectFile.GetFilename: string;
+begin
+  GetFilename := '';
+  if Assigned(FHeader) then
+    GetFilename := FHeader.FFileName;
 end;
 
 procedure TObjectFile.Load;
@@ -165,9 +262,10 @@ var s: string;
     filelen: int64;
     fstream: TFileStream;
 begin
-  if not FileExists(FFilename) then
-    raise Exception.Create('Cannot find object file ' + FFilename);
-  fstream := TFileStream.Create(FFilename,fmOpenRead);
+  Clear; // Wipe it first
+  if not FileExists(FileName) then
+    raise Exception.Create('Cannot find object file ' + FileName);
+  fstream := TFileStream.Create(FileName,fmOpenRead);
   try
     Load(fstream);
   finally
@@ -178,16 +276,12 @@ end;
 procedure TObjectFile.Load(_stream: TStream);
 var s: string;
     filelen: int64;
-
 begin
   filelen := _stream.Size;
   if filelen > MAX_OBJECT_SIZE then
     raise Exception.Create(Format('Attempt to load object file exceeding %d bytes',[MAX_OBJECT_SIZE]));
   SetLength(s,filelen);
   _stream.Read(s[1],filelen);
-  // @@@@@
-  // Process the string into the bits and pieces here
-  // @@@@@
   if Assigned(jData) then
     FreeAndNil(jData); // Clear the JSON if it already exists
   jData := GetJSON(s);
@@ -196,16 +290,16 @@ end;
 
 procedure TObjectFile.Load(const _filename: string);
 begin
-  FFilename := _filename;
+  FHeader.FFileName := _filename;
   Load;
 end;
 
 procedure TObjectFile.Save;
 var fstream: TFileStream;
 begin
-  if FFilename = '' then
+  if FileName = '' then
     raise Exception.Create('Attempting to save object file with no filename');
-  fstream := TFileStream.Create(FFilename,fmCreate);
+  fstream := TFileStream.Create(FileName,fmCreate);
   try
     Save(fstream);
   finally

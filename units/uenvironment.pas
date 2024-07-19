@@ -123,7 +123,6 @@ type
       procedure SetValue(_key: string; _data: boolean; _source: TEnvironmentSource);
       procedure SetValue(_key: string; _data: integer; _source: TEnvironmentSource);
       procedure SetValue(_key: string; _data: string;  _source: TEnvironmentSource);
-      procedure ToJSONobject(_parent: TJSONdata; const _filename: string);
   end;
 
 var
@@ -134,9 +133,6 @@ implementation
 
 uses
   typinfo, umessages, lacogen_types, uasmglobals, fileinfo;
-
-const
-  JSON_TITLE = 'Header';
 
 function EnvironmentSourceAsString(_es: TEnvironmentSource): string;
 begin
@@ -500,24 +496,6 @@ begin
       Items[_index].Data   := _data;
       Items[_index].Source := _source;
       FreeAndNil(_rec);
-    end;
-end;
-
-procedure TEnvironment.ToJSONobject(_parent: TJSONdata; const _filename: string);
-var jObject: TJSONobject;
-    tmp:     TJSONdata;
-    jArray:  TJSONarray;
-begin
-  jObject := _parent.FindPath(JSON_TITLE) as TJSONobject;
-  if Assigned(jObject) then
-    begin
-      jObject.Clear;
-      jObject.Add('FileName',_filename);
-      jObject.Add('FileType','xa80 Object File V1');
-      jObject.Add('FileCreated',FormatDateTime('yyyy-mm-dd hh:nn:ss',Now));
-      jObject.Add('HostOS',{$I %FPCTARGETOS%});
-      jObject.Add('HostAppName','xa80');
-      jObject.Add('HostAppVersion','V' + EnvObject.Version + ' build ' + EnvObject.Build);
     end;
 end;
 
