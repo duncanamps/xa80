@@ -71,9 +71,10 @@ type
       procedure CreateJSONfromParams;
       procedure CreateParamsFromJSON;
       function  GetFilename: string;
+      procedure SetFilename(const _fn: string);
     public
       property DebugList:   TDebugList read FDebugList;
-      property FileName:    string     read GetFilename;
+      property FileName:    string     read GetFilename write SetFilename;
       property FixupList:   TFixupList read FFixupList;
       property Segments:    TSegments  read FSegments;
       property SymbolTable: TSymbolTable read FSymbolTable;
@@ -315,6 +316,11 @@ begin
   if Length(s) > MAX_OBJECT_SIZE then
     raise Exception.Create(Format('Attempt to save object file exceeding %d bytes',[MAX_OBJECT_SIZE]));
   _stream.Write(s[1],Length(s));
+end;
+
+procedure TObjectFile.SetFilename(const _fn: string);
+begin
+  FHeader.FFilename := _fn;
 end;
 
 end.

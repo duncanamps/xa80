@@ -798,18 +798,53 @@ end;
 procedure TSegments.FromJSONobject(_object: TJSONdata; _fixuplist: TFixupList; _debuglist: TDebugList);
 var jObject:   TJSONdata;
     jSub:      TJSONdata;
-    i:         integer;
+    jCode:     TJSONarray;
+    jFixups:   TJSONdata;
+    jFixup:    TJSONdata;
+    i,j,k:     integer;
+    codelines: integer;
     segname:   string;
     segment:   TSegment;
     modifiers: TSegmentModifiers;
     seg_address:   Word;
     seg_length:    Word;
+    fixuptitle:    string;
+    hexstring:     string;
+    hexval:        word;
 
  function GetHex(_sub: TJSONdata; const _title: string): Word;
  var _hexstr: string;
  begin
    _hexstr := TJSONObject(_sub).Get(_title);
    GetHex := StrToInt('$' + _hexstr);
+ end;
+
+ procedure ProcessModifier(_sub: TJSONObject; const _modstring: string; _modifier: TSegmentModifier);
+ var response: string;
+ begin
+   response := _sub.Get(_modstring);
+   if response = 'Y' then
+     modifiers := modifiers + [_modifier];
+ end;
+
+ procedure ProcessCodeLine(_s: string);
+ var _byte: string;
+     _bval: byte;
+     _n,_l: integer;
+ begin
+   _n := 1;
+   _l := Length(_s);
+   while _n <= _l do
+     begin
+       _byte := Copy(_s,_n,2);
+       if _byte <> '--' then
+         begin
+           _bval := StrToInt('$' + _byte);
+           segment.FBuf[seg_address] := _bval;
+         end;
+       _n := _n + 2;
+       Inc(seg_address);
+     end;
  end;
 
 begin
@@ -826,9 +861,33 @@ begin
         jSub := jObject.FindPath(segname);
         // Process segment header
         modifiers := [];
+        ProcessModifier(TJSONObject(jSub),CONST_JSON_SEGMENT_ISFIXED,        smFixed);
+        ProcessModifier(TJSONObject(jSub),CONST_JSON_SEGMENT_ISREADONLY,     smReadOnly);
+        ProcessModifier(TJSONObject(jSub),CONST_JSON_SEGMENT_ISUNINITIALISED,smUninitialised);
         seg_address := GetHex(jSub,CONST_JSON_SEGMENTS_ADDRESS);
         seg_length  := GetHex(jSub,CONST_JSON_SEGMENTS_LENGTH);
         segment := TSegment.Create(segname,modifiers,seg_address);
+        for j := 0 to seg_length-1 do
+          segment.FUsed[j+seg_address] := True;
+        // Extract the code and fil the segment with it
+        jCode := jSub.FindPath(CONST_JSON_SEGMENT_CODE) as TJSONArray;
+        codelines := jCode.Count;
+        for j := 0 to codelines - 1 do
+          ProcessCodeLine(jCode.Items[j].AsString);
+        // Get the fixups
+        jFixups := jSub.FindPath(CONST_JSON_SEGMENT_FIXUPS);
+        for j := 0 to jFixups.Count-1 do
+          begin
+            fixuptitle := TJSONObject(jFixups).Names[j];
+            jFixup := jFixups.FindPath(fixuptitle);
+            for k := 0 to jFixup.Count-1 do
+              begin
+                hexstring := jFixup.Items[k].AsString;
+                hexval := StrToInt('$' + hexstring);
+                _fixuplist.Add(fixuptitle,segment,hexval);
+              end;
+          end;
+        // Get the debug lines @@@@@
         // Finally add to list
         Add(segment);
       end;
@@ -878,13 +937,14 @@ procedure TSegments.ToJSONobject(_parent: TJSONdata; _fixuplist: TFixupList; _de
 var jObject: TJSONobject;
     jSub:    TJSONobject;
     i:       integer;
+    tmpstr:  string;
 begin
   jObject := _parent.FindPath(JSON_TITLE_SEGMENTS) as TJSONObject;
   if Assigned(jObject) then
     for i := 0 to Count-1 do
       with Items[i] do
         begin
-          jSub := GetJSON(Format('{"Address":"%4.4X","Length":"%4.4X","IsFixed":"%s","IsReadOnly":"%s","IsUninitialised":"%s","Code":%s,"Fixups":%s,"DebugList":%s}',
+          tmpstr := Format('{"Address":"%4.4X","Length":"%4.4X","' + CONST_JSON_SEGMENT_ISFIXED + '":"%s","' + CONST_JSON_SEGMENT_ISREADONLY + '":"%s","' + CONST_JSON_SEGMENT_ISUNINITIALISED + '":"%s","' + CONST_JSON_SEGMENT_CODE + '":%s,"' + CONST_JSON_SEGMENT_FIXUPS + '":%s,"DebugList":%s}',
                               [FirstAddress,
                                Bytes,
                                BooleanToYN(smFixed in Modifiers),
@@ -893,7 +953,8 @@ begin
                                CodeAsJSONArray,
                                _fixuplist.SegmentFixupsAsJSONArray(SegName),
                                _debuglist.DebugDataAsJSONArray(Items[i])
-                               ])) as TJSONObject;
+                               ]);
+          jSub := GetJSON(tmpstr) as TJSONObject;
           jObject.Add(Segname,jSub);
         end;
 end;
