@@ -32,17 +32,14 @@ uses
 type
   // Addresses are relocatable, integers are not
 
-  TSymbolDataType = (stUnknown,stAddress,stWord,stString);
-
   TSymbolScope = (ssUndefined,ssLocal,ssGlobal,ssExternal);
 
-  TSymbolFlag = (sfReferenced,sfDefined,sfExportLocal);
+  TSymbolFlag = (sfReferenced,sfDefined,sfExportLocal,sfError);
 
   TSymbolFlags = set of TSymbolFlag;
 
   TSymbol = record
     Name:         string;
-//  SymType:      TSymbolDataType;
     Scope:        TSymbolScope;
     Seg:          TSegment;
     IValue:       Word;
@@ -50,8 +47,6 @@ type
     CreationPass: integer;
     DefinedPass:  integer;
     Flags:        TSymbolFlags;
-//  Referenced:   boolean;
-//  Defined:      boolean;
     Source:       TExpressionSource;
   end;
 
@@ -69,7 +64,8 @@ type
       MixedCase: boolean;
       constructor Create;
       destructor Destroy; override;
-      function  Add(_name: string; _seg: TSegment; _datatype: TSymbolDataType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean; _src: TExpressionSource; _scope: TSymbolScope = ssUndefined): integer; reintroduce;
+      function  Add(_name: string; _seg: TSegment; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean; _src: TExpressionSource; _scope: TSymbolScope = ssUndefined): integer; reintroduce;
+      function  Add(_name: string; _seg: TSegment; _ival: Word; const _sval: string; _symbolflags: TSymbolFlags; _src: TExpressionSource; _scope: TSymbolScope = ssUndefined): integer; reintroduce;
       procedure Clear;
       function  CalcHash(const _txt:string): integer;
       function  Defined(const _name: string): boolean;
@@ -80,14 +76,15 @@ type
       procedure DumpByBoth(const filename: string; _segments: TSegments; _fixups: TFixupList);
       procedure DumpByName(_strm: TFileStream);
       procedure DumpByName(const filename: string);
-      procedure FromJSONobject(_parent: TJSONdata; _symbolscope: TSymbolScope; const _title: string; _seglist: TSegments);
+      procedure FromJSONobject(_parent: TJSONdata; _seglist: TSegments);
       function  IndexOf(_name: string): integer; reintroduce;
-      procedure ToJSONobject(_parent: TJSONdata; _symbolscope: TSymbolScope);
+      procedure ToJSONobject(_parent: TJSONdata);
       property  Pass: integer read FPass write FPass;
       property  Title: string read FTitle write FTitle;
   end;
 
-function ScopeToStr(_scope: TSymbolScope): string; // Forward
+function ScopeToStr(_scope: TSymbolScope): string;   // Forward
+function StrToScope(const _s: string): TSymbolScope; // Forward;
 
 
 implementation
@@ -153,6 +150,53 @@ begin
   end;
 end;
 
+function StrToScope(const _s: string): TSymbolScope; // Forward;
+begin
+  case _s of
+    'Undefined': StrToScope := ssUndefined;
+    'Local':     StrToScope := ssLocal;
+    'Global':    StrToScope := ssGlobal;
+    'External':  StrToScope := ssExternal;
+    otherwise
+      StrToScope := ssUndefined;
+  end;
+end;
+
+function SymbolFlagToStr(_flag: TSymbolFlag): string;
+begin
+  case _flag of
+    sfReferenced:  SymbolFlagToStr := 'Referenced';
+    sfDefined:     SymbolFlagToStr := 'Defined';
+    sfExportLocal: SymbolFlagToStr := 'ExportLocal';
+  end;
+end;
+
+function StrToSymbolFlag(const _s: string): TSymbolFlag;
+begin
+  case _s of
+    'Referenced':  StrToSymbolFlag := sfReferenced;
+    'Defined':     StrToSymbolFlag := sfDefined;
+    'ExportLocal': StrToSymbolFlag := sfExportLocal;
+    otherwise
+      StrToSymbolFlag := sfError;
+  end;
+end;
+
+function SymbolFlagsToArray(_flags: TSymbolFlags): string;
+var s: string;
+    f: TSymbolFlag;
+begin
+  s := '[';
+  for f in TSymbolFlags do
+    if f in _flags then
+      begin
+        if s <> '[' then
+          s := s + ',';
+        s := s + '"' + SymbolFlagToStr(f) + '"';
+      end;
+  s := s + ']';
+  SymbolFlagsToArray := s;
+end;
 
 constructor TSymbolTable.Create;
 begin
@@ -183,7 +227,20 @@ begin
     SetHashSize(NextPrime(HashSize * HASH_EXPANSION));
 end;
 
-function TSymbolTable.Add(_name: string; _seg: TSegment; _datatype: TSymbolDataType; _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean; _src: TExpressionSource; _scope: TSymbolScope): integer;
+function TSymbolTable.Add(_name: string; _seg: TSegment; { _datatype: TSymbolDataType; } _ival: Word; const _sval: string; _defined: boolean; _referenced: boolean; _src: TExpressionSource; _scope: TSymbolScope): integer;
+var flags: TSymbolFlags;
+    idx: integer;
+    sym: TSymbol;
+begin
+  flags := [];
+  if _defined then
+    flags := flags + [sfDefined];
+  if _referenced then
+    flags := flags + [sfReferenced];
+  Add := Add(_name,_seg,_ival,_sval,flags,_src,_scope);
+end;
+
+function TSymbolTable.Add(_name: string; _seg: TSegment; _ival: Word; const _sval: string; _symbolflags: TSymbolFlags; _src: TExpressionSource; _scope: TSymbolScope): integer;
 var idx: integer;
     sym: TSymbol;
 begin
@@ -202,14 +259,10 @@ begin
   sym.Scope        := _scope;
   sym.IValue       := _ival;
   sym.SValue       := _sval;
-  sym.Flags        := [];
-  if _defined then
-    sym.Flags := sym.Flags + [sfDefined];
-  if _referenced then
-    sym.Flags := sym.Flags + [sfReferenced];
+  sym.Flags        := _symbolflags;
   sym.Source       := _src;
   sym.CreationPass := FPass;
-  if _defined then
+  if not (sfDefined in _symbolflags) then
     sym.DefinedPass := FPass
   else
     sym.DefinedPass := 0;
@@ -387,16 +440,21 @@ begin
   end;
 end;
 
-procedure TSymbolTable.FromJSONobject(_parent: TJSONdata; _symbolscope: TSymbolScope; const _title: string; _seglist: TSegments);
+procedure TSymbolTable.FromJSONobject(_parent: TJSONdata; _seglist: TSegments);
 var obj: TJSONobject;
     jSub: TJSONobject;
-    i:   integer;
+    i,j:   integer;
     varname:   string;
     segname:   string;
-    offsetstr: string;
+    ivaluestr: string;
+    svaluestr: string;
+    flags:     TSymbolFlags;
+    source:    TExpressionSource;
+    scope:     TSymbolScope;
     seg:       TSegment;
+    sfarray:   TJSONarray;
 begin
-  obj := _parent.FindPath(_title) as TJSONobject;
+  obj := _parent.FindPath(CONST_JSON_SYMBOLS_TITLE) as TJSONobject;
   if Assigned(obj) then
     for i := 0 to obj.Count-1 do
       begin
@@ -405,10 +463,24 @@ begin
         if Assigned(jSub) then
           begin
             segname   := jSub.Get(CONST_JSON_SYMBOL_SEGMENT);
-            offsetstr := jSub.Get(CONST_JSON_SYMBOL_OFFSET);
+            ivaluestr := jSub.Get(CONST_JSON_SYMBOL_IVALUE);
+            svaluestr := jSub.Get(CONST_JSON_SYMBOL_SVALUE);
+            flags := [];
+            sfarray   := jSub.FindPath(CONST_JSON_SYMBOL_FLAGS) as TJSONarray;
+            for j := 0 to sfarray.Count-1 do
+              if StrToSymbolFlag(sfArray.Items[j].AsString) <> sfError then
+                flags := flags + [StrToSymbolFlag(sfArray.Items[j].AsString)];
+            source := StrToExpressionSource(jSub.Get(CONST_JSON_SYMBOL_SOURCE));
+            scope := StrToScope(jSub.Get(CONST_JSON_SYMBOL_SCOPE));
             seg := _seglist.FindByName(segname);
             // @@@@@ Add check for segment not found
-            Add(varname,seg,stAddress,HexToDec16(offsetstr),'',True,True,esAddressR,_symbolscope);
+            Add(varname,
+                seg,
+                HexToDec16(ivaluestr),
+                svaluestr,
+                flags,
+                source,
+                scope);
           end;
       end;
 end;
@@ -450,31 +522,46 @@ begin
   ReHash;
 end;
 
-procedure TSymbolTable.ToJSONobject(_parent: TJSONdata; _symbolscope: TSymbolScope);
+procedure TSymbolTable.ToJSONobject(_parent: TJSONdata);
 var jObject:     TJSONobject;
     jSub:        TJSONobject;
-    titlestring: string;
     i:           integer;
+    fmtstr:      string;
+    jsonstr:     string;
 begin
-  case _symbolscope of
-    ssLocal:  titlestring := JSON_TITLE_LOCAL;
-    ssGlobal: titlestring := JSON_TITLE_GLOBAL;
-    otherwise
-      ErrorObj.Show(ltInternal,X3001_UNHANDLED_CASE_OPTION,['TSymbolTable.ToJSONobject']);
-  end;
-  jObject := _parent.FindPath(titlestring) as TJSONObject;
+  jObject := _parent.FindPath(CONST_JSON_SYMBOLS_TITLE) as TJSONObject;
   if Assigned(jObject) then
     begin
       for i := 0 to Count-1 do
-        if Items[i].Scope = _symbolscope then
-          with Items[i] do
-            begin
-              if Assigned(Seg) then
-                jSub := GetJSON(Format('{"' + CONST_JSON_SYMBOL_SEGMENT + '":"%s","' + CONST_JSON_SYMBOL_OFFSET + '":"%4.4X"}',[Seg.Segname,IValue])) as TJSONObject
-              else
-                jSub := GetJSON(Format('{"' + CONST_JSON_SYMBOL_SEGMENT + '":"%s","' + CONST_JSON_SYMBOL_OFFSET + '":"%4.4X"}',['<nil>',IValue])) as TJSONObject;
-              jObject.Add(Name,jSub);
-            end;
+        with Items[i] do
+          begin
+            fmtstr := '{"' +
+                        CONST_JSON_SYMBOL_SCOPE   + '":"%s","' +
+                        CONST_JSON_SYMBOL_SEGMENT + '":"%s","' +
+                        CONST_JSON_SYMBOL_IVALUE  + '":"%4.4X","' +
+                        CONST_JSON_SYMBOL_SVALUE  + '":"%s","' +
+                        CONST_JSON_SYMBOL_FLAGS   + '":%s,"' +
+                        CONST_JSON_SYMBOL_SOURCE  + '":"%s"' +
+                        '}';
+            if Assigned(Seg) then
+              jsonstr := Format(fmtstr,
+                        [ScopeToStr(Scope),
+                         Seg.Segname,
+                         IValue,
+                         SValue,
+                         SymbolFlagsToArray(Flags),
+                         ExpressionSourceToStr(Source)])
+            else
+              jsonstr := Format(fmtstr,
+                        [ScopeToStr(Scope),
+                         '<nil>',
+                         IValue,
+                         SValue,
+                         SymbolFlagsToArray(Flags),
+                         ExpressionSourceToStr(Source)]);
+            jSub := GetJSON(jsonstr) as TJSONobject;
+            jObject.Add(Name,jSub);
+          end;
     end;
 end;
 

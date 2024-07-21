@@ -966,7 +966,7 @@ begin
       Result.BufType := pstINT32;
       Result.Source := esUndefined;
       if FSolGenerate and (not (cfNoPlaceholder in FPreparser.CmdFlags)) then
-        FSymbolTable.Add(Name, nil, stAddress, 0, '', False, True, esUndefined);
+        FSymbolTable.Add(Name, nil, 0, '', False, True, esUndefined);
     end
   else
     begin // Symbol was found
@@ -1019,7 +1019,7 @@ begin
             s := sl[i];
             if Pos('=',s) = 0 then
               begin // Simple define with no assigment
-                FSymbolTable.Add(s,nil,stWord,0,'',True,False,esConstantI);
+                FSymbolTable.Add(s,nil,0,'',True,False,esConstantI);
               end
             else
               begin
@@ -1030,9 +1030,9 @@ begin
                   if sl2.Count <> 2 then
                     ErrorObj.Show(ltError,E2059_COMMAND_LINE_DEFINE,[s]);
                   if (sl2[1] <> '') and (not (sl2[1][1] in ['0'..'9'])) then
-                    FSymbolTable.Add(sl2[0],nil,stString,0,StripQuotes(sl2[1]),True,False,esConstantS)
+                    FSymbolTable.Add(sl2[0],nil,0,StripQuotes(sl2[1]),True,False,esConstantS)
                   else
-                    FSymbolTable.Add(sl2[0],nil,stWord,StrToInt(sl2[1]),'',True,False,esConstantI);
+                    FSymbolTable.Add(sl2[0],nil,StrToInt(sl2[1]),'',True,False,esConstantI);
                 finally
                   FreeAndNil(sl2);
                 end;
@@ -1094,9 +1094,9 @@ begin
         // Add the symbol at the current address
         begin
           if smFixed in _seg.Modifiers then
-            FSymbolTable.Add(StripColon(_label),_seg, stAddress, Org, '', True, False, esAddressF, ssLocal)
+            FSymbolTable.Add(StripColon(_label),_seg, Org, '', True, False, esAddressF, ssLocal)
           else
-            FSymbolTable.Add(StripColon(_label),_seg, stAddress, Org, '', True, False, esAddressR, ssLocal);
+            FSymbolTable.Add(StripColon(_label),_seg, Org, '', True, False, esAddressR, ssLocal);
         end;
     end;
 end;
@@ -1707,7 +1707,7 @@ begin
         ErrorObj.ColNumber := itm.Column;
         if index >= 0 then
           ErrorObj.Show(ltError,E2070_EXTERN_DEFINED_LOCALLY,[itm.Payload]);
-        FSymbolTable.Add(itm.Payload,nil,stAddress,0,'',True,False,esExtern,ssExternal);
+        FSymbolTable.Add(itm.Payload,nil,0,'',True,False,esExtern,ssExternal);
       end;
     end;
 end;
@@ -2249,8 +2249,8 @@ begin
       ErrorObj.Show(ltError, E2030_USING_RESERVED_AS_LABEL, [_label]);
     case _preparser[0].DataType of
       pstNone: ErrorObj.Show(ltError, E2018_OPERAND_NO_DATA_TYPE, [1]);
-      pstINT32: FSymbolTable.Add(_label,  nil, stWord, _preparser[0].IntValue, '', True, False, esConstantI, ssLocal);
-      pstString: FSymbolTable.Add(_label, nil, stString, 0, _preparser[0].StrValue, True, False, esConstantS,ssLocal);
+      pstINT32: FSymbolTable.Add(_label,  nil, _preparser[0].IntValue, '', True, False, esConstantI, ssLocal);
+      pstString: FSymbolTable.Add(_label, nil, 0, _preparser[0].StrValue, True, False, esConstantS,ssLocal);
     end; // case
   end
   else

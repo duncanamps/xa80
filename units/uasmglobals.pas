@@ -50,10 +50,13 @@ const
 
   CONST_JSON_DEBUGNAMES_TITLE        = 'DebugFilenames';
 
-  CONST_JSON_GLOBALS_TITLE           = 'Globals';
-  CONST_JSON_LOCALS_TITLE            = 'Locals';
+  CONST_JSON_SYMBOLS_TITLE           = 'Symbols';
+  CONST_JSON_SYMBOL_SCOPE            = 'Scope';
   CONST_JSON_SYMBOL_SEGMENT          = 'Segment';
-  CONST_JSON_SYMBOL_OFFSET           = 'Offset';
+  CONST_JSON_SYMBOL_IVALUE           = 'IValue';
+  CONST_JSON_SYMBOL_SVALUE           = 'SValue';
+  CONST_JSON_SYMBOL_FLAGS            = 'Flags';
+  CONST_JSON_SYMBOL_SOURCE           = 'Source';
 
   CONST_JSON_SEGMENTS_TITLE          = 'Segments';
   CONST_JSON_SEGMENTS_ADDRESS        = 'Address';
@@ -185,6 +188,7 @@ type
 
 
 function ExpressionSourceToStr(_es: TExpressionSource): string; // Forward
+function StrToExpressionSource(const _s: string): TExpressionSource; // Forward
 
 implementation
 
@@ -203,6 +207,21 @@ begin
     esUnusable:  ExpressionSourceToStr := 'Unusable';
     otherwise
       ErrorObj.Show(ltInternal,X3016_UNHANDLED_EXPRESSION_SOURCE);
+  end;
+end;
+
+function StrToExpressionSource(const _s: string): TExpressionSource; // Forward
+begin
+  case _s of
+    'Undefined': StrToExpressionSource := esUndefined;
+    'Const Int': StrToExpressionSource := esConstantI;
+    'Const Str': StrToExpressionSource := esConstantS;
+    'External':  StrToExpressionSource := esExtern;
+    'Address F': StrToExpressionSource := esAddressF;
+    'Address R': StrToExpressionSource := esAddressR;
+    'Unusable':  StrToExpressionSource := esUnusable;
+    otherwise
+      StrToExpressionSource := esUnusable; // Default to unusable
   end;
 end;
 

@@ -227,12 +227,11 @@ var jObject: TJSONObject;
 begin
   if Assigned(jData) then
     FreeAndNil(jData); // Clear the JSON if it already exists
-  jData := GetJSON('{"' + CONST_JSON_HEADER_TITLE + '":{},"' + CONST_JSON_GLOBALS_TITLE + '":{},"' + CONST_JSON_LOCALS_TITLE + '":{},"' + CONST_JSON_DEBUGNAMES_TITLE + '":[],"' + CONST_JSON_SEGMENTS_TITLE + '":{}}');
+  jData := GetJSON('{"' + CONST_JSON_HEADER_TITLE + '":{},"' + CONST_JSON_SYMBOLS_TITLE + '":{},"' + CONST_JSON_DEBUGNAMES_TITLE + '":[],"' + CONST_JSON_SEGMENTS_TITLE + '":{}}');
   // Do header items
   FHeader.ToJSONobject(jData);
   // Do Globals and Locals
-  FSymbolTable.ToJSONobject(jData,ssGlobal);
-  FSymbolTable.ToJSONobject(jData,ssLocal);
+  FSymbolTable.ToJSONobject(jData);
   // Do debug filenames
   FDebugList.ToJSONobject(jData);
   // Do segments
@@ -247,8 +246,7 @@ begin
   // Do segments, fixup list and debug list first of all
   FSegments.FromJSONobject(jData,FFixupList,FDebugList,Filename);
   // Do GLobals and Locals
-  FSymbolTable.FromJSONobject(jData,ssGlobal,CONST_JSON_GLOBALS_TITLE,FSegments);
-  FSymbolTable.FromJSONobject(jData,ssLocal, CONST_JSON_LOCALS_TITLE,FSegments);
+  FSymbolTable.FromJSONobject(jData,FSegments);
   // Do debug filenames
   FDebugList.FromJSONobject(jData);
 end;

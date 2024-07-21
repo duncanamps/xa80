@@ -3,6 +3,9 @@
 				EXTERN	WRITESTR
 				EXTERN	MALLOC
 
+CONST_STR		EQU		"String Constant"
+CONST_WORD		EQU		0x55aa
+
 				GLOBAL	HELLO
 				
 PRINT	MACRO	stringaddr
