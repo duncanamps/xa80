@@ -48,6 +48,14 @@ const
   CONST_JSON_HEADER_HOSTAPPNAME      = 'HostAppName';
   CONST_JSON_HEADER_HOSTAPPVERSION   = 'HostAppVersion';
 
+  CONST_JSON_DEBUGNAMES_TITLE        = 'DebugFilenames';
+
+  CONST_JSON_GLOBALS_TITLE           = 'Globals';
+  CONST_JSON_LOCALS_TITLE            = 'Locals';
+  CONST_JSON_SYMBOL_SEGMENT          = 'Segment';
+  CONST_JSON_SYMBOL_OFFSET           = 'Offset';
+
+  CONST_JSON_SEGMENTS_TITLE          = 'Segments';
   CONST_JSON_SEGMENTS_ADDRESS        = 'Address';
   CONST_JSON_SEGMENTS_LENGTH         = 'Length';
   CONST_JSON_SEGMENT_ISFIXED         = 'IsFixed';
@@ -55,6 +63,7 @@ const
   CONST_JSON_SEGMENT_ISUNINITIALISED = 'IsUninitialised';
   CONST_JSON_SEGMENT_CODE            = 'Code';
   CONST_JSON_SEGMENT_FIXUPS          = 'Fixups';
+  CONST_JSON_SEGMENT_DEBUGLIST       = 'DebugList';
 
   COPYRIGHT_YEAR                     = '2024';
   DEFAULT_CODE_SEGMENT               = 'CSEG';

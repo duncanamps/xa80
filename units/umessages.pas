@@ -86,6 +86,7 @@ type
                      W1013_MAKING_RELOCATABLE_SEGMENT_FIXED,
                      W1014_UNRESOLVABLE_VALUE,
                      W1015_SEGMENT_MODIFIER_CONFUSING,
+                     W1016_OBJECT_NO_SEGMENTS,
 
                      E2000_USER_ERROR,
                      E2001_ILLEGAL_ESCAPE_CHARACTER,
@@ -161,13 +162,15 @@ type
                      E2071_CODE_GENERATION_IN_UNINIT,
                      E2072_ILLEGAL_DEBUG_LEVEL,
                      E2073_EXPECTED_INTEGER_ENV,
+                     E2074_HEX_CONVERSION_FAILURE,
+                     E2074_OBJECT_DEBUG_CORRUPT,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
                      X3003_PROCEDURE_NOT_IN_GRAMMAR,
                      X3004_REDUCTION_NOT_DEFINED,
                      X3005_BINARY_CONVERSION_FAILURE,
-                     X3006_HEX_CONVERSION_FAILURE,
+                     X3006_OBJECT_SEGMENT_ERROR,
                      X3007_INVALID_ELEMENT_TYPE,
                      X3008_RESOURCE_NOT_FOUND,
                      X3009_PARSER_TABLES_NOT_LOADED,
@@ -183,12 +186,13 @@ type
                      X3999_UNHANDLED_EXCEPTION
                     );
 
-// TMonitorProc = procedure (LogType: TLogType; const Message: string) of object;
+  TMonitorProc = procedure (LogType: TLCGLogType; const Message: string) of object;
 
   TErrorObject = class(TObject)
     private
       FLogFilename:       string;
       FLogStream:         TFileStream;
+      FOnErrorMessage:    TMonitorProc;
       FStartTime:         TDateTime;
       FWarnings:          boolean;
       FWarningsAvailable: boolean;
@@ -205,6 +209,7 @@ type
       procedure SetLogFilename(_fn: string);
       procedure Show(_logtype: TLCGLogType; _msgno: TMessageNumbers);
       procedure Show(_logtype: TLCGLogType; _msgno: TMessageNumbers; _args: array of const);
+      property OnErrorMessage: TMonitorProc read FOnErrorMessage write FOnErrorMessage;
       property LogFilename: string read FLogFilename write SetLogFilename;
       property Warnings: boolean read FWarnings write FWarnings;
       property WarningsAvailable: boolean read FWarningsAvailable write FWarningsAvailable;
@@ -249,6 +254,7 @@ var
     'ORG command is forcing Relocatable segment %s to become Fixed',
     'Unresolvable value',
     'Segment modifiers are confusing',
+    'Object file has no segments',
 
     '%s',
     'Illegal escape character %s, valid are %s',
@@ -324,13 +330,15 @@ var
     'Attempt to generate code in an uninitialised segment',
     'Illegal debug level %d',
     'Expected integer from command line or environment, got "%s"',
+    'Hex constant %s failed to convert',
+    'Object file debug information is corrupt',
 
     'Unhandled case option at %s',
     'Preparser peek error',
     'Could not find procedure %s in grammar',
     'Reduction code not defined for rule no. %d (%s)',
     'Binary constant %s failed to convert',
-    'Hex constant %s failed to convert',
+    'Object file has segment corruption error',
     'Invalid element type',
     'Resource not found %s',
     'Parser tables not loaded',
@@ -345,6 +353,7 @@ var
 
     'Unhandled exception %s'
   );
+
 
 constructor TErrorObject.Create;
 begin
@@ -437,6 +446,8 @@ begin
 {$IFDEF CONSOLE_APP}
   WriteLn(msg);
 {$ENDIF}
+  if Assigned(FOnErrorMessage) then
+    FOnErrorMessage(_logtype,msg);
   if Assigned(FLogStream) then
     begin
       msg := msg + LINE_TERMINATOR;

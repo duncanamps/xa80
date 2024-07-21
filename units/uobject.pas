@@ -94,7 +94,7 @@ type
 implementation
 
 uses
-  uutility, uenvironment, jsonparser, uasmglobals;
+  uutility, uenvironment, jsonparser, uasmglobals, lacogen_types, umessages;
 
 
 //------------------------------------------------------------------------------
@@ -119,15 +119,14 @@ begin
   fmt.DateSeparator   := CONST_JSON_HEADER_DATESEP_FORMAT;
   fmt.TimeSeparator   := CONST_JSON_HEADER_TIMESEP_FORMAT;
   jObject := _parent.FindPath(CONST_JSON_HEADER_TITLE) as TJSONobject;
-  if Assigned(jObject) then
-    begin
-      FFileType       := jObject.Get(CONST_JSON_HEADER_FILETYPE);
-      dtstring        := jObject.Get(CONST_JSON_HEADER_FILECREATED);
-      FFileCreated    := StrToDateTime(dtstring,fmt);
-      FHostOS         := jObject.Get(CONST_JSON_HEADER_HOSTOS);
-      FHostAppName    := jObject.Get(CONST_JSON_HEADER_HOSTAPPNAME);
-      FHostAppVersion := jObject.Get(CONST_JSON_HEADER_HOSTAPPVERSION);
-    end;
+  if not Assigned(jObject) then
+    raise Exception.Create(Format('Object file "%s" has no header',[FFileName]));
+  FFileType       := jObject.Get(CONST_JSON_HEADER_FILETYPE);
+  dtstring        := jObject.Get(CONST_JSON_HEADER_FILECREATED);
+  FFileCreated    := StrToDateTime(dtstring,fmt);
+  FHostOS         := jObject.Get(CONST_JSON_HEADER_HOSTOS);
+  FHostAppName    := jObject.Get(CONST_JSON_HEADER_HOSTAPPNAME);
+  FHostAppVersion := jObject.Get(CONST_JSON_HEADER_HOSTAPPVERSION);
 end;
 
 procedure TObjectHeader.ToJSONobject(_parent: TJSONdata);
@@ -212,8 +211,8 @@ end;
 
 procedure TObjectFile.Clear;
 begin
-  if Assigned(jData) then
-    FreeAndNil(jData); // Clear the JSON if it already exists
+//if Assigned(jData) then
+//  FreeAndNil(jData); // Clear the JSON if it already exists
   FDebugList.Clear;
   FSymbolTable.Clear;
   FSegments.Clear;
@@ -228,7 +227,7 @@ var jObject: TJSONObject;
 begin
   if Assigned(jData) then
     FreeAndNil(jData); // Clear the JSON if it already exists
-  jData := GetJSON('{"Header":{},"Globals":{},"Locals":{},"DebugFilenames":[],"Segments":{}}');
+  jData := GetJSON('{"' + CONST_JSON_HEADER_TITLE + '":{},"' + CONST_JSON_GLOBALS_TITLE + '":{},"' + CONST_JSON_LOCALS_TITLE + '":{},"' + CONST_JSON_DEBUGNAMES_TITLE + '":[],"' + CONST_JSON_SEGMENTS_TITLE + '":{}}');
   // Do header items
   FHeader.ToJSONobject(jData);
   // Do Globals and Locals
@@ -242,13 +241,16 @@ end;
 
 procedure TObjectFile.CreateParamsFromJSON;
 begin
+  Clear;
   // Read the header first
   FHeader.FromJSONobject(jData);
   // Do segments, fixup list and debug list first of all
-  FSegments.FromJSONobject(jData,FFixupList,FDebugList);
+  FSegments.FromJSONobject(jData,FFixupList,FDebugList,Filename);
   // Do GLobals and Locals
+  FSymbolTable.FromJSONobject(jData,ssGlobal,CONST_JSON_GLOBALS_TITLE,FSegments);
+  FSymbolTable.FromJSONobject(jData,ssLocal, CONST_JSON_LOCALS_TITLE,FSegments);
   // Do debug filenames
-
+  FDebugList.FromJSONobject(jData);
 end;
 
 function TObjectFile.GetFilename: string;

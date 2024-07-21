@@ -45,6 +45,7 @@ type
   TFixupList = class(specialize TList<TFixup>)
     public
       procedure Add(const _ref: string; _seg: TSegment; _offset: word); reintroduce;
+      procedure AddJSON(jFixups: TJSONData; _segment: TSegment);
       procedure Dump(_strm: TFileStream; var _printpage: integer);
       function FixupsAsJSONArray: string;
       function SegmentFixupsAsJSONArray(const _reqseg: string): string;
@@ -66,9 +67,12 @@ type
     public
       constructor Create;
       destructor Destroy; override;
+      procedure AddJSON(jDebugs: TJSONData; _segment: TSegment);
       procedure AddRec(const _filename: string; _line: integer; _seg: TSegment; _offset: word);
+      procedure Clear;
       function  DebugDataAsJSONArray(_seg: TSegment): string;
       function  FilenamesAsJSONArray: string;
+      procedure FromJSONobject(_parent: TJSONdata);
       procedure ToJSONobject(_parent: TJSONdata);
       property FilenameList: TStringList read FFilenameList;
   end;
@@ -113,7 +117,7 @@ type
       procedure Dump(_strm: TStream; var _printpage: integer);
       procedure EnsureCurrentSegment;
       function  FindByName(const _segname: string; _casesensitive: boolean = False): TSegment;
-      procedure FromJSONobject(_object: TJSONdata; _fixuplist: TFixupList; _debuglist: TDebugList);
+      procedure FromJSONobject(_object: TJSONdata; _fixuplist: TFixupList; _debuglist: TDebugList; const _filename: string);
       function  GetOrg: word;
       procedure Init;
       procedure SetOrg(_neworg: word);
@@ -129,9 +133,6 @@ implementation
 uses
   lacogen_types, umessages, Generics.Defaults, uutility;
 
-const
-  JSON_TITLE_SEGMENTS = 'Segments';
-  JSON_TITLE_DEBUG_FILENAMES = 'DebugFilenames';
 
 function CompareFixup(constref Left,Right: TFixup): integer;
 begin
@@ -160,18 +161,36 @@ begin
   inherited Add(_fixup);
 end;
 
+procedure TFixupList.AddJSON(jFixups: TJSONData; _segment: TSegment);
+var j,k: integer;
+    fixuptitle: string;
+    hexstring:  string;
+    hexval:     word;
+    jFixup:     TJSONData;
+begin
+  for j := 0 to jFixups.Count-1 do
+    begin
+      fixuptitle := TJSONObject(jFixups).Names[j];
+      jFixup := jFixups.FindPath(fixuptitle);
+      for k := 0 to jFixup.Count-1 do
+        begin
+          hexstring := jFixup.Items[k].AsString;
+          hexval := StrToInt('$' + hexstring);
+          Add(fixuptitle,_segment,hexval);
+        end;
+    end;
+end;
+
 procedure TFixupList.Dump(_strm: TFileStream; var _printpage: integer);
 const PAGE_WIDTH = 78;
       PAGE_DEPTH = 60;
       _caption = 'FIXUP LIST';
 var i: integer;
     s: string;
-    t_ch: char;
     line: integer;
     pagestr: string;
     spc:     integer;
     fixup:   TFixup;
-    source:  string;
     lastseg:   string;
     lastlabel: string;
 
@@ -259,13 +278,7 @@ end;
 
 function TFixupList.FixupsAsJSONArray: string;
 var i: integer;
-    s: string;
-    t_ch: char;
-    line: integer;
-    pagestr: string;
-    spc:     integer;
     fixup:   TFixup;
-    source:  string;
     lastseg:   string;
     lastlabel: string;
     outstr:    string;
@@ -303,13 +316,7 @@ end;
 
 function TFixupList.SegmentFixupsAsJSONArray(const _reqseg: string): string;
 var i: integer;
-    s: string;
-    t_ch: char;
-    line: integer;
-    pagestr: string;
-    spc:     integer;
     fixup:   TFixup;
-    source:  string;
     lastlabel: string;
     outstr:    string;
 
@@ -381,6 +388,33 @@ begin
   inherited Destroy;
 end;
 
+procedure TDebugList.AddJSON(jDebugs: TJSONData; _segment: TSegment);
+var j,k: integer;
+    debugline:  string;
+    fixuptitle: string;
+    hexstring:  string;
+    hexval:     word;
+    jFixup:     TJSONData;
+    obj:        TDebugLine;
+
+  function GetHex(_offs: integer): word;
+  var portion: string;
+  begin
+    portion := Copy(debugline,_offs,4);
+    GetHex := HexToDec16(portion);
+  end;
+
+begin
+  for j := 0 to jDebugs.Count-1 do
+    begin
+      debugline := TJSONArray(jDebugs).Items[j].AsString;
+      if Length(debugline) <> 12 then
+        ErrorObj.Show(ltError,E2074_OBJECT_DEBUG_CORRUPT);
+      obj := TDebugLine.Create(GetHex(1),GetHex(5),_segment,GetHex(9));
+      Add(obj);
+    end;
+end;
+
 procedure TDebugList.AddRec(const _filename: string; _line: integer; _seg: TSegment; _offset: word);
 var _index: integer;
 begin
@@ -388,6 +422,12 @@ begin
   if _index < 0 then
     _index := FFilenameList.Add(_filename);
   inherited Add(TDebugLine.Create(_index,_line,_seg,_offset));
+end;
+
+procedure TDebugList.Clear;
+begin
+  inherited Clear;
+  FFilenameList.Clear;
 end;
 
 function TDebugList.DebugDataAsJSONArray(_seg: TSegment): string;
@@ -422,11 +462,21 @@ begin
   FilenamesAsJSONArray := s;
 end;
 
+procedure TDebugList.FromJSONobject(_parent: TJSONdata);
+var jObject:  TJSONarray;
+    i:        integer;
+begin
+  jObject := _parent.FindPath(CONST_JSON_DEBUGNAMES_TITLE) as TJSONarray;
+  if Assigned(jObject) then
+    for i := 0 to jObject.Count-1 do
+      FFilenameList.Add(jObject.Items[i].AsString);
+end;
+
 procedure TDebugList.ToJSONobject(_parent: TJSONdata);
 var jArray: TJSONarray;
     i:      integer;
 begin
-  jArray := _parent.FindPath(JSON_TITLE_DEBUG_FILENAMES) as TJSONArray;
+  jArray := _parent.FindPath(CONST_JSON_DEBUGNAMES_TITLE) as TJSONArray;
   if Assigned(jArray) then
     begin
       for i := 0 to FilenameList.Count-1 do
@@ -723,13 +773,10 @@ const PAGE_WIDTH = 78;
       _caption = 'SEGMENT LIST';
 var i: integer;
     s: string;
-    t_ch: char;
     line: integer;
     pagestr: string;
     spc:     integer;
-    segname: string;
     segment: TSegment;
-    source:  string;
 
   procedure MyWrite(const _buf: string);
   begin
@@ -795,28 +842,25 @@ begin
       end;
 end;
 
-procedure TSegments.FromJSONobject(_object: TJSONdata; _fixuplist: TFixupList; _debuglist: TDebugList);
+procedure TSegments.FromJSONobject(_object: TJSONdata; _fixuplist: TFixupList; _debuglist: TDebugList; const _filename: string);
 var jObject:   TJSONdata;
     jSub:      TJSONdata;
     jCode:     TJSONarray;
     jFixups:   TJSONdata;
-    jFixup:    TJSONdata;
-    i,j,k:     integer;
+    jDebugs:   TJSONdata;
+    i,j:       integer;
     codelines: integer;
     segname:   string;
     segment:   TSegment;
     modifiers: TSegmentModifiers;
     seg_address:   Word;
     seg_length:    Word;
-    fixuptitle:    string;
-    hexstring:     string;
-    hexval:        word;
 
  function GetHex(_sub: TJSONdata; const _title: string): Word;
  var _hexstr: string;
  begin
    _hexstr := TJSONObject(_sub).Get(_title);
-   GetHex := StrToInt('$' + _hexstr);
+   GetHex := HexToDec16(_hexstr);
  end;
 
  procedure ProcessModifier(_sub: TJSONObject; const _modstring: string; _modifier: TSegmentModifier);
@@ -853,61 +897,48 @@ begin
   _fixuplist.Clear;
   _debuglist.Clear;
 
-  jObject := _object.FindPath(JSON_TITLE_SEGMENTS) as TJSONData;
-  if Assigned(jObject) then
+  jObject := _object.FindPath(CONST_JSON_SEGMENTS_TITLE) as TJSONData;
+  if not Assigned(jObject) then
+    ErrorObj.Show(ltWarning,W1016_OBJECT_NO_SEGMENTS)
+  else
     for i := 0 to jObject.Count-1 do
       begin
         segname := TJSONObject(jObject).Names[i];
         jSub := jObject.FindPath(segname);
         // Process segment header
         modifiers := [];
-        ProcessModifier(TJSONObject(jSub),CONST_JSON_SEGMENT_ISFIXED,        smFixed);
-        ProcessModifier(TJSONObject(jSub),CONST_JSON_SEGMENT_ISREADONLY,     smReadOnly);
-        ProcessModifier(TJSONObject(jSub),CONST_JSON_SEGMENT_ISUNINITIALISED,smUninitialised);
-        seg_address := GetHex(jSub,CONST_JSON_SEGMENTS_ADDRESS);
-        seg_length  := GetHex(jSub,CONST_JSON_SEGMENTS_LENGTH);
-        segment := TSegment.Create(segname,modifiers,seg_address);
-        for j := 0 to seg_length-1 do
-          segment.FUsed[j+seg_address] := True;
-        // Extract the code and fil the segment with it
-        jCode := jSub.FindPath(CONST_JSON_SEGMENT_CODE) as TJSONArray;
-        codelines := jCode.Count;
-        for j := 0 to codelines - 1 do
-          ProcessCodeLine(jCode.Items[j].AsString);
-        // Get the fixups
-        jFixups := jSub.FindPath(CONST_JSON_SEGMENT_FIXUPS);
-        for j := 0 to jFixups.Count-1 do
+        if not Assigned(jSub) then
+          ErrorObj.Show(ltInternal,X3006_OBJECT_SEGMENT_ERROR)
+        else
           begin
-            fixuptitle := TJSONObject(jFixups).Names[j];
-            jFixup := jFixups.FindPath(fixuptitle);
-            for k := 0 to jFixup.Count-1 do
+            ProcessModifier(TJSONObject(jSub),CONST_JSON_SEGMENT_ISFIXED,        smFixed);
+            ProcessModifier(TJSONObject(jSub),CONST_JSON_SEGMENT_ISREADONLY,     smReadOnly);
+            ProcessModifier(TJSONObject(jSub),CONST_JSON_SEGMENT_ISUNINITIALISED,smUninitialised);
+            seg_address := GetHex(jSub,CONST_JSON_SEGMENTS_ADDRESS);
+            seg_length  := GetHex(jSub,CONST_JSON_SEGMENTS_LENGTH);
+            segment := TSegment.Create(segname,modifiers,seg_address);
+            for j := 0 to seg_length-1 do
+              segment.FUsed[j+seg_address] := True;
+            // Extract the code and fill the segment with it
+            jCode := jSub.FindPath(CONST_JSON_SEGMENT_CODE) as TJSONArray;
+            if Assigned(jCode) then
               begin
-                hexstring := jFixup.Items[k].AsString;
-                hexval := StrToInt('$' + hexstring);
-                _fixuplist.Add(fixuptitle,segment,hexval);
+                codelines := jCode.Count;
+                for j := 0 to codelines - 1 do
+                  ProcessCodeLine(jCode.Items[j].AsString);
               end;
+            // Get the fixups
+            jFixups := jSub.FindPath(CONST_JSON_SEGMENT_FIXUPS);
+            if Assigned(jFixups) then
+              _fixuplist.AddJSON(jFixups,segment);
+            // Get the debug lines
+            jDebugs := jSub.FindPath(CONST_JSON_SEGMENT_DEBUGLIST);
+            if Assigned(jDebugs) then
+              _debuglist.AddJSON(jDebugs,segment);
+            // Finally add to list
+            Add(segment);
           end;
-        // Get the debug lines @@@@@
-        // Finally add to list
-        Add(segment);
       end;
-{
-    for i := 0 to Count-1 do
-      with Items[i] do
-        begin                 s
-          jSub := GetJSON(Format('{"Address":"%4.4X","Length":"%4.4X","IsFixed":"%s","IsReadOnly":"%s","IsUninitialised":"%s","Code":%s,"Fixups":%s,"DebugList":%s}',
-                              [FirstAddress,
-                               Bytes,
-                               BooleanToYN(smFixed in Modifiers),
-                               BooleanToYN(smReadOnly in Modifiers),
-                               BooleanToYN(smUninitialised in Modifiers),
-                               CodeAsJSONArray,
-                               _fixuplist.SegmentFixupsAsJSONArray(SegName),
-                               _debuglist.DebugDataAsJSONArray(Items[i])
-                               ])) as TJSONObject;
-          jObject.Add(Segname,jSub);
-        end;
-}
 end;
 
 function TSegments.GetOrg: word;
@@ -939,12 +970,12 @@ var jObject: TJSONobject;
     i:       integer;
     tmpstr:  string;
 begin
-  jObject := _parent.FindPath(JSON_TITLE_SEGMENTS) as TJSONObject;
+  jObject := _parent.FindPath(CONST_JSON_SEGMENTS_TITLE) as TJSONObject;
   if Assigned(jObject) then
     for i := 0 to Count-1 do
       with Items[i] do
         begin
-          tmpstr := Format('{"Address":"%4.4X","Length":"%4.4X","' + CONST_JSON_SEGMENT_ISFIXED + '":"%s","' + CONST_JSON_SEGMENT_ISREADONLY + '":"%s","' + CONST_JSON_SEGMENT_ISUNINITIALISED + '":"%s","' + CONST_JSON_SEGMENT_CODE + '":%s,"' + CONST_JSON_SEGMENT_FIXUPS + '":%s,"DebugList":%s}',
+          tmpstr := Format('{"Address":"%4.4X","Length":"%4.4X","' + CONST_JSON_SEGMENT_ISFIXED + '":"%s","' + CONST_JSON_SEGMENT_ISREADONLY + '":"%s","' + CONST_JSON_SEGMENT_ISUNINITIALISED + '":"%s","' + CONST_JSON_SEGMENT_CODE + '":%s,"' + CONST_JSON_SEGMENT_FIXUPS + '":%s,"' + CONST_JSON_SEGMENT_DEBUGLIST + '":%s}',
                               [FirstAddress,
                                Bytes,
                                BooleanToYN(smFixed in Modifiers),

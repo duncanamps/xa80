@@ -80,6 +80,7 @@ type
       procedure DumpByBoth(const filename: string; _segments: TSegments; _fixups: TFixupList);
       procedure DumpByName(_strm: TFileStream);
       procedure DumpByName(const filename: string);
+      procedure FromJSONobject(_parent: TJSONdata; _symbolscope: TSymbolScope; const _title: string; _seglist: TSegments);
       function  IndexOf(_name: string): integer; reintroduce;
       procedure ToJSONobject(_parent: TJSONdata; _symbolscope: TSymbolScope);
       property  Pass: integer read FPass write FPass;
@@ -386,6 +387,32 @@ begin
   end;
 end;
 
+procedure TSymbolTable.FromJSONobject(_parent: TJSONdata; _symbolscope: TSymbolScope; const _title: string; _seglist: TSegments);
+var obj: TJSONobject;
+    jSub: TJSONobject;
+    i:   integer;
+    varname:   string;
+    segname:   string;
+    offsetstr: string;
+    seg:       TSegment;
+begin
+  obj := _parent.FindPath(_title) as TJSONobject;
+  if Assigned(obj) then
+    for i := 0 to obj.Count-1 do
+      begin
+        varname := obj.Names[i];
+        jSub := obj.FindPath(varname) as TJSONobject;
+        if Assigned(jSub) then
+          begin
+            segname   := jSub.Get(CONST_JSON_SYMBOL_SEGMENT);
+            offsetstr := jSub.Get(CONST_JSON_SYMBOL_OFFSET);
+            seg := _seglist.FindByName(segname);
+            // @@@@@ Add check for segment not found
+            Add(varname,seg,stAddress,HexToDec16(offsetstr),'',True,True,esAddressR,_symbolscope);
+          end;
+      end;
+end;
+
 function TSymbolTable.IndexOf(_name: string): integer;
 var i: integer;
     hash: integer;
@@ -443,9 +470,9 @@ begin
           with Items[i] do
             begin
               if Assigned(Seg) then
-                jSub := GetJSON(Format('{"Segment":"%s","Offset":"%4.4X"}',[Seg.Segname,IValue])) as TJSONObject
+                jSub := GetJSON(Format('{"' + CONST_JSON_SYMBOL_SEGMENT + '":"%s","' + CONST_JSON_SYMBOL_OFFSET + '":"%4.4X"}',[Seg.Segname,IValue])) as TJSONObject
               else
-                jSub := GetJSON(Format('{"Segment":"%s","Offset":"%4.4X"}',['<nil>',IValue])) as TJSONObject;
+                jSub := GetJSON(Format('{"' + CONST_JSON_SYMBOL_SEGMENT + '":"%s","' + CONST_JSON_SYMBOL_OFFSET + '":"%4.4X"}',['<nil>',IValue])) as TJSONObject;
               jObject.Add(Name,jSub);
             end;
     end;

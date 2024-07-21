@@ -37,6 +37,7 @@ function  CharSetToStr(_s: TSetOfChar): string;
 procedure CmdOptionToList(app: TCustomApplication; shortopt: char; longopt: string; list: TStringList; delim: boolean = False);
 function  ExpandTabs(const _s: string; tabsize: integer): string;
 function  HasColon(const _s: string): boolean;
+function  HexToDec16(const _s: string): word;
 function  Indirected(_str: string; _escape: char; _escaped: TSetOfChar): boolean;
 function  InQuotes(const _s: string): boolean;
 function  IntToBinaryStr(_v: integer; _digits: integer): string;
@@ -193,6 +194,15 @@ end;
 function HasColon(const _s: string): boolean;
 begin
   Result := (_s <> '') and (_s[Length(_s)] = ':');
+end;
+
+function HexToDec16(const _s: string): word;
+begin
+  try
+    HexToDec16 := StrToInt('$' + _s);
+  except
+    ErrorObj.Show(ltInternal,E2074_HEX_CONVERSION_FAILURE,[_s]);
+  end;
 end;
 
 procedure IdentifyStringPos(const _src: string; var _start,_length: integer; _escape: char; _escaped: TSetOfChar);
@@ -582,7 +592,7 @@ begin
       buf := '$0';
     Val(buf,decval,code);
     if code > 0 then
-      ErrorObj.Show(ltInternal,X3006_HEX_CONVERSION_FAILURE,[_s]);
+      ErrorObj.Show(ltInternal,E2074_HEX_CONVERSION_FAILURE,[_s]);
   end;
   Result := decval;
 end;
