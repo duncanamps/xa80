@@ -54,7 +54,7 @@ type
       FHostAppVersion: string;
     public
       constructor Create;
-      procedure FromJSONobject(_parent: TJSONdata);
+      procedure FromJSONobject(_parent: TJSONdata; _extractfilename: boolean = False);
       procedure ToJSONobject(_parent: TJSONdata);
   end;
 
@@ -69,7 +69,7 @@ type
       FSymbolTable:     TSymbolTable;
       jData:            TJSONdata;
       procedure CreateJSONfromParams;
-      procedure CreateParamsFromJSON;
+      procedure CreateParamsFromJSON(_extractfilename: boolean = False);
       function  GetFilename: string;
       procedure SetFilename(const _fn: string);
     public
@@ -81,12 +81,14 @@ type
       constructor Create;
       constructor Create(const _filename: string);
       constructor Create(const _filename: string; _symboltable: TSymbolTable; _segmentlist: TSegments; _fixups: TFixupList; _debuglist: TDebugList);
+      constructor Create(_obj: TJSONobject);
       destructor Destroy; override;
       function  AsText: string;
       procedure Clear;
       procedure Load;
       procedure Load(_stream: TStream);
       procedure Load(const _filename: string);
+      procedure Load(_obj: TJSONobject);
       procedure Save;
       procedure Save(_stream: TStream);
   end;
@@ -94,7 +96,8 @@ type
 implementation
 
 uses
-  uutility, uenvironment, jsonparser, uasmglobals, lacogen_types, umessages;
+  uutility, uenvironment, jsonparser, uasmglobals, lacogen_types, umessages,
+  ujsonsupport;
 
 
 //------------------------------------------------------------------------------
@@ -109,7 +112,7 @@ begin
   FFileCreated := Now;
 end;
 
-procedure TObjectHeader.FromJSONobject(_parent: TJSONdata);
+procedure TObjectHeader.FromJSONobject(_parent: TJSONdata; _extractfilename: boolean);
 var jObject:  TJSONobject;
     fmt:      TFormatSettings;
     dtstring: string;
@@ -120,7 +123,8 @@ begin
   fmt.TimeSeparator   := CONST_JSON_HEADER_TIMESEP_FORMAT;
   jObject := _parent.FindPath(CONST_JSON_HEADER_TITLE) as TJSONobject;
   if not Assigned(jObject) then
-    raise Exception.Create(Format('Object file "%s" has no header',[FFileName]));
+    ErrorObj.Show(ltError,E2077_OBJECT_NO_HEADER);
+  FFilename       := jObject.Get(CONST_JSON_HEADER_FILENAME);
   FFileType       := jObject.Get(CONST_JSON_HEADER_FILETYPE);
   dtstring        := jObject.Get(CONST_JSON_HEADER_FILECREATED);
   FFileCreated    := StrToDateTime(dtstring,fmt);
@@ -134,7 +138,7 @@ var jObject: TJSONobject;
     tmp:     TJSONdata;
     jArray:  TJSONarray;
 begin
-  jObject := _parent.FindPath(CONST_JSON_HEADER_TITLE) as TJSONobject;
+  jObject := FindOrMakeJSON(_parent,CONST_JSON_HEADER_TITLE) as TJSONobject;
   if Assigned(jObject) then
     begin
       jObject.Clear;
@@ -155,6 +159,9 @@ end;
 //
 //------------------------------------------------------------------------------
 
+// Create a blank object file with no filename and set up skeleton contents
+// The object file owns its contents and will destroy them automatically
+
 constructor TObjectFile.Create;
 begin
   inherited Create;
@@ -166,6 +173,10 @@ begin
   FFixupList := TFixupList.Create;
 end;
 
+// Create an object file from a file. Specify a filename and the object file
+// will be loaded from disk. The object file owns its contents and will
+// destroy them automatically
+
 constructor TObjectFile.Create(const _filename: string);
 begin
   inherited Create;
@@ -173,6 +184,11 @@ begin
   FHeader.FFileName := _filename;
   Load;
 end;
+
+// Create an object file from symbols, segments, etc. A filename is specified
+// but the object file is not automatically written out to disk. Call Save() to
+// do this after creation. The object file does not own its contents as these
+// would have been created elsewhere
 
 constructor TObjectFile.Create(const _filename: string; _symboltable: TSymbolTable; _segmentlist: TSegments; _fixups: TFixupList; _debuglist: TDebugList);
 begin
@@ -185,6 +201,17 @@ begin
   FSegments    := _segmentlist;
   FFixupList   := _fixups;
 //  CreateJSONfromParams;
+end;
+
+// Create an object file from a JSONobject. The filename is extracted from the
+// JSON content. The object file owns its contents and will destroy them
+// automatically
+
+constructor TObjectFile.Create(_obj: TJSONobject);
+begin
+  inherited Create;
+  Create;
+  Load(_obj);
 end;
 
 destructor TObjectFile.Destroy;
@@ -227,7 +254,8 @@ var jObject: TJSONObject;
 begin
   if Assigned(jData) then
     FreeAndNil(jData); // Clear the JSON if it already exists
-  jData := GetJSON('{"' + CONST_JSON_HEADER_TITLE + '":{},"' + CONST_JSON_SYMBOLS_TITLE + '":{},"' + CONST_JSON_DEBUGNAMES_TITLE + '":[],"' + CONST_JSON_SEGMENTS_TITLE + '":{}}');
+//  jData := GetJSON('{"' + CONST_JSON_HEADER_TITLE + '":{},"' + CONST_JSON_SYMBOLS_TITLE + '":{},"' + CONST_JSON_DEBUGNAMES_TITLE + '":[],"' + CONST_JSON_SEGMENTS_TITLE + '":{}}');
+  jData := GetJSON('{}');
   // Do header items
   FHeader.ToJSONobject(jData);
   // Do Globals and Locals
@@ -238,11 +266,11 @@ begin
   FSegments.ToJSONobject(jData,FFixupList,FDebugList);
 end;
 
-procedure TObjectFile.CreateParamsFromJSON;
+procedure TObjectFile.CreateParamsFromJSON(_extractfilename: boolean);
 begin
   Clear;
   // Read the header first
-  FHeader.FromJSONobject(jData);
+  FHeader.FromJSONobject(jData,_extractfilename);
   // Do segments, fixup list and debug list first of all
   FSegments.FromJSONobject(jData,FFixupList,FDebugList,Filename);
   // Do GLobals and Locals
@@ -265,7 +293,7 @@ var s: string;
 begin
   Clear; // Wipe it first
   if not FileExists(FileName) then
-    raise Exception.Create('Cannot find object file ' + FileName);
+    ErrorObj.Show(ltError,E2078_OBJECT_NOT_FOUND,[Filename]);
   fstream := TFileStream.Create(FileName,fmOpenRead);
   try
     Load(fstream);
@@ -280,13 +308,19 @@ var s: string;
 begin
   filelen := _stream.Size;
   if filelen > MAX_OBJECT_SIZE then
-    raise Exception.Create(Format('Attempt to load object file exceeding %d bytes',[MAX_OBJECT_SIZE]));
-  SetLength(s,filelen);
-  _stream.Read(s[1],filelen);
-  if Assigned(jData) then
-    FreeAndNil(jData); // Clear the JSON if it already exists
-  jData := GetJSON(s);
-  CreateParamsFromJSON;
+    ErrorObj.Show(ltError,E2079_OBJECT_TOO_LARGE_LOAD,[filelen,MAX_OBJECT_SIZE]);
+  try
+    SetLength(s,filelen);
+    _stream.Read(s[1],filelen);
+    if Assigned(jData) then
+      FreeAndNil(jData); // Clear the JSON if it already exists
+    jData := GetJSON(s);
+    CreateParamsFromJSON;
+  except
+    on E : LCGErrorException do ; // Nothing
+    on E : LCGInternalException do ; // Nothing
+    on E : Exception do ErrorObj.Show(ltError,E2076_OBJECT_LOAD_ERROR,[E.Message]);
+  end;
 end;
 
 procedure TObjectFile.Load(const _filename: string);
@@ -295,11 +329,17 @@ begin
   Load;
 end;
 
+procedure TObjectFile.Load(_obj: TJSONobject);
+begin
+  jData := _obj;
+  CreateParamsFromJSON(True); // Create object and get filename from JSON
+end;
+
 procedure TObjectFile.Save;
 var fstream: TFileStream;
 begin
   if FileName = '' then
-    raise Exception.Create('Attempting to save object file with no filename');
+    ErrorObj.Show(ltInternal,X3019_OBJECT_NO_FILENAME);
   fstream := TFileStream.Create(FileName,fmCreate);
   try
     Save(fstream);
@@ -314,7 +354,7 @@ begin
   CreateJSONfromParams;
   s := jData.FormatJSON;
   if Length(s) > MAX_OBJECT_SIZE then
-    raise Exception.Create(Format('Attempt to save object file exceeding %d bytes',[MAX_OBJECT_SIZE]));
+    ErrorObj.Show(ltError,E2080_OBJECT_TOO_LARGE_SAVE,[Length(s),MAX_OBJECT_SIZE]);
   _stream.Write(s[1],Length(s));
 end;
 

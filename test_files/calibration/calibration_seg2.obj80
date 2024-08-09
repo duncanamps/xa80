@@ -1,0 +1,61 @@
+{
+  "Header" : {
+    "FileName" : "C:\\Users\\Duncan Munro\\Dropbox\\dev\\lazarus\\computing\\z80\\xa80\\test_files\\calibration\\test_seg2.obj80",
+    "FileType" : "xa80 Object File V1",
+    "FileCreated" : "2024-07-21 18:00:35",
+    "HostOS" : "Win64",
+    "HostAppName" : "xa80",
+    "HostAppVersion" : "V1.0.0 build 1003"
+  },
+  "Symbols" : {
+    "BDOS" : {
+      "Scope" : "Local",
+      "Segment" : "<nil>",
+      "IValue" : "0005",
+      "SValue" : "",
+      "Flags" : [
+        "Referenced",
+        "Defined"
+      ],
+      "Source" : "Const Int"
+    },
+    "C_WRITESTR" : {
+      "Scope" : "Local",
+      "Segment" : "<nil>",
+      "IValue" : "0009",
+      "SValue" : "",
+      "Flags" : [
+        "Referenced",
+        "Defined"
+      ],
+      "Source" : "Const Int"
+    },
+    "WRITESTR" : {
+      "Scope" : "Global",
+      "Segment" : "CSEG2",
+      "IValue" : "0000",
+      "SValue" : "",
+      "Flags" : [
+        "Defined"
+      ],
+      "Source" : "Address R"
+    }
+  },
+  "DebugFilenames" : [
+  ],
+  "Segments" : {
+    "CSEG2" : {
+      "Address" : "0000",
+      "Length" : "0005",
+      "IsFixed" : "N",
+      "IsReadOnly" : "Y",
+      "IsUninitialised" : "N",
+      "Code" : [
+        "0E09C30500"
+      ],
+      "Fixups" : {},
+      "DebugList" : [
+      ]
+    }
+  }
+}

@@ -131,7 +131,7 @@ type
 implementation
 
 uses
-  lacogen_types, umessages, Generics.Defaults, uutility;
+  lacogen_types, umessages, Generics.Defaults, uutility, ujsonsupport;
 
 
 function CompareFixup(constref Left,Right: TFixup): integer;
@@ -409,7 +409,7 @@ begin
     begin
       debugline := TJSONArray(jDebugs).Items[j].AsString;
       if Length(debugline) <> 12 then
-        ErrorObj.Show(ltError,E2074_OBJECT_DEBUG_CORRUPT);
+        ErrorObj.Show(ltError,E2075_OBJECT_DEBUG_CORRUPT);
       obj := TDebugLine.Create(GetHex(1),GetHex(5),_segment,GetHex(9));
       Add(obj);
     end;
@@ -476,7 +476,7 @@ procedure TDebugList.ToJSONobject(_parent: TJSONdata);
 var jArray: TJSONarray;
     i:      integer;
 begin
-  jArray := _parent.FindPath(CONST_JSON_DEBUGNAMES_TITLE) as TJSONArray;
+  jArray := FindOrMakeJSONarray(_parent,CONST_JSON_DEBUGNAMES_TITLE) as TJSONarray;
   if Assigned(jArray) then
     begin
       for i := 0 to FilenameList.Count-1 do
@@ -970,7 +970,7 @@ var jObject: TJSONobject;
     i:       integer;
     tmpstr:  string;
 begin
-  jObject := _parent.FindPath(CONST_JSON_SEGMENTS_TITLE) as TJSONObject;
+  jObject := FindOrMakeJSON(_parent,CONST_JSON_SEGMENTS_TITLE) as TJSONobject;
   if Assigned(jObject) then
     for i := 0 to Count-1 do
       with Items[i] do

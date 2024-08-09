@@ -26,6 +26,8 @@ SYMBOL NAME                                                            Page: 3
 
 HEX    DEC SEGMENT              SOURCE    SCOPE     NAME
 ---- ----- -------------------- --------- --------- ----
+0000     0 <unknown>            Const Str Local    *CONST_STR "String Constant"
+55AA 21930 <unknown>            Const Int Local    *CONST_WORD
 0111   273 CSEG                 Address F Local    *GOBACK
 0100   256 CSEG                 Address F Global   *HELLO
 0000     0 <unknown>            External  External *MALLOC
@@ -40,8 +42,10 @@ SYMBOL ADDR                                                            Page: 4
 
 HEX    DEC SEGMENT              SOURCE    SCOPE     NAME
 ---- ----- -------------------- --------- --------- ----
+0000     0 <unknown>            Const Str Local    *CONST_STR "String Constant"
 0000     0 <unknown>            External  External *MALLOC
 0000     0 <unknown>            External  External  WRITESTR
+55AA 21930 <unknown>            Const Int Local    *CONST_WORD
 0100   256 CSEG                 Address F Global   *HELLO
 0111   273 CSEG                 Address F Local    *GOBACK
 0000     0 DATA                 Address R Local     MSG

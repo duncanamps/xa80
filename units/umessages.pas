@@ -163,7 +163,12 @@ type
                      E2072_ILLEGAL_DEBUG_LEVEL,
                      E2073_EXPECTED_INTEGER_ENV,
                      E2074_HEX_CONVERSION_FAILURE,
-                     E2074_OBJECT_DEBUG_CORRUPT,
+                     E2075_OBJECT_DEBUG_CORRUPT,
+                     E2076_OBJECT_LOAD_ERROR,
+                     E2077_OBJECT_NO_HEADER,
+                     E2078_OBJECT_NOT_FOUND,
+                     E2079_OBJECT_TOO_LARGE_LOAD,
+                     E2080_OBJECT_TOO_LARGE_SAVE,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -182,6 +187,7 @@ type
                      X3016_UNHANDLED_EXPRESSION_SOURCE,
                      X3017_UNHANDLED_SCOPE,
                      X3018_SYMBOL_NOT_PROPAGATED,
+                     X3019_OBJECT_NO_FILENAME,
 
                      X3999_UNHANDLED_EXCEPTION
                     );
@@ -332,6 +338,11 @@ var
     'Expected integer from command line or environment, got "%s"',
     'Hex constant %s failed to convert',
     'Object file debug information is corrupt',
+    'Object file load error %s',
+    'Object file has no header',
+    'Object file "%s" not found',
+    'Object file load size of %d bytes exceeds maximum allowed size of %d bytes',
+    'Object file save size of %d bytes exceeds maximum allowed size of %d bytes',
 
     'Unhandled case option at %s',
     'Preparser peek error',
@@ -350,6 +361,7 @@ var
     'Unhandled expression source',
     'Unhandled scope',
     'Symbol "%s" not propagated correctly',
+    'Attempting to save object file with no filename',
 
     'Unhandled exception %s'
   );

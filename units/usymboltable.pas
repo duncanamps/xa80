@@ -32,9 +32,15 @@ uses
 type
   // Addresses are relocatable, integers are not
 
-  TSymbolScope = (ssUndefined,ssLocal,ssGlobal,ssExternal);
+  TSymbolScope = (ssUndefined,   // Placeholder for symbol not fully defined
+                  ssLocal,       // Local to the module, not accessible to other modules
+                  ssGlobal,      // Defined in module, accessible to ALL modules
+                  ssExternal);   // Defined as being external to the module
 
-  TSymbolFlag = (sfReferenced,sfDefined,sfExportLocal,sfError);
+  TSymbolFlag = (sfReferenced,   // Flags if symbol has been referenced (other than in definition)
+                 sfDefined,      // Flags if symbol has been defined
+                 sfExportLocal,  // Can be exported as local (symbol must be in a segment)
+                 sfError);       // Indicates error condition
 
   TSymbolFlags = set of TSymbolFlag;
 
@@ -90,7 +96,7 @@ function StrToScope(const _s: string): TSymbolScope; // Forward;
 implementation
 
 uses
-  Generics.Defaults, uutility, lacogen_types, umessages;
+  Generics.Defaults, uutility, lacogen_types, umessages, ujsonsupport;
 
 const
   HASH_RATIO = 3;
@@ -529,7 +535,7 @@ var jObject:     TJSONobject;
     fmtstr:      string;
     jsonstr:     string;
 begin
-  jObject := _parent.FindPath(CONST_JSON_SYMBOLS_TITLE) as TJSONObject;
+  jObject := FindOrMakeJSON(_parent,CONST_JSON_SYMBOLS_TITLE) as TJSONobject;
   if Assigned(jObject) then
     begin
       for i := 0 to Count-1 do
