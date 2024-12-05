@@ -30,7 +30,7 @@ uses
   { you can add units after this }
   uenvironment, ucommandline, typinfo, uutility, uasmglobals,
   uassembler80, uprocessors, umessages, upreparser3, usymboltable,
-  lacogen_types, ustack, umacro, ucodesegment;
+  lacogen_types, ustack, umacro, ucodesegment, strutils;
 
 const
   CRLF = #13 + #10;
@@ -314,11 +314,17 @@ end;
 
 procedure TXA80.ShowProcessors;
 var i: integer;
+    namewidth: integer;
 begin
   WriteLn('XA80 Processors available with -p/--processor switch');
   WriteLn;
+  namewidth := 0;
   for i := 0 to ProcessorList.Count-1 do
-    WriteLn('    ' + ProcessorList[i]);
+    if Length(ProcessorList[i].ProcessorName) > namewidth then
+      namewidth := Length(ProcessorList[i].ProcessorName);
+  for i := 0 to ProcessorList.Count-1 do
+    WriteLn('    ' + PadRight(ProcessorList[i].ProcessorName,namewidth+2) +
+            ProcessorList[i].ProcessorDescription);
 end;
 
 procedure TXA80.ShowReserved;

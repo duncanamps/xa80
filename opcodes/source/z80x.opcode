@@ -6,7 +6,7 @@
 ; Author:  Duncan Munro @duncanamps
 ; Notes:   Zilog Z80 undocumented insts from http://www.z80.info/z80undoc.htm
 ; Created: 2023-06-24 00:00:00
-; Amended: 2023-06-25 20:34:24
+; Amended: 2024-12-05 17:22:08
 ;
 ; Each line consists of 2 fields seperated by the vertical brace "|"
 ;
@@ -743,9 +743,9 @@ IN      A C_IND       | $ED $78
 IN      A U8_IND      | $DB [2:U8]
 IN      B C_IND       | $ED $40
 IN      C C_IND       | $ED $48
+IN      C_IND         | $ED $70                           ; *UNDOCUMENTED*
 IN      D C_IND       | $ED $50
 IN      E C_IND       | $ED $58
-IN      F C_IND       | $ED $70                           ; *UNDOCUMENTED*
 IN      H C_IND       | $ED $60
 IN      L C_IND       | $ED $68
 IND                   | $ED $AA
@@ -754,6 +754,7 @@ INI                   | $ED $A2
 INIR                  | $ED $B2
 OTDR                  | $ED $BB
 OTIR                  | $ED $B3
+OUT     C_IND         | $ED $71                           ; *UNDOCUMENTED* same as OUT (C),0
 OUT     C_IND A       | $ED $79
 OUT     C_IND B       | $ED $41
 OUT     C_IND C       | $ED $49
@@ -761,7 +762,7 @@ OUT     C_IND D       | $ED $51
 OUT     C_IND E       | $ED $59
 OUT     C_IND H       | $ED $61
 OUT     C_IND L       | $ED $69
-OUT     F C_IND       | $ED $71                           ; *UNDOCUMENTED*
+OUT     C_IND U8      | $ED $71                           ; *UNDOCUMENTED* (U8 value will be treated as 0 in all cases)
 OUT     U8_IND A      | $D3 [1:U8]
 OUTD                  | $ED $AB
 OUTI                  | $ED $A3
@@ -829,8 +830,22 @@ RL      E             | $CB $13
 RL      H             | $CB $14
 RL      HL_IND        | $CB $16
 RL      IXPD_IND      | $DD $CB [1:S8] $16
+RL      IXPD_IND A    | $DD $CB [1:S8] $17                ; *UNDOCUMENTED* RL (IX+N) then LD A,(IX+N)
+RL      IXPD_IND B    | $DD $CB [1:S8] $10                ; *UNDOCUMENTED* RL (IX+N) then LD B,(IX+N)
+RL      IXPD_IND C    | $DD $CB [1:S8] $11                ; *UNDOCUMENTED* RL (IX+N) then LD C,(IX+N)
+RL      IXPD_IND D    | $DD $CB [1:S8] $12                ; *UNDOCUMENTED* RL (IX+N) then LD D,(IX+N)
+RL      IXPD_IND E    | $DD $CB [1:S8] $13                ; *UNDOCUMENTED* RL (IX+N) then LD E,(IX+N)
+RL      IXPD_IND H    | $DD $CB [1:S8] $14                ; *UNDOCUMENTED* RL (IX+N) then LD H,(IX+N)
+RL      IXPD_IND L    | $DD $CB [1:S8] $15                ; *UNDOCUMENTED* RL (IX+N) then LD L,(IX+N)
 RL      IX_IND        | $DD $CB $00 $16                   ; (IX) --> (IX+0)
 RL      IYPD_IND      | $FD $CB [1:S8] $16
+RL      IYPD_IND A    | $FD $CB [1:S8] $17                ; *UNDOCUMENTED* RL (IY+N) then LD A,(IY+N)
+RL      IYPD_IND B    | $FD $CB [1:S8] $10                ; *UNDOCUMENTED* RL (IY+N) then LD B,(IY+N)
+RL      IYPD_IND C    | $FD $CB [1:S8] $11                ; *UNDOCUMENTED* RL (IY+N) then LD C,(IY+N)
+RL      IYPD_IND D    | $FD $CB [1:S8] $12                ; *UNDOCUMENTED* RL (IY+N) then LD D,(IY+N)
+RL      IYPD_IND E    | $FD $CB [1:S8] $13                ; *UNDOCUMENTED* RL (IY+N) then LD E,(IY+N)
+RL      IYPD_IND H    | $FD $CB [1:S8] $14                ; *UNDOCUMENTED* RL (IY+N) then LD H,(IY+N)
+RL      IYPD_IND L    | $FD $CB [1:S8] $15                ; *UNDOCUMENTED* RL (IY+N) then LD L,(IY+N)
 RL      IY_IND        | $FD $CB $00 $16                   ; (IY) --> (IY+0)
 RL      L             | $CB $15
 RLA                   | $17
@@ -842,8 +857,22 @@ RLC     E             | $CB $03
 RLC     H             | $CB $04
 RLC     HL_IND        | $CB $06
 RLC     IXPD_IND      | $DD $CB [1:S8] $06
+RLC     IXPD_IND A    | $DD $CB [1:S8] $07                ; *UNDOCUMENTED* RLC (IX+N) then LD A,(IX+N)
+RLC     IXPD_IND B    | $DD $CB [1:S8] $00                ; *UNDOCUMENTED* RLC (IX+N) then LD B,(IX+N)
+RLC     IXPD_IND C    | $DD $CB [1:S8] $01                ; *UNDOCUMENTED* RLC (IX+N) then LD C,(IX+N)
+RLC     IXPD_IND D    | $DD $CB [1:S8] $02                ; *UNDOCUMENTED* RLC (IX+N) then LD D,(IX+N)
+RLC     IXPD_IND E    | $DD $CB [1:S8] $03                ; *UNDOCUMENTED* RLC (IX+N) then LD E,(IX+N)
+RLC     IXPD_IND H    | $DD $CB [1:S8] $04                ; *UNDOCUMENTED* RLC (IX+N) then LD H,(IX+N)
+RLC     IXPD_IND L    | $DD $CB [1:S8] $05                ; *UNDOCUMENTED* RLC (IX+N) then LD L,(IX+N)
 RLC     IX_IND        | $DD $CB $00 $06                   ; (IX) --> (IX+0)
 RLC     IYPD_IND      | $FD $CB [1:S8] $06
+RLC     IYPD_IND A    | $FD $CB [1:S8] $07                ; *UNDOCUMENTED* RLC (IY+N) then LD A,(IY+N)
+RLC     IYPD_IND B    | $FD $CB [1:S8] $00                ; *UNDOCUMENTED* RLC (IY+N) then LD B,(IY+N)
+RLC     IYPD_IND C    | $FD $CB [1:S8] $01                ; *UNDOCUMENTED* RLC (IY+N) then LD C,(IY+N)
+RLC     IYPD_IND D    | $FD $CB [1:S8] $02                ; *UNDOCUMENTED* RLC (IY+N) then LD D,(IY+N)
+RLC     IYPD_IND E    | $FD $CB [1:S8] $03                ; *UNDOCUMENTED* RLC (IY+N) then LD E,(IY+N)
+RLC     IYPD_IND H    | $FD $CB [1:S8] $04                ; *UNDOCUMENTED* RLC (IY+N) then LD H,(IY+N)
+RLC     IYPD_IND L    | $FD $CB [1:S8] $05                ; *UNDOCUMENTED* RLC (IY+N) then LD L,(IY+N)
 RLC     IY_IND        | $FD $CB $00 $06                   ; (IY) --> (IY+0)
 RLC     L             | $CB $05
 RLCA                  | $07
@@ -856,8 +885,22 @@ RR      E             | $CB $1B
 RR      H             | $CB $1C
 RR      HL_IND        | $CB $1E
 RR      IXPD_IND      | $DD $CB [1:S8] $1E
+RR      IXPD_IND A    | $DD $CB [1:S8] $1F                ; *UNDOCUMENTED* RR (IX+N) then LD A,(IX+N)
+RR      IXPD_IND B    | $DD $CB [1:S8] $18                ; *UNDOCUMENTED* RR (IX+N) then LD B,(IX+N)
+RR      IXPD_IND C    | $DD $CB [1:S8] $19                ; *UNDOCUMENTED* RR (IX+N) then LD C,(IX+N)
+RR      IXPD_IND D    | $DD $CB [1:S8] $1A                ; *UNDOCUMENTED* RR (IX+N) then LD D,(IX+N)
+RR      IXPD_IND E    | $DD $CB [1:S8] $1B                ; *UNDOCUMENTED* RR (IX+N) then LD E,(IX+N)
+RR      IXPD_IND H    | $DD $CB [1:S8] $1C                ; *UNDOCUMENTED* RR (IX+N) then LD H,(IX+N)
+RR      IXPD_IND L    | $DD $CB [1:S8] $1D                ; *UNDOCUMENTED* RR (IX+N) then LD L,(IX+N)
 RR      IX_IND        | $DD $CB $00 $1E                   ; (IX) --> (IX+0)
 RR      IYPD_IND      | $FD $CB [1:S8] $1E
+RR      IYPD_IND A    | $FD $CB [1:S8] $1F                ; *UNDOCUMENTED* RR (IY+N) then LD A,(IY+N)
+RR      IYPD_IND B    | $FD $CB [1:S8] $18                ; *UNDOCUMENTED* RR (IY+N) then LD B,(IY+N)
+RR      IYPD_IND C    | $FD $CB [1:S8] $19                ; *UNDOCUMENTED* RR (IY+N) then LD C,(IY+N)
+RR      IYPD_IND D    | $FD $CB [1:S8] $1A                ; *UNDOCUMENTED* RR (IY+N) then LD D,(IY+N)
+RR      IYPD_IND E    | $FD $CB [1:S8] $1B                ; *UNDOCUMENTED* RR (IY+N) then LD E,(IY+N)
+RR      IYPD_IND H    | $FD $CB [1:S8] $1C                ; *UNDOCUMENTED* RR (IY+N) then LD H,(IY+N)
+RR      IYPD_IND L    | $FD $CB [1:S8] $1D                ; *UNDOCUMENTED* RR (IY+N) then LD L,(IY+N)
 RR      IY_IND        | $FD $CB $00 $1E                   ; (IY) --> (IY+0)
 RR      L             | $CB $1D
 RRA                   | $1F
@@ -869,8 +912,22 @@ RRC     E             | $CB $0B
 RRC     H             | $CB $0C
 RRC     HL_IND        | $CB $0E
 RRC     IXPD_IND      | $DD $CB [1:S8] $0E
+RRC     IXPD_IND A    | $DD $CB [1:S8] $0F                ; *UNDOCUMENTED* RRC (IX+N) then LD A,(IX+N)
+RRC     IXPD_IND B    | $DD $CB [1:S8] $08                ; *UNDOCUMENTED* RRC (IX+N) then LD B,(IX+N)
+RRC     IXPD_IND C    | $DD $CB [1:S8] $09                ; *UNDOCUMENTED* RRC (IX+N) then LD C,(IX+N)
+RRC     IXPD_IND D    | $DD $CB [1:S8] $0A                ; *UNDOCUMENTED* RRC (IX+N) then LD D,(IX+N)
+RRC     IXPD_IND E    | $DD $CB [1:S8] $0B                ; *UNDOCUMENTED* RRC (IX+N) then LD E,(IX+N)
+RRC     IXPD_IND H    | $DD $CB [1:S8] $0C                ; *UNDOCUMENTED* RRC (IX+N) then LD H,(IX+N)
+RRC     IXPD_IND L    | $DD $CB [1:S8] $0D                ; *UNDOCUMENTED* RRC (IX+N) then LD L,(IX+N)
 RRC     IX_IND        | $DD $CB $00 $0E                   ; (IX) --> (IX+0)
 RRC     IYPD_IND      | $FD $CB [1:S8] $0E
+RRC     IYPD_IND A    | $FD $CB [1:S8] $0F                ; *UNDOCUMENTED* RRC (IY+N) then LD A,(IY+N)
+RRC     IYPD_IND B    | $FD $CB [1:S8] $08                ; *UNDOCUMENTED* RRC (IY+N) then LD B,(IY+N)
+RRC     IYPD_IND C    | $FD $CB [1:S8] $09                ; *UNDOCUMENTED* RRC (IY+N) then LD C,(IY+N)
+RRC     IYPD_IND D    | $FD $CB [1:S8] $0A                ; *UNDOCUMENTED* RRC (IY+N) then LD D,(IY+N)
+RRC     IYPD_IND E    | $FD $CB [1:S8] $0B                ; *UNDOCUMENTED* RRC (IY+N) then LD E,(IY+N)
+RRC     IYPD_IND H    | $FD $CB [1:S8] $0C                ; *UNDOCUMENTED* RRC (IY+N) then LD H,(IY+N)
+RRC     IYPD_IND L    | $FD $CB [1:S8] $0D                ; *UNDOCUMENTED* RRC (IY+N) then LD L,(IY+N)
 RRC     IY_IND        | $FD $CB $00 $0E                   ; (IY) --> (IY+0)
 RRC     L             | $CB $0D
 RRCA                  | $0F
@@ -883,8 +940,22 @@ SLA     E             | $CB $23
 SLA     H             | $CB $24
 SLA     HL_IND        | $CB $26
 SLA     IXPD_IND      | $DD $CB [1:S8] $26
+SLA     IXPD_IND A    | $DD $CB [1:S8] $27                ; *UNDOCUMENTED* SLA (IX+N) then LD A,(IX+N)
+SLA     IXPD_IND B    | $DD $CB [1:S8] $20                ; *UNDOCUMENTED* SLA (IX+N) then LD B,(IX+N)
+SLA     IXPD_IND C    | $DD $CB [1:S8] $21                ; *UNDOCUMENTED* SLA (IX+N) then LD C,(IX+N)
+SLA     IXPD_IND D    | $DD $CB [1:S8] $22                ; *UNDOCUMENTED* SLA (IX+N) then LD D,(IX+N)
+SLA     IXPD_IND E    | $DD $CB [1:S8] $23                ; *UNDOCUMENTED* SLA (IX+N) then LD E,(IX+N)
+SLA     IXPD_IND H    | $DD $CB [1:S8] $24                ; *UNDOCUMENTED* SLA (IX+N) then LD H,(IX+N)
+SLA     IXPD_IND L    | $DD $CB [1:S8] $25                ; *UNDOCUMENTED* SLA (IX+N) then LD L,(IX+N)
 SLA     IX_IND        | $DD $CB $00 $26                   ; (IX) --> (IX+0)
 SLA     IYPD_IND      | $FD $CB [1:S8] $26
+SLA     IYPD_IND A    | $FD $CB [1:S8] $27                ; *UNDOCUMENTED* SLA (IY+N) then LD A,(IY+N)
+SLA     IYPD_IND B    | $FD $CB [1:S8] $20                ; *UNDOCUMENTED* SLA (IY+N) then LD B,(IY+N)
+SLA     IYPD_IND C    | $FD $CB [1:S8] $21                ; *UNDOCUMENTED* SLA (IY+N) then LD C,(IY+N)
+SLA     IYPD_IND D    | $FD $CB [1:S8] $22                ; *UNDOCUMENTED* SLA (IY+N) then LD D,(IY+N)
+SLA     IYPD_IND E    | $FD $CB [1:S8] $23                ; *UNDOCUMENTED* SLA (IY+N) then LD E,(IY+N)
+SLA     IYPD_IND H    | $FD $CB [1:S8] $24                ; *UNDOCUMENTED* SLA (IY+N) then LD H,(IY+N)
+SLA     IYPD_IND L    | $FD $CB [1:S8] $25                ; *UNDOCUMENTED* SLA (IY+N) then LD L,(IY+N)
 SLA     IY_IND        | $FD $CB $00 $26                   ; (IY) --> (IY+0)
 SLA     L             | $CB $25
 SRA     A             | $CB $2F
@@ -895,8 +966,22 @@ SRA     E             | $CB $2B
 SRA     H             | $CB $2C
 SRA     HL_IND        | $CB $2E
 SRA     IXPD_IND      | $DD $CB [1:S8] $2E
+SRA     IXPD_IND A    | $DD $CB [1:S8] $2F                ; *UNDOCUMENTED* SRA (IX+N) then LD A,(IX+N)
+SRA     IXPD_IND B    | $DD $CB [1:S8] $28                ; *UNDOCUMENTED* SRA (IX+N) then LD B,(IX+N)
+SRA     IXPD_IND C    | $DD $CB [1:S8] $29                ; *UNDOCUMENTED* SRA (IX+N) then LD C,(IX+N)
+SRA     IXPD_IND D    | $DD $CB [1:S8] $2A                ; *UNDOCUMENTED* SRA (IX+N) then LD D,(IX+N)
+SRA     IXPD_IND E    | $DD $CB [1:S8] $2B                ; *UNDOCUMENTED* SRA (IX+N) then LD E,(IX+N)
+SRA     IXPD_IND H    | $DD $CB [1:S8] $2C                ; *UNDOCUMENTED* SRA (IX+N) then LD H,(IX+N)
+SRA     IXPD_IND L    | $DD $CB [1:S8] $2D                ; *UNDOCUMENTED* SRA (IX+N) then LD L,(IX+N)
 SRA     IX_IND        | $DD $CB $00 $2E                   ; (IX) --> (IX+0)
 SRA     IYPD_IND      | $FD $CB [1:S8] $2E
+SRA     IYPD_IND A    | $FD $CB [1:S8] $2F                ; *UNDOCUMENTED* SRA (IY+N) then LD A,(IY+N)
+SRA     IYPD_IND B    | $FD $CB [1:S8] $28                ; *UNDOCUMENTED* SRA (IY+N) then LD B,(IY+N)
+SRA     IYPD_IND C    | $FD $CB [1:S8] $29                ; *UNDOCUMENTED* SRA (IY+N) then LD C,(IY+N)
+SRA     IYPD_IND D    | $FD $CB [1:S8] $2A                ; *UNDOCUMENTED* SRA (IY+N) then LD D,(IY+N)
+SRA     IYPD_IND E    | $FD $CB [1:S8] $2B                ; *UNDOCUMENTED* SRA (IY+N) then LD E,(IY+N)
+SRA     IYPD_IND H    | $FD $CB [1:S8] $2C                ; *UNDOCUMENTED* SRA (IY+N) then LD H,(IY+N)
+SRA     IYPD_IND L    | $FD $CB [1:S8] $2D                ; *UNDOCUMENTED* SRA (IY+N) then LD L,(IY+N)
 SRA     IY_IND        | $FD $CB $00 $2E                   ; (IY) --> (IY+0)
 SRA     L             | $CB $2D
 SRL     A             | $CB $3F
@@ -907,8 +992,22 @@ SRL     E             | $CB $3B
 SRL     H             | $CB $3C
 SRL     HL_IND        | $CB $3E
 SRL     IXPD_IND      | $DD $CB [1:S8] $3E
+SRL     IXPD_IND A    | $DD $CB [1:S8] $3F                ; *UNDOCUMENTED* SRL (IX+N) then LD A,(IX+N)
+SRL     IXPD_IND B    | $DD $CB [1:S8] $38                ; *UNDOCUMENTED* SRL (IX+N) then LD B,(IX+N)
+SRL     IXPD_IND C    | $DD $CB [1:S8] $39                ; *UNDOCUMENTED* SRL (IX+N) then LD C,(IX+N)
+SRL     IXPD_IND D    | $DD $CB [1:S8] $3A                ; *UNDOCUMENTED* SRL (IX+N) then LD D,(IX+N)
+SRL     IXPD_IND E    | $DD $CB [1:S8] $3B                ; *UNDOCUMENTED* SRL (IX+N) then LD E,(IX+N)
+SRL     IXPD_IND H    | $DD $CB [1:S8] $3C                ; *UNDOCUMENTED* SRL (IX+N) then LD H,(IX+N)
+SRL     IXPD_IND L    | $DD $CB [1:S8] $3D                ; *UNDOCUMENTED* SRL (IX+N) then LD L,(IX+N)
 SRL     IX_IND        | $DD $CB $00 $3E                   ; (IX) --> (IX+0)
 SRL     IYPD_IND      | $FD $CB [1:S8] $3E
+SRL     IYPD_IND A    | $FD $CB [1:S8] $3F                ; *UNDOCUMENTED* SRL (IY+N) then LD A,(IY+N)
+SRL     IYPD_IND B    | $FD $CB [1:S8] $38                ; *UNDOCUMENTED* SRL (IY+N) then LD B,(IY+N)
+SRL     IYPD_IND C    | $FD $CB [1:S8] $39                ; *UNDOCUMENTED* SRL (IY+N) then LD C,(IY+N)
+SRL     IYPD_IND D    | $FD $CB [1:S8] $3A                ; *UNDOCUMENTED* SRL (IY+N) then LD D,(IY+N)
+SRL     IYPD_IND E    | $FD $CB [1:S8] $3B                ; *UNDOCUMENTED* SRL (IY+N) then LD E,(IY+N)
+SRL     IYPD_IND H    | $FD $CB [1:S8] $3C                ; *UNDOCUMENTED* SRL (IY+N) then LD H,(IY+N)
+SRL     IYPD_IND L    | $FD $CB [1:S8] $3D                ; *UNDOCUMENTED* SRL (IY+N) then LD L,(IY+N)
 SRL     IY_IND        | $FD $CB $00 $3E                   ; (IY) --> (IY+0)
 SRL     L             | $CB $3D
 
@@ -1213,86 +1312,6 @@ SET7LDL IYPD_IND      | $FD $CB [1:S8] $FD                ; *UNDOCUMENTED* SET 7
 ;
 ;-----------------------------------------------------------------------------
 
-RLCLDA  IXPD_IND      | $DD $CB [1:S8] $07                ; *UNDOCUMENTED* RLC (IX+N) then LD A,(IX+N)
-RLCLDA  IYPD_IND      | $FD $CB [1:S8] $07                ; *UNDOCUMENTED* RLC (IY+N) then LD A,(IY+N)
-RLCLDB  IXPD_IND      | $DD $CB [1:S8] $00                ; *UNDOCUMENTED* RLC (IX+N) then LD B,(IX+N)
-RLCLDB  IYPD_IND      | $FD $CB [1:S8] $00                ; *UNDOCUMENTED* RLC (IY+N) then LD B,(IY+N)
-RLCLDC  IXPD_IND      | $DD $CB [1:S8] $01                ; *UNDOCUMENTED* RLC (IX+N) then LD C,(IX+N)
-RLCLDC  IYPD_IND      | $FD $CB [1:S8] $01                ; *UNDOCUMENTED* RLC (IY+N) then LD C,(IY+N)
-RLCLDD  IXPD_IND      | $DD $CB [1:S8] $02                ; *UNDOCUMENTED* RLC (IX+N) then LD D,(IX+N)
-RLCLDD  IYPD_IND      | $FD $CB [1:S8] $02                ; *UNDOCUMENTED* RLC (IY+N) then LD D,(IY+N)
-RLCLDE  IXPD_IND      | $DD $CB [1:S8] $03                ; *UNDOCUMENTED* RLC (IX+N) then LD E,(IX+N)
-RLCLDE  IYPD_IND      | $FD $CB [1:S8] $03                ; *UNDOCUMENTED* RLC (IY+N) then LD E,(IY+N)
-RLCLDF  IXPD_IND      | $DD $CB [1:S8] $06                ; *UNDOCUMENTED* RLC (IX+N) then LD F,(IX+N)
-RLCLDF  IYPD_IND      | $FD $CB [1:S8] $06                ; *UNDOCUMENTED* RLC (IY+N) then LD F,(IY+N)
-RLCLDH  IXPD_IND      | $DD $CB [1:S8] $04                ; *UNDOCUMENTED* RLC (IX+N) then LD H,(IX+N)
-RLCLDH  IYPD_IND      | $FD $CB [1:S8] $04                ; *UNDOCUMENTED* RLC (IY+N) then LD H,(IY+N)
-RLCLDL  IXPD_IND      | $DD $CB [1:S8] $05                ; *UNDOCUMENTED* RLC (IX+N) then LD L,(IX+N)
-RLCLDL  IYPD_IND      | $FD $CB [1:S8] $05                ; *UNDOCUMENTED* RLC (IY+N) then LD L,(IY+N)
-RLLDA   IXPD_IND      | $DD $CB [1:S8] $17                ; *UNDOCUMENTED* RLL (IX+N) then LD A,(IX+N)
-RLLDA   IYPD_IND      | $FD $CB [1:S8] $17                ; *UNDOCUMENTED* RLL (IY+N) then LD A,(IY+N)
-RLLDB   IXPD_IND      | $DD $CB [1:S8] $10                ; *UNDOCUMENTED* RLL (IX+N) then LD B,(IX+N)
-RLLDB   IYPD_IND      | $FD $CB [1:S8] $10                ; *UNDOCUMENTED* RLL (IY+N) then LD B,(IY+N)
-RLLDC   IXPD_IND      | $DD $CB [1:S8] $11                ; *UNDOCUMENTED* RLL (IX+N) then LD C,(IX+N)
-RLLDC   IYPD_IND      | $FD $CB [1:S8] $11                ; *UNDOCUMENTED* RLL (IY+N) then LD C,(IY+N)
-RLLDD   IXPD_IND      | $DD $CB [1:S8] $12                ; *UNDOCUMENTED* RLL (IX+N) then LD D,(IX+N)
-RLLDD   IYPD_IND      | $FD $CB [1:S8] $12                ; *UNDOCUMENTED* RLL (IY+N) then LD D,(IY+N)
-RLLDE   IXPD_IND      | $DD $CB [1:S8] $13                ; *UNDOCUMENTED* RLL (IX+N) then LD E,(IX+N)
-RLLDE   IYPD_IND      | $FD $CB [1:S8] $13                ; *UNDOCUMENTED* RLL (IY+N) then LD E,(IY+N)
-RLLDF   IXPD_IND      | $DD $CB [1:S8] $16                ; *UNDOCUMENTED* RLL (IX+N) then LD F,(IX+N)
-RLLDF   IYPD_IND      | $FD $CB [1:S8] $16                ; *UNDOCUMENTED* RLL (IY+N) then LD F,(IY+N)
-RLLDH   IXPD_IND      | $DD $CB [1:S8] $14                ; *UNDOCUMENTED* RLL (IX+N) then LD H,(IX+N)
-RLLDH   IYPD_IND      | $FD $CB [1:S8] $14                ; *UNDOCUMENTED* RLL (IY+N) then LD H,(IY+N)
-RLLDL   IXPD_IND      | $DD $CB [1:S8] $15                ; *UNDOCUMENTED* RLL (IX+N) then LD L,(IX+N)
-RLLDL   IYPD_IND      | $FD $CB [1:S8] $15                ; *UNDOCUMENTED* RLL (IY+N) then LD L,(IY+N)
-RRCLDA  IXPD_IND      | $DD $CB [1:S8] $0F                ; *UNDOCUMENTED* RRC (IX+N) then LD A,(IX+N)
-RRCLDA  IYPD_IND      | $FD $CB [1:S8] $0F                ; *UNDOCUMENTED* RRC (IY+N) then LD A,(IY+N)
-RRCLDB  IXPD_IND      | $DD $CB [1:S8] $08                ; *UNDOCUMENTED* RRC (IX+N) then LD B,(IX+N)
-RRCLDB  IYPD_IND      | $FD $CB [1:S8] $08                ; *UNDOCUMENTED* RRC (IY+N) then LD B,(IY+N)
-RRCLDC  IXPD_IND      | $DD $CB [1:S8] $09                ; *UNDOCUMENTED* RRC (IX+N) then LD C,(IX+N)
-RRCLDC  IYPD_IND      | $FD $CB [1:S8] $09                ; *UNDOCUMENTED* RRC (IY+N) then LD C,(IY+N)
-RRCLDD  IXPD_IND      | $DD $CB [1:S8] $0A                ; *UNDOCUMENTED* RRC (IX+N) then LD D,(IX+N)
-RRCLDD  IYPD_IND      | $FD $CB [1:S8] $0A                ; *UNDOCUMENTED* RRC (IY+N) then LD D,(IY+N)
-RRCLDE  IXPD_IND      | $DD $CB [1:S8] $0B                ; *UNDOCUMENTED* RRC (IX+N) then LD E,(IX+N)
-RRCLDE  IYPD_IND      | $FD $CB [1:S8] $0B                ; *UNDOCUMENTED* RRC (IY+N) then LD E,(IY+N)
-RRCLDF  IXPD_IND      | $DD $CB [1:S8] $0E                ; *UNDOCUMENTED* RRC (IX+N) then LD F,(IX+N)
-RRCLDF  IYPD_IND      | $FD $CB [1:S8] $0E                ; *UNDOCUMENTED* RRC (IY+N) then LD F,(IY+N)
-RRCLDH  IXPD_IND      | $DD $CB [1:S8] $0C                ; *UNDOCUMENTED* RRC (IX+N) then LD H,(IX+N)
-RRCLDH  IYPD_IND      | $FD $CB [1:S8] $0C                ; *UNDOCUMENTED* RRC (IY+N) then LD H,(IY+N)
-RRCLDL  IXPD_IND      | $DD $CB [1:S8] $0D                ; *UNDOCUMENTED* RRC (IX+N) then LD L,(IX+N)
-RRCLDL  IYPD_IND      | $FD $CB [1:S8] $0D                ; *UNDOCUMENTED* RRC (IY+N) then LD L,(IY+N)
-RRLDA   IXPD_IND      | $DD $CB [1:S8] $1F                ; *UNDOCUMENTED* RRL (IX+N) then LD A,(IX+N)
-RRLDA   IYPD_IND      | $FD $CB [1:S8] $1F                ; *UNDOCUMENTED* RRL (IY+N) then LD A,(IY+N)
-RRLDB   IXPD_IND      | $DD $CB [1:S8] $18                ; *UNDOCUMENTED* RRL (IX+N) then LD B,(IX+N)
-RRLDB   IYPD_IND      | $FD $CB [1:S8] $18                ; *UNDOCUMENTED* RRL (IY+N) then LD B,(IY+N)
-RRLDC   IXPD_IND      | $DD $CB [1:S8] $19                ; *UNDOCUMENTED* RRL (IX+N) then LD C,(IX+N)
-RRLDC   IYPD_IND      | $FD $CB [1:S8] $19                ; *UNDOCUMENTED* RRL (IY+N) then LD C,(IY+N)
-RRLDD   IXPD_IND      | $DD $CB [1:S8] $1A                ; *UNDOCUMENTED* RRL (IX+N) then LD D,(IX+N)
-RRLDD   IYPD_IND      | $FD $CB [1:S8] $1A                ; *UNDOCUMENTED* RRL (IY+N) then LD D,(IY+N)
-RRLDE   IXPD_IND      | $DD $CB [1:S8] $1B                ; *UNDOCUMENTED* RRL (IX+N) then LD E,(IX+N)
-RRLDE   IYPD_IND      | $FD $CB [1:S8] $1B                ; *UNDOCUMENTED* RRL (IY+N) then LD E,(IY+N)
-RRLDF   IXPD_IND      | $DD $CB [1:S8] $1E                ; *UNDOCUMENTED* RRL (IX+N) then LD F,(IX+N)
-RRLDF   IYPD_IND      | $FD $CB [1:S8] $1E                ; *UNDOCUMENTED* RRL (IY+N) then LD F,(IY+N)
-RRLDH   IXPD_IND      | $DD $CB [1:S8] $1C                ; *UNDOCUMENTED* RRL (IX+N) then LD H,(IX+N)
-RRLDH   IYPD_IND      | $FD $CB [1:S8] $1C                ; *UNDOCUMENTED* RRL (IY+N) then LD H,(IY+N)
-RRLDL   IXPD_IND      | $DD $CB [1:S8] $1D                ; *UNDOCUMENTED* RRL (IX+N) then LD L,(IX+N)
-RRLDL   IYPD_IND      | $FD $CB [1:S8] $1D                ; *UNDOCUMENTED* RRL (IY+N) then LD L,(IY+N)
-SLADA   IXPD_IND      | $DD $CB [1:S8] $27                ; *UNDOCUMENTED* SLA (IX+N) then LD A,(IX+N)
-SLADA   IYPD_IND      | $FD $CB [1:S8] $27                ; *UNDOCUMENTED* SLA (IY+N) then LD A,(IY+N)
-SLADB   IXPD_IND      | $DD $CB [1:S8] $20                ; *UNDOCUMENTED* SLA (IX+N) then LD B,(IX+N)
-SLADB   IYPD_IND      | $FD $CB [1:S8] $20                ; *UNDOCUMENTED* SLA (IY+N) then LD B,(IY+N)
-SLADC   IXPD_IND      | $DD $CB [1:S8] $21                ; *UNDOCUMENTED* SLA (IX+N) then LD C,(IX+N)
-SLADC   IYPD_IND      | $FD $CB [1:S8] $21                ; *UNDOCUMENTED* SLA (IY+N) then LD C,(IY+N)
-SLADD   IXPD_IND      | $DD $CB [1:S8] $22                ; *UNDOCUMENTED* SLA (IX+N) then LD D,(IX+N)
-SLADD   IYPD_IND      | $FD $CB [1:S8] $22                ; *UNDOCUMENTED* SLA (IY+N) then LD D,(IY+N)
-SLADE   IXPD_IND      | $DD $CB [1:S8] $23                ; *UNDOCUMENTED* SLA (IX+N) then LD E,(IX+N)
-SLADE   IYPD_IND      | $FD $CB [1:S8] $23                ; *UNDOCUMENTED* SLA (IY+N) then LD E,(IY+N)
-SLADF   IXPD_IND      | $DD $CB [1:S8] $26                ; *UNDOCUMENTED* SLA (IX+N) then LD F,(IX+N)
-SLADF   IYPD_IND      | $FD $CB [1:S8] $26                ; *UNDOCUMENTED* SLA (IY+N) then LD F,(IY+N)
-SLADH   IXPD_IND      | $DD $CB [1:S8] $24                ; *UNDOCUMENTED* SLA (IX+N) then LD H,(IX+N)
-SLADH   IYPD_IND      | $FD $CB [1:S8] $24                ; *UNDOCUMENTED* SLA (IY+N) then LD H,(IY+N)
-SLADL   IXPD_IND      | $DD $CB [1:S8] $25                ; *UNDOCUMENTED* SLA (IX+N) then LD L,(IX+N)
-SLADL   IYPD_IND      | $FD $CB [1:S8] $25                ; *UNDOCUMENTED* SLA (IY+N) then LD L,(IY+N)
 SLL     A             | $CB $37                           ; *UNDOCUMENTED*
 SLL     B             | $CB $30                           ; *UNDOCUMENTED*
 SLL     C             | $CB $31                           ; *UNDOCUMENTED*
@@ -1300,54 +1319,24 @@ SLL     D             | $CB $32                           ; *UNDOCUMENTED*
 SLL     E             | $CB $33                           ; *UNDOCUMENTED*
 SLL     H             | $CB $34                           ; *UNDOCUMENTED*
 SLL     HL_IND        | $CB $36                           ; *UNDOCUMENTED*
+SLL     IXPD_IND      | $DD $CB [1:S8] $36                ; *UNDOCUMENTED* SLL (IX+N)
+SLL     IXPD_IND A    | $DD $CB [1:S8] $37                ; *UNDOCUMENTED* SLL (IX+N) then LD A,(IX+N)
+SLL     IXPD_IND B    | $DD $CB [1:S8] $30                ; *UNDOCUMENTED* SLL (IX+N) then LD B,(IX+N)
+SLL     IXPD_IND C    | $DD $CB [1:S8] $31                ; *UNDOCUMENTED* SLL (IX+N) then LD C,(IX+N)
+SLL     IXPD_IND D    | $DD $CB [1:S8] $32                ; *UNDOCUMENTED* SLL (IX+N) then LD D,(IX+N)
+SLL     IXPD_IND E    | $DD $CB [1:S8] $33                ; *UNDOCUMENTED* SLL (IX+N) then LD E,(IX+N)
+SLL     IXPD_IND H    | $DD $CB [1:S8] $34                ; *UNDOCUMENTED* SLL (IX+N) then LD H,(IX+N)
+SLL     IXPD_IND L    | $DD $CB [1:S8] $35                ; *UNDOCUMENTED* SLL (IX+N) then LD L,(IX+N)
+SLL     IX_IND        | $DD $CB $00 $36                   ; Same as SLL [IX+0]
+SLL     IYPD_IND      | $FD $CB [1:S8] $36                ; *UNDOCUMENTED* SLL (IY+N)
+SLL     IYPD_IND A    | $FD $CB [1:S8] $37                ; *UNDOCUMENTED* SLL (IY+N) then LD A,(IY+N)
+SLL     IYPD_IND B    | $FD $CB [1:S8] $30                ; *UNDOCUMENTED* SLL (IY+N) then LD B,(IY+N)
+SLL     IYPD_IND C    | $FD $CB [1:S8] $31                ; *UNDOCUMENTED* SLL (IY+N) then LD C,(IY+N)
+SLL     IYPD_IND D    | $FD $CB [1:S8] $32                ; *UNDOCUMENTED* SLL (IY+N) then LD D,(IY+N)
+SLL     IYPD_IND E    | $FD $CB [1:S8] $33                ; *UNDOCUMENTED* SLL (IY+N) then LD E,(IY+N)
+SLL     IYPD_IND H    | $FD $CB [1:S8] $34                ; *UNDOCUMENTED* SLL (IY+N) then LD H,(IY+N)
+SLL     IYPD_IND L    | $FD $CB [1:S8] $35                ; *UNDOCUMENTED* SLL (IY+N) then LD L,(IY+N)
+SLL     IY_IND        | $FD $CB $00 $36                   ; Same as SLL [IY+0]
 SLL     L             | $CB $35                           ; *UNDOCUMENTED*
-SLLDA   IXPD_IND      | $DD $CB [1:S8] $37                ; *UNDOCUMENTED* SLL (IX+N) then LD A,(IX+N)
-SLLDA   IYPD_IND      | $FD $CB [1:S8] $37                ; *UNDOCUMENTED* SLL (IY+N) then LD A,(IY+N)
-SLLDB   IXPD_IND      | $DD $CB [1:S8] $30                ; *UNDOCUMENTED* SLL (IX+N) then LD B,(IX+N)
-SLLDB   IYPD_IND      | $FD $CB [1:S8] $30                ; *UNDOCUMENTED* SLL (IY+N) then LD B,(IY+N)
-SLLDC   IXPD_IND      | $DD $CB [1:S8] $31                ; *UNDOCUMENTED* SLL (IX+N) then LD C,(IX+N)
-SLLDC   IYPD_IND      | $FD $CB [1:S8] $31                ; *UNDOCUMENTED* SLL (IY+N) then LD C,(IY+N)
-SLLDD   IXPD_IND      | $DD $CB [1:S8] $32                ; *UNDOCUMENTED* SLL (IX+N) then LD D,(IX+N)
-SLLDD   IYPD_IND      | $FD $CB [1:S8] $32                ; *UNDOCUMENTED* SLL (IY+N) then LD D,(IY+N)
-SLLDE   IXPD_IND      | $DD $CB [1:S8] $33                ; *UNDOCUMENTED* SLL (IX+N) then LD E,(IX+N)
-SLLDE   IYPD_IND      | $FD $CB [1:S8] $33                ; *UNDOCUMENTED* SLL (IY+N) then LD E,(IY+N)
-SLLDF   IXPD_IND      | $DD $CB [1:S8] $36                ; *UNDOCUMENTED* SLL (IX+N) then LD F,(IX+N)
-SLLDF   IYPD_IND      | $FD $CB [1:S8] $36                ; *UNDOCUMENTED* SLL (IY+N) then LD F,(IY+N)
-SLLDH   IXPD_IND      | $DD $CB [1:S8] $34                ; *UNDOCUMENTED* SLL (IX+N) then LD H,(IX+N)
-SLLDH   IYPD_IND      | $FD $CB [1:S8] $34                ; *UNDOCUMENTED* SLL (IY+N) then LD H,(IY+N)
-SLLDL   IXPD_IND      | $DD $CB [1:S8] $35                ; *UNDOCUMENTED* SLL (IX+N) then LD L,(IX+N)
-SLLDL   IYPD_IND      | $FD $CB [1:S8] $35                ; *UNDOCUMENTED* SLL (IY+N) then LD L,(IY+N)
-SRADA   IXPD_IND      | $DD $CB [1:S8] $2F                ; *UNDOCUMENTED* SRA (IX+N) then LD A,(IX+N)
-SRADA   IYPD_IND      | $FD $CB [1:S8] $2F                ; *UNDOCUMENTED* SRA (IY+N) then LD A,(IY+N)
-SRADB   IXPD_IND      | $DD $CB [1:S8] $28                ; *UNDOCUMENTED* SRA (IX+N) then LD B,(IX+N)
-SRADB   IYPD_IND      | $FD $CB [1:S8] $28                ; *UNDOCUMENTED* SRA (IY+N) then LD B,(IY+N)
-SRADC   IXPD_IND      | $DD $CB [1:S8] $29                ; *UNDOCUMENTED* SRA (IX+N) then LD C,(IX+N)
-SRADC   IYPD_IND      | $FD $CB [1:S8] $29                ; *UNDOCUMENTED* SRA (IY+N) then LD C,(IY+N)
-SRADD   IXPD_IND      | $DD $CB [1:S8] $2A                ; *UNDOCUMENTED* SRA (IX+N) then LD D,(IX+N)
-SRADD   IYPD_IND      | $FD $CB [1:S8] $2A                ; *UNDOCUMENTED* SRA (IY+N) then LD D,(IY+N)
-SRADE   IXPD_IND      | $DD $CB [1:S8] $2B                ; *UNDOCUMENTED* SRA (IX+N) then LD E,(IX+N)
-SRADE   IYPD_IND      | $FD $CB [1:S8] $2B                ; *UNDOCUMENTED* SRA (IY+N) then LD E,(IY+N)
-SRADF   IXPD_IND      | $DD $CB [1:S8] $2E                ; *UNDOCUMENTED* SRA (IX+N) then LD F,(IX+N)
-SRADF   IYPD_IND      | $FD $CB [1:S8] $2E                ; *UNDOCUMENTED* SRA (IY+N) then LD F,(IY+N)
-SRADH   IXPD_IND      | $DD $CB [1:S8] $2C                ; *UNDOCUMENTED* SRA (IX+N) then LD H,(IX+N)
-SRADH   IYPD_IND      | $FD $CB [1:S8] $2C                ; *UNDOCUMENTED* SRA (IY+N) then LD H,(IY+N)
-SRADL   IXPD_IND      | $DD $CB [1:S8] $2D                ; *UNDOCUMENTED* SRA (IX+N) then LD L,(IX+N)
-SRADL   IYPD_IND      | $FD $CB [1:S8] $2D                ; *UNDOCUMENTED* SRA (IY+N) then LD L,(IY+N)
-SRLDA   IXPD_IND      | $DD $CB [1:S8] $3F                ; *UNDOCUMENTED* SRL (IX+N) then LD A,(IX+N)
-SRLDA   IYPD_IND      | $FD $CB [1:S8] $3F                ; *UNDOCUMENTED* SRL (IY+N) then LD A,(IY+N)
-SRLDB   IXPD_IND      | $DD $CB [1:S8] $38                ; *UNDOCUMENTED* SRL (IX+N) then LD B,(IX+N)
-SRLDB   IYPD_IND      | $FD $CB [1:S8] $38                ; *UNDOCUMENTED* SRL (IY+N) then LD B,(IY+N)
-SRLDC   IXPD_IND      | $DD $CB [1:S8] $39                ; *UNDOCUMENTED* SRL (IX+N) then LD C,(IX+N)
-SRLDC   IYPD_IND      | $FD $CB [1:S8] $39                ; *UNDOCUMENTED* SRL (IY+N) then LD C,(IY+N)
-SRLDD   IXPD_IND      | $DD $CB [1:S8] $3A                ; *UNDOCUMENTED* SRL (IX+N) then LD D,(IX+N)
-SRLDD   IYPD_IND      | $FD $CB [1:S8] $3A                ; *UNDOCUMENTED* SRL (IY+N) then LD D,(IY+N)
-SRLDE   IXPD_IND      | $DD $CB [1:S8] $3B                ; *UNDOCUMENTED* SRL (IX+N) then LD E,(IX+N)
-SRLDE   IYPD_IND      | $FD $CB [1:S8] $3B                ; *UNDOCUMENTED* SRL (IY+N) then LD E,(IY+N)
-SRLDF   IXPD_IND      | $DD $CB [1:S8] $3E                ; *UNDOCUMENTED* SRL (IX+N) then LD F,(IX+N)
-SRLDF   IYPD_IND      | $FD $CB [1:S8] $3E                ; *UNDOCUMENTED* SRL (IY+N) then LD F,(IY+N)
-SRLDH   IXPD_IND      | $DD $CB [1:S8] $3C                ; *UNDOCUMENTED* SRL (IX+N) then LD H,(IX+N)
-SRLDH   IYPD_IND      | $FD $CB [1:S8] $3C                ; *UNDOCUMENTED* SRL (IY+N) then LD H,(IY+N)
-SRLDL   IXPD_IND      | $DD $CB [1:S8] $3D                ; *UNDOCUMENTED* SRL (IX+N) then LD L,(IX+N)
-SRLDL   IYPD_IND      | $FD $CB [1:S8] $3D                ; *UNDOCUMENTED* SRL (IY+N) then LD L,(IY+N)
 
 ; <End Of File>

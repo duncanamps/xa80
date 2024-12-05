@@ -25,19 +25,39 @@ unit uprocessors;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, Generics.Collections;
+
+type
+  TProcessor = record
+    ProcessorName: string;
+    ProcessorDescription: string;
+  end;
+
+  TProcessorList = class(specialize TList<TProcessor>)
+    public
+      procedure Add(const _procname, _procdesc: string);
+  end;
 
 var
-  ProcessorList: TStringList;
+  ProcessorList: TProcessorList;
 
 implementation
 
+procedure TProcessorList.Add(const _procname, _procdesc: string);
+var newrec: TProcessor;
+begin
+  newrec.ProcessorName        := _procname;
+  newrec.ProcessorDescription := _procdesc;
+  inherited Add(newrec);
+end;
+
 initialization
-  ProcessorList := TStringList.Create;
-  ProcessorList.Add('8080');
-  ProcessorList.Add('8085');
-  ProcessorList.Add('Z80');
-  ProcessorList.Add('Z180');
+  ProcessorList := TProcessorList.Create;
+  ProcessorList.Add('8080', 'Intel 8080 processor');
+  ProcessorList.Add('8085', 'Intel 8085 processor');
+  ProcessorList.Add('Z80',  'Zilog Z80 processor and compatibles');
+  ProcessorList.Add('Z80X', 'Zilog Z80 processor and compatibles (+undocumented instructions)');
+  ProcessorList.Add('Z180', 'Zilog Z180 processor');
 
 finalization
   FreeAndNil(ProcessorList);

@@ -13,12 +13,13 @@
       <Title Value="xa80_v10"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
-      <Resources Count="5">
+      <Resources Count="6">
         <Resource_0 FileName="opcodes\source\8080.opcode.bin" Type="RCDATA" ResourceName="8080.OPCODE"/>
         <Resource_1 FileName="opcodes\source\8085.opcode.bin" Type="RCDATA" ResourceName="8085.OPCODE"/>
         <Resource_2 FileName="opcodes\source\z80.opcode.bin" Type="RCDATA" ResourceName="Z80.OPCODE"/>
         <Resource_3 FileName="opcodes\source\z180.opcode.bin" Type="RCDATA" ResourceName="Z180.OPCODE"/>
         <Resource_4 FileName="lac\xa80oper.lacobj" Type="RCDATA" ResourceName="XA80OPER"/>
+        <Resource_5 FileName="opcodes\source\z80x.opcode.bin" Type="RCDATA" ResourceName="Z80X.OPCODE"/>
       </Resources>
     </General>
     <VersionInfo>

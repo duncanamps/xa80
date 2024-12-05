@@ -1,4 +1,4 @@
-program oc_comp_v03;
+program oc_comp_v10;
 
 {
     XA80 - Cross Assembler for x80 processors
