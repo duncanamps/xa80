@@ -276,7 +276,7 @@ type
 
   TCodeElement = record
     ElementType: TCodeElementType;
-    OperandNo:   byte;              // Operand number either 1 or 2
+    OperandNo:   byte;              // Operand number either 1, 2 or 3
     Value:       byte;              // Value if appropriate for code output
     Offset:      byte;              // Bit offset within binary for RST and B3
   end;
@@ -285,6 +285,7 @@ type
     OpcodeIndex:       word;
     Operand1Index:     TOperandOption;
     Operand2Index:     TOperandOption;
+    Operand3Index:     TOperandOption;
     CodeElementCount:  byte;
     CodeElements:      array[0..CODE_ELEMENT_COUNT_MAXIMUM-1] of TCodeElement;
     CodeElementSize:   integer;
@@ -308,11 +309,11 @@ type
       function  Add(constref AValue: TInstructionRec): SizeInt; override;
       procedure AddOpcode(const _opcode: string);
       function  CalcCodeElementSize(_r: TInstructionRec): integer;
-      function  CalculateHash(_opcode: word; _operand1: TOperandOption; _operand2: TOperandOption): integer;
+      function  CalculateHash(_opcode: word; _operand1, _operand2, _operand3: TOperandOption): integer;
       function  CodeElementToString(_element: TCodeElement): string;
       procedure ConstructHashTable;
       procedure Dump(_sanitised: boolean = False);
-      function  FindInstruction(_opcode: word; _operand1: TOperandOption; _operand2: TOperandOption; var _r: TInstructionRec): boolean;
+      function  FindInstruction(_opcode: word; _operand1, _operand2, _operand3: TOperandOption; var _r: TInstructionRec): boolean;
       function  FindNextPrime(_start: integer): integer;
       function  FindOpcode(const _opcode: string; var _index: integer): boolean;
       procedure GetSimpleOperands(_sl: TStringList);
@@ -406,11 +407,12 @@ begin
     end;
 end;
 
-function TInstructionList.CalculateHash(_opcode: word; _operand1: TOperandOption; _operand2: TOperandOption): integer;
+function TInstructionList.CalculateHash(_opcode: word; _operand1, _operand2, _operand3: TOperandOption): integer;
 begin
-  Result := Ord(_operand2) +
-            Ord(_operand1) * FHashOperandMult +
-            _opcode * FHashOperandMult * FHashOpcodeMult;
+  Result := Ord(_operand3) +
+            Ord(_operand2) * FHashOperandMult +
+            Ord(_operand1) * FHashOperandMult * FHashOperandMult +
+            _opcode * FHashOperandMult * FHashOperandMult * FHashOpcodeMult;
   Result := Result mod FHashSize;
 end;
 
@@ -456,7 +458,8 @@ begin
       r := Items[i];
       hash := CalculateHash(r.OpcodeIndex,
                             r.Operand1Index,
-                            r.Operand2Index);
+                            r.Operand2Index,
+                            r.Operand3Index);
       cur_crash := 0;
       while FHashTable[hash] <> -1 do
         begin
@@ -514,6 +517,8 @@ begin
               s := s + OperandSanitised[r.Operand1Index];
             if r.Operand2Index <> OPER_NULL then
               s := s + ',' + OperandSanitised[r.Operand2Index];
+            if r.Operand3Index <> OPER_NULL then
+              s := s + ',' + OperandSanitised[r.Operand3Index];
           end
         else
           begin
@@ -521,6 +526,8 @@ begin
               s := s + ' ' + OperandStrings[r.Operand1Index];
             if r.Operand2Index <> OPER_NULL then
               s := s + ',' + OperandStrings[r.Operand2Index];
+            if r.Operand3Index <> OPER_NULL then
+              s := s + ',' + OperandStrings[r.Operand3Index];
           end;
         // Then the code string
         if not _sanitised then
@@ -545,18 +552,19 @@ begin
   end;
 end;
 
-function TInstructionList.FindInstruction(_opcode: word; _operand1: TOperandOption; _operand2: TOperandOption; var _r: TInstructionRec): boolean;
+function TInstructionList.FindInstruction(_opcode: word; _operand1, _operand2, _operand3: TOperandOption; var _r: TInstructionRec): boolean;
 var hash: integer;
     index: integer;
 begin
   Result := False; // Assume not found for now
-  hash := CalculateHash(_opcode,_operand1,_operand2);
+  hash := CalculateHash(_opcode,_operand1,_operand2,_operand3);
   while (FHashTable[hash] >= 0) and (not Result) do
     begin
       index := FHashTable[hash];
       if (Items[index].OpcodeIndex = _opcode) and
          (Items[index].Operand1Index = _operand1) and
-         (Items[index].Operand2Index = _operand2) then
+         (Items[index].Operand2Index = _operand2) and
+         (Items[index].Operand3Index = _operand3) then
         begin
           _r := Items[index];
           Result := True;
@@ -572,13 +580,17 @@ begin
   if not Result then
     begin // Below calls are recursive!!!!
       if _operand1 = OPER_U16 then
-        Result := FindInstruction(_opcode,OPER_U8,_operand2,_r);
+        Result := FindInstruction(_opcode,OPER_U8,_operand2,_operand3,_r);
       if _operand1 = OPER_U16_IND then
-        Result := FindInstruction(_opcode,OPER_U8_IND,_operand2,_r);
+        Result := FindInstruction(_opcode,OPER_U8_IND,_operand2,_operand3,_r);
       if _operand2 = OPER_U16 then
-        Result := FindInstruction(_opcode,_operand1,OPER_U8,_r);
+        Result := FindInstruction(_opcode,_operand1,OPER_U8,_operand3,_r);
       if _operand2 = OPER_U16_IND then
-        Result := FindInstruction(_opcode,_operand1,OPER_U8_IND,_r);
+        Result := FindInstruction(_opcode,_operand1,OPER_U8_IND,_operand3,_r);
+      if _operand3 = OPER_U16 then
+        Result := FindInstruction(_opcode,_operand1,_operand2,OPER_U8,_r);
+      if _operand3 = OPER_U16_IND then
+        Result := FindInstruction(_opcode,_operand1,_operand2,OPER_U8_IND,_r);
     end;
 end;
 
@@ -632,6 +644,7 @@ begin
       r := Items[i];
       TryAdd(r.Operand1Index);
       TryAdd(r.Operand2Index);
+      TryAdd(r.Operand3Index);
     end;
 end;
 
@@ -746,8 +759,10 @@ begin
       r.OpcodeIndex := ReadWord;
       r.Operand1Index := TOperandOption(ReadByte);
       r.Operand2Index := TOperandOption(ReadByte);
+      r.Operand3Index := TOperandOption(ReadByte);
       SetOperandAvailable(r.Operand1Index);
       SetOperandAvailable(r.Operand2Index);
+      SetOperandAvailable(r.Operand3Index);
       temp_byte := ReadByte;
       if (temp_byte < CODE_ELEMENT_COUNT_MINIMUM) or (temp_byte > CODE_ELEMENT_COUNT_MAXIMUM) then
         raise Exception.Create(Format('Number of code elements was not in the expected range of %d to %d',[CODE_ELEMENT_COUNT_MINIMUM,CODE_ELEMENT_COUNT_MAXIMUM]));
@@ -836,6 +851,7 @@ begin
   //  Instr record 0: Opcode index U16
   //                  Operand1 index U8
   //                  Operand2 index U8
+  //                  Operand3 index U8
   //                  Code element count U8
   //                    Code element 0: Element type U8
   //                                    Operand U8 (either 1 or 2)
@@ -877,6 +893,7 @@ begin
       WriteWord(r.OpcodeIndex);
       WriteByte(Ord(r.Operand1Index));
       WriteByte(Ord(r.Operand2Index));
+      WriteByte(Ord(r.Operand3Index));
       WriteByte(r.CodeElementCount);
       for j := 0 to r.CodeElementCount-1 do
         begin
@@ -923,6 +940,10 @@ var i: integer;
     else if ra.Operand2Index > rb.Operand2Index then
       Result := 1
     else if ra.Operand2Index < rb.Operand2Index then
+      Result := -1
+    else if ra.Operand3Index > rb.Operand3Index then
+      Result := 1
+    else if ra.Operand3Index < rb.Operand3Index then
       Result := -1
     else
       raise Exception.Create('Multiple entries for the same opcode/operand combination');

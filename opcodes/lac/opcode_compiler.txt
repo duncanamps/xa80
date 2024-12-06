@@ -3769,20 +3769,21 @@ RULES
 =====
 0: <opcode_definition> : <instruction> T_VERTICALBRACE <code> # ActIgnore
 1: <opcode_definition> : # ActIgnore
-2: <instruction> : T_OPCODE T_OPERAND T_OPERAND # ActOpcode2
-3: <instruction> : T_OPCODE T_OPERAND # ActOpcode1
-4: <instruction> : T_OPCODE # ActOpcode0
-5: <code> : <code> <code_element> # ActIgnore
-6: <code> : <code_element> # ActIgnore
-7: <code_element> : T_BINBYTE # ActCodeBin
-8: <code_element> : T_DECBYTE # ActCodeDec
-9: <code_element> : T_HEXBYTE # ActCodeHex
-10: <code_element> : T_IM # ActCodeIM
-11: <code_element> : T_R8 # ActCodeR8
-12: <code_element> : T_S8 # ActCodeS8
-13: <code_element> : T_U8 # ActCodeU8
-14: <code_element> : T_U16 # ActCodeU16
-15: <$accept> : <opcode_definition> (EOF) # PROC__DOLLAR_ACCEPT_OPCODE_UNDERSCORE_DEFINITION___EOF__
+2: <instruction> : T_OPCODE T_OPERAND T_OPERAND T_OPERAND # ActOpcode3
+3: <instruction> : T_OPCODE T_OPERAND T_OPERAND # ActOpcode2
+4: <instruction> : T_OPCODE T_OPERAND # ActOpcode1
+5: <instruction> : T_OPCODE # ActOpcode0
+6: <code> : <code> <code_element> # ActIgnore
+7: <code> : <code_element> # ActIgnore
+8: <code_element> : T_BINBYTE # ActCodeBin
+9: <code_element> : T_DECBYTE # ActCodeDec
+10: <code_element> : T_HEXBYTE # ActCodeHex
+11: <code_element> : T_IM # ActCodeIM
+12: <code_element> : T_R8 # ActCodeR8
+13: <code_element> : T_S8 # ActCodeS8
+14: <code_element> : T_U8 # ActCodeU8
+15: <code_element> : T_U16 # ActCodeU16
+16: <$accept> : <opcode_definition> (EOF) # PROC__DOLLAR_ACCEPT_OPCODE_UNDERSCORE_DEFINITION___EOF__
 
 First Set
 =========
@@ -3820,96 +3821,106 @@ Last Set
 
 Expanded Rule List
 ==================
-    0: RuleNo=00015,Head=00021,Next=00017,Offs= 0,acc=n <$accept> : ● <opcode_definition> (EOF) 
-    1: RuleNo=00015,Head=00021,Next=00001,Offs= 1,acc=n <$accept> : <opcode_definition> ● (EOF) 
-    2: RuleNo=00015,Head=00021,Next=2147483647,Offs= 2,acc=Y <$accept> : <opcode_definition> (EOF) ● 
+    0: RuleNo=00016,Head=00021,Next=00017,Offs= 0,acc=n <$accept> : ● <opcode_definition> (EOF) 
+    1: RuleNo=00016,Head=00021,Next=00001,Offs= 1,acc=n <$accept> : <opcode_definition> ● (EOF) 
+    2: RuleNo=00016,Head=00021,Next=2147483647,Offs= 2,acc=Y <$accept> : <opcode_definition> (EOF) ● 
     3: RuleNo=00000,Head=00017,Next=00018,Offs= 0,acc=n <opcode_definition> : ● <instruction> T_VERTICALBRACE <code> 
     4: RuleNo=00000,Head=00017,Next=00013,Offs= 1,acc=n <opcode_definition> : <instruction> ● T_VERTICALBRACE <code> 
     5: RuleNo=00000,Head=00017,Next=00019,Offs= 2,acc=n <opcode_definition> : <instruction> T_VERTICALBRACE ● <code> 
     6: RuleNo=00000,Head=00017,Next=2147483647,Offs= 3,acc=n <opcode_definition> : <instruction> T_VERTICALBRACE <code> ● 
     7: RuleNo=00001,Head=00017,Next=2147483647,Offs= 0,acc=n <opcode_definition> : ● 
-    8: RuleNo=00002,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE T_OPERAND T_OPERAND 
-    9: RuleNo=00002,Head=00018,Next=00008,Offs= 1,acc=n <instruction> : T_OPCODE ● T_OPERAND T_OPERAND 
-   10: RuleNo=00002,Head=00018,Next=00008,Offs= 2,acc=n <instruction> : T_OPCODE T_OPERAND ● T_OPERAND 
-   11: RuleNo=00002,Head=00018,Next=2147483647,Offs= 3,acc=n <instruction> : T_OPCODE T_OPERAND T_OPERAND ● 
-   12: RuleNo=00003,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE T_OPERAND 
-   13: RuleNo=00003,Head=00018,Next=00008,Offs= 1,acc=n <instruction> : T_OPCODE ● T_OPERAND 
-   14: RuleNo=00003,Head=00018,Next=2147483647,Offs= 2,acc=n <instruction> : T_OPCODE T_OPERAND ● 
-   15: RuleNo=00004,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE 
-   16: RuleNo=00004,Head=00018,Next=2147483647,Offs= 1,acc=n <instruction> : T_OPCODE ● 
-   17: RuleNo=00005,Head=00019,Next=00019,Offs= 0,acc=n <code> : ● <code> <code_element> 
-   18: RuleNo=00005,Head=00019,Next=00020,Offs= 1,acc=n <code> : <code> ● <code_element> 
-   19: RuleNo=00005,Head=00019,Next=2147483647,Offs= 2,acc=n <code> : <code> <code_element> ● 
-   20: RuleNo=00006,Head=00019,Next=00020,Offs= 0,acc=n <code> : ● <code_element> 
-   21: RuleNo=00006,Head=00019,Next=2147483647,Offs= 1,acc=n <code> : <code_element> ● 
-   22: RuleNo=00007,Head=00020,Next=00003,Offs= 0,acc=n <code_element> : ● T_BINBYTE 
-   23: RuleNo=00007,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_BINBYTE ● 
-   24: RuleNo=00008,Head=00020,Next=00004,Offs= 0,acc=n <code_element> : ● T_DECBYTE 
-   25: RuleNo=00008,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_DECBYTE ● 
-   26: RuleNo=00009,Head=00020,Next=00005,Offs= 0,acc=n <code_element> : ● T_HEXBYTE 
-   27: RuleNo=00009,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_HEXBYTE ● 
-   28: RuleNo=00010,Head=00020,Next=00006,Offs= 0,acc=n <code_element> : ● T_IM 
-   29: RuleNo=00010,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_IM ● 
-   30: RuleNo=00011,Head=00020,Next=00009,Offs= 0,acc=n <code_element> : ● T_R8 
-   31: RuleNo=00011,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_R8 ● 
-   32: RuleNo=00012,Head=00020,Next=00010,Offs= 0,acc=n <code_element> : ● T_S8 
-   33: RuleNo=00012,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_S8 ● 
-   34: RuleNo=00013,Head=00020,Next=00011,Offs= 0,acc=n <code_element> : ● T_U8 
-   35: RuleNo=00013,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_U8 ● 
-   36: RuleNo=00014,Head=00020,Next=00012,Offs= 0,acc=n <code_element> : ● T_U16 
-   37: RuleNo=00014,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_U16 ● 
+    8: RuleNo=00002,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE T_OPERAND T_OPERAND T_OPERAND 
+    9: RuleNo=00002,Head=00018,Next=00008,Offs= 1,acc=n <instruction> : T_OPCODE ● T_OPERAND T_OPERAND T_OPERAND 
+   10: RuleNo=00002,Head=00018,Next=00008,Offs= 2,acc=n <instruction> : T_OPCODE T_OPERAND ● T_OPERAND T_OPERAND 
+   11: RuleNo=00002,Head=00018,Next=00008,Offs= 3,acc=n <instruction> : T_OPCODE T_OPERAND T_OPERAND ● T_OPERAND 
+   12: RuleNo=00002,Head=00018,Next=2147483647,Offs= 4,acc=n <instruction> : T_OPCODE T_OPERAND T_OPERAND T_OPERAND ● 
+   13: RuleNo=00003,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE T_OPERAND T_OPERAND 
+   14: RuleNo=00003,Head=00018,Next=00008,Offs= 1,acc=n <instruction> : T_OPCODE ● T_OPERAND T_OPERAND 
+   15: RuleNo=00003,Head=00018,Next=00008,Offs= 2,acc=n <instruction> : T_OPCODE T_OPERAND ● T_OPERAND 
+   16: RuleNo=00003,Head=00018,Next=2147483647,Offs= 3,acc=n <instruction> : T_OPCODE T_OPERAND T_OPERAND ● 
+   17: RuleNo=00004,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE T_OPERAND 
+   18: RuleNo=00004,Head=00018,Next=00008,Offs= 1,acc=n <instruction> : T_OPCODE ● T_OPERAND 
+   19: RuleNo=00004,Head=00018,Next=2147483647,Offs= 2,acc=n <instruction> : T_OPCODE T_OPERAND ● 
+   20: RuleNo=00005,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE 
+   21: RuleNo=00005,Head=00018,Next=2147483647,Offs= 1,acc=n <instruction> : T_OPCODE ● 
+   22: RuleNo=00006,Head=00019,Next=00019,Offs= 0,acc=n <code> : ● <code> <code_element> 
+   23: RuleNo=00006,Head=00019,Next=00020,Offs= 1,acc=n <code> : <code> ● <code_element> 
+   24: RuleNo=00006,Head=00019,Next=2147483647,Offs= 2,acc=n <code> : <code> <code_element> ● 
+   25: RuleNo=00007,Head=00019,Next=00020,Offs= 0,acc=n <code> : ● <code_element> 
+   26: RuleNo=00007,Head=00019,Next=2147483647,Offs= 1,acc=n <code> : <code_element> ● 
+   27: RuleNo=00008,Head=00020,Next=00003,Offs= 0,acc=n <code_element> : ● T_BINBYTE 
+   28: RuleNo=00008,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_BINBYTE ● 
+   29: RuleNo=00009,Head=00020,Next=00004,Offs= 0,acc=n <code_element> : ● T_DECBYTE 
+   30: RuleNo=00009,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_DECBYTE ● 
+   31: RuleNo=00010,Head=00020,Next=00005,Offs= 0,acc=n <code_element> : ● T_HEXBYTE 
+   32: RuleNo=00010,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_HEXBYTE ● 
+   33: RuleNo=00011,Head=00020,Next=00006,Offs= 0,acc=n <code_element> : ● T_IM 
+   34: RuleNo=00011,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_IM ● 
+   35: RuleNo=00012,Head=00020,Next=00009,Offs= 0,acc=n <code_element> : ● T_R8 
+   36: RuleNo=00012,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_R8 ● 
+   37: RuleNo=00013,Head=00020,Next=00010,Offs= 0,acc=n <code_element> : ● T_S8 
+   38: RuleNo=00013,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_S8 ● 
+   39: RuleNo=00014,Head=00020,Next=00011,Offs= 0,acc=n <code_element> : ● T_U8 
+   40: RuleNo=00014,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_U8 ● 
+   41: RuleNo=00015,Head=00020,Next=00012,Offs= 0,acc=n <code_element> : ● T_U16 
+   42: RuleNo=00015,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_U16 ● 
 
 Parser Table
 ============
 
 Entry State Canon  Next ε Shift Reduc PGoto Accep Expan AsText
 ----- ----- ----- ----- - ----- ----- ----- ----- ----- ------
-    0     0     0    17       -     -     2 False True  RuleNo=00015,Head=00021,Next=00017,Offs= 0,acc=n <$accept> : ● <opcode_definition> (EOF) 
+    0     0     0    17       -     -     2 False True  RuleNo=00016,Head=00021,Next=00017,Offs= 0,acc=n <$accept> : ● <opcode_definition> (EOF) 
     1     0     3    18       -     -     3 False True  RuleNo=00000,Head=00017,Next=00018,Offs= 0,acc=n <opcode_definition> : ● <instruction> T_VERTICALBRACE <code> 
     2     0     7     - Y     -     1     - False True  RuleNo=00001,Head=00017,Next=2147483647,Offs= 0,acc=n <opcode_definition> : ● 
-    3     0     8     7       1     -     - False True  RuleNo=00002,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE T_OPERAND T_OPERAND 
-    4     0    12     7       1     -     - False True  RuleNo=00003,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE T_OPERAND 
-    5     0    15     7       1     -     - False True  RuleNo=00004,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE 
-    6     1     9     8       4     -     - False True  RuleNo=00002,Head=00018,Next=00008,Offs= 1,acc=n <instruction> : T_OPCODE ● T_OPERAND T_OPERAND 
-    7     1    13     8       4     -     - False True  RuleNo=00003,Head=00018,Next=00008,Offs= 1,acc=n <instruction> : T_OPCODE ● T_OPERAND 
-    8     1    16     -       -     4     - False True  RuleNo=00004,Head=00018,Next=2147483647,Offs= 1,acc=n <instruction> : T_OPCODE ● 
-    9     2     1     1       5     -     - False True  RuleNo=00015,Head=00021,Next=00001,Offs= 1,acc=n <$accept> : <opcode_definition> ● (EOF) 
-   10     3     4    13       6     -     - False True  RuleNo=00000,Head=00017,Next=00013,Offs= 1,acc=n <opcode_definition> : <instruction> ● T_VERTICALBRACE <code> 
-   11     4    10     8       7     -     - False True  RuleNo=00002,Head=00018,Next=00008,Offs= 2,acc=n <instruction> : T_OPCODE T_OPERAND ● T_OPERAND 
-   12     4    14     -       -     3     - False True  RuleNo=00003,Head=00018,Next=2147483647,Offs= 2,acc=n <instruction> : T_OPCODE T_OPERAND ● 
-   13     5     2     -       -     -     - True  True  RuleNo=00015,Head=00021,Next=2147483647,Offs= 2,acc=Y <$accept> : <opcode_definition> (EOF) ● 
-   14     6     5    19       -     -    16 False True  RuleNo=00000,Head=00017,Next=00019,Offs= 2,acc=n <opcode_definition> : <instruction> T_VERTICALBRACE ● <code> 
-   15     6    17    19       -     -    16 False True  RuleNo=00005,Head=00019,Next=00019,Offs= 0,acc=n <code> : ● <code> <code_element> 
-   16     6    20    20       -     -    17 False True  RuleNo=00006,Head=00019,Next=00020,Offs= 0,acc=n <code> : ● <code_element> 
-   17     6    22     3       8     -     - False True  RuleNo=00007,Head=00020,Next=00003,Offs= 0,acc=n <code_element> : ● T_BINBYTE 
-   18     6    24     4       9     -     - False True  RuleNo=00008,Head=00020,Next=00004,Offs= 0,acc=n <code_element> : ● T_DECBYTE 
-   19     6    26     5      10     -     - False True  RuleNo=00009,Head=00020,Next=00005,Offs= 0,acc=n <code_element> : ● T_HEXBYTE 
-   20     6    28     6      11     -     - False True  RuleNo=00010,Head=00020,Next=00006,Offs= 0,acc=n <code_element> : ● T_IM 
-   21     6    30     9      12     -     - False True  RuleNo=00011,Head=00020,Next=00009,Offs= 0,acc=n <code_element> : ● T_R8 
-   22     6    32    10      13     -     - False True  RuleNo=00012,Head=00020,Next=00010,Offs= 0,acc=n <code_element> : ● T_S8 
-   23     6    34    11      14     -     - False True  RuleNo=00013,Head=00020,Next=00011,Offs= 0,acc=n <code_element> : ● T_U8 
-   24     6    36    12      15     -     - False True  RuleNo=00014,Head=00020,Next=00012,Offs= 0,acc=n <code_element> : ● T_U16 
-   25     7    11     -       -     2     - False True  RuleNo=00002,Head=00018,Next=2147483647,Offs= 3,acc=n <instruction> : T_OPCODE T_OPERAND T_OPERAND ● 
-   26     8    23     -       -     7     - False True  RuleNo=00007,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_BINBYTE ● 
-   27     9    25     -       -     8     - False True  RuleNo=00008,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_DECBYTE ● 
-   28    10    27     -       -     9     - False True  RuleNo=00009,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_HEXBYTE ● 
-   29    11    29     -       -    10     - False True  RuleNo=00010,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_IM ● 
-   30    12    31     -       -    11     - False True  RuleNo=00011,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_R8 ● 
-   31    13    33     -       -    12     - False True  RuleNo=00012,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_S8 ● 
-   32    14    35     -       -    13     - False True  RuleNo=00013,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_U8 ● 
-   33    15    37     -       -    14     - False True  RuleNo=00014,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_U16 ● 
-   34    16     6     -       -     0     - False True  RuleNo=00000,Head=00017,Next=2147483647,Offs= 3,acc=n <opcode_definition> : <instruction> T_VERTICALBRACE <code> ● 
-   35    16    18    20       -     -    18 False True  RuleNo=00005,Head=00019,Next=00020,Offs= 1,acc=n <code> : <code> ● <code_element> 
-   36    16    22     3       8     -     - False True  RuleNo=00007,Head=00020,Next=00003,Offs= 0,acc=n <code_element> : ● T_BINBYTE 
-   37    16    24     4       9     -     - False True  RuleNo=00008,Head=00020,Next=00004,Offs= 0,acc=n <code_element> : ● T_DECBYTE 
-   38    16    26     5      10     -     - False True  RuleNo=00009,Head=00020,Next=00005,Offs= 0,acc=n <code_element> : ● T_HEXBYTE 
-   39    16    28     6      11     -     - False True  RuleNo=00010,Head=00020,Next=00006,Offs= 0,acc=n <code_element> : ● T_IM 
-   40    16    30     9      12     -     - False True  RuleNo=00011,Head=00020,Next=00009,Offs= 0,acc=n <code_element> : ● T_R8 
-   41    16    32    10      13     -     - False True  RuleNo=00012,Head=00020,Next=00010,Offs= 0,acc=n <code_element> : ● T_S8 
-   42    16    34    11      14     -     - False True  RuleNo=00013,Head=00020,Next=00011,Offs= 0,acc=n <code_element> : ● T_U8 
-   43    16    36    12      15     -     - False True  RuleNo=00014,Head=00020,Next=00012,Offs= 0,acc=n <code_element> : ● T_U16 
-   44    17    21     -       -     6     - False True  RuleNo=00006,Head=00019,Next=2147483647,Offs= 1,acc=n <code> : <code_element> ● 
-   45    18    19     -       -     5     - False True  RuleNo=00005,Head=00019,Next=2147483647,Offs= 2,acc=n <code> : <code> <code_element> ● 
+    3     0     8     7       1     -     - False True  RuleNo=00002,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE T_OPERAND T_OPERAND T_OPERAND 
+    4     0    13     7       1     -     - False True  RuleNo=00003,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE T_OPERAND T_OPERAND 
+    5     0    17     7       1     -     - False True  RuleNo=00004,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE T_OPERAND 
+    6     0    20     7       1     -     - False True  RuleNo=00005,Head=00018,Next=00007,Offs= 0,acc=n <instruction> : ● T_OPCODE 
+    7     1     9     8       4     -     - False True  RuleNo=00002,Head=00018,Next=00008,Offs= 1,acc=n <instruction> : T_OPCODE ● T_OPERAND T_OPERAND T_OPERAND 
+    8     1    14     8       4     -     - False True  RuleNo=00003,Head=00018,Next=00008,Offs= 1,acc=n <instruction> : T_OPCODE ● T_OPERAND T_OPERAND 
+    9     1    18     8       4     -     - False True  RuleNo=00004,Head=00018,Next=00008,Offs= 1,acc=n <instruction> : T_OPCODE ● T_OPERAND 
+   10     1    21     -       -     5     - False True  RuleNo=00005,Head=00018,Next=2147483647,Offs= 1,acc=n <instruction> : T_OPCODE ● 
+   11     2     1     1       5     -     - False True  RuleNo=00016,Head=00021,Next=00001,Offs= 1,acc=n <$accept> : <opcode_definition> ● (EOF) 
+   12     3     4    13       6     -     - False True  RuleNo=00000,Head=00017,Next=00013,Offs= 1,acc=n <opcode_definition> : <instruction> ● T_VERTICALBRACE <code> 
+   13     4    10     8       7     -     - False True  RuleNo=00002,Head=00018,Next=00008,Offs= 2,acc=n <instruction> : T_OPCODE T_OPERAND ● T_OPERAND T_OPERAND 
+   14     4    15     8       7     -     - False True  RuleNo=00003,Head=00018,Next=00008,Offs= 2,acc=n <instruction> : T_OPCODE T_OPERAND ● T_OPERAND 
+   15     4    19     -       -     4     - False True  RuleNo=00004,Head=00018,Next=2147483647,Offs= 2,acc=n <instruction> : T_OPCODE T_OPERAND ● 
+   16     5     2     -       -     -     - True  True  RuleNo=00016,Head=00021,Next=2147483647,Offs= 2,acc=Y <$accept> : <opcode_definition> (EOF) ● 
+   17     6     5    19       -     -    16 False True  RuleNo=00000,Head=00017,Next=00019,Offs= 2,acc=n <opcode_definition> : <instruction> T_VERTICALBRACE ● <code> 
+   18     6    22    19       -     -    16 False True  RuleNo=00006,Head=00019,Next=00019,Offs= 0,acc=n <code> : ● <code> <code_element> 
+   19     6    25    20       -     -    17 False True  RuleNo=00007,Head=00019,Next=00020,Offs= 0,acc=n <code> : ● <code_element> 
+   20     6    27     3       8     -     - False True  RuleNo=00008,Head=00020,Next=00003,Offs= 0,acc=n <code_element> : ● T_BINBYTE 
+   21     6    29     4       9     -     - False True  RuleNo=00009,Head=00020,Next=00004,Offs= 0,acc=n <code_element> : ● T_DECBYTE 
+   22     6    31     5      10     -     - False True  RuleNo=00010,Head=00020,Next=00005,Offs= 0,acc=n <code_element> : ● T_HEXBYTE 
+   23     6    33     6      11     -     - False True  RuleNo=00011,Head=00020,Next=00006,Offs= 0,acc=n <code_element> : ● T_IM 
+   24     6    35     9      12     -     - False True  RuleNo=00012,Head=00020,Next=00009,Offs= 0,acc=n <code_element> : ● T_R8 
+   25     6    37    10      13     -     - False True  RuleNo=00013,Head=00020,Next=00010,Offs= 0,acc=n <code_element> : ● T_S8 
+   26     6    39    11      14     -     - False True  RuleNo=00014,Head=00020,Next=00011,Offs= 0,acc=n <code_element> : ● T_U8 
+   27     6    41    12      15     -     - False True  RuleNo=00015,Head=00020,Next=00012,Offs= 0,acc=n <code_element> : ● T_U16 
+   28     7    11     8      18     -     - False True  RuleNo=00002,Head=00018,Next=00008,Offs= 3,acc=n <instruction> : T_OPCODE T_OPERAND T_OPERAND ● T_OPERAND 
+   29     7    16     -       -     3     - False True  RuleNo=00003,Head=00018,Next=2147483647,Offs= 3,acc=n <instruction> : T_OPCODE T_OPERAND T_OPERAND ● 
+   30     8    28     -       -     8     - False True  RuleNo=00008,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_BINBYTE ● 
+   31     9    30     -       -     9     - False True  RuleNo=00009,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_DECBYTE ● 
+   32    10    32     -       -    10     - False True  RuleNo=00010,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_HEXBYTE ● 
+   33    11    34     -       -    11     - False True  RuleNo=00011,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_IM ● 
+   34    12    36     -       -    12     - False True  RuleNo=00012,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_R8 ● 
+   35    13    38     -       -    13     - False True  RuleNo=00013,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_S8 ● 
+   36    14    40     -       -    14     - False True  RuleNo=00014,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_U8 ● 
+   37    15    42     -       -    15     - False True  RuleNo=00015,Head=00020,Next=2147483647,Offs= 1,acc=n <code_element> : T_U16 ● 
+   38    16     6     -       -     0     - False True  RuleNo=00000,Head=00017,Next=2147483647,Offs= 3,acc=n <opcode_definition> : <instruction> T_VERTICALBRACE <code> ● 
+   39    16    23    20       -     -    19 False True  RuleNo=00006,Head=00019,Next=00020,Offs= 1,acc=n <code> : <code> ● <code_element> 
+   40    16    27     3       8     -     - False True  RuleNo=00008,Head=00020,Next=00003,Offs= 0,acc=n <code_element> : ● T_BINBYTE 
+   41    16    29     4       9     -     - False True  RuleNo=00009,Head=00020,Next=00004,Offs= 0,acc=n <code_element> : ● T_DECBYTE 
+   42    16    31     5      10     -     - False True  RuleNo=00010,Head=00020,Next=00005,Offs= 0,acc=n <code_element> : ● T_HEXBYTE 
+   43    16    33     6      11     -     - False True  RuleNo=00011,Head=00020,Next=00006,Offs= 0,acc=n <code_element> : ● T_IM 
+   44    16    35     9      12     -     - False True  RuleNo=00012,Head=00020,Next=00009,Offs= 0,acc=n <code_element> : ● T_R8 
+   45    16    37    10      13     -     - False True  RuleNo=00013,Head=00020,Next=00010,Offs= 0,acc=n <code_element> : ● T_S8 
+   46    16    39    11      14     -     - False True  RuleNo=00014,Head=00020,Next=00011,Offs= 0,acc=n <code_element> : ● T_U8 
+   47    16    41    12      15     -     - False True  RuleNo=00015,Head=00020,Next=00012,Offs= 0,acc=n <code_element> : ● T_U16 
+   48    17    26     -       -     7     - False True  RuleNo=00007,Head=00019,Next=2147483647,Offs= 1,acc=n <code> : <code_element> ● 
+   49    18    12     -       -     2     - False True  RuleNo=00002,Head=00018,Next=2147483647,Offs= 4,acc=n <instruction> : T_OPCODE T_OPERAND T_OPERAND T_OPERAND ● 
+   50    19    24     -       -     6     - False True  RuleNo=00006,Head=00019,Next=2147483647,Offs= 2,acc=n <code> : <code> <code_element> ● 
 
 Output Table
 ============
@@ -3917,22 +3928,23 @@ Output Table
 State (Error)  (EOF) (Comment) T_BINBYTE T_DECBYTE T_HEXBYTE   T_IM T_OPCODE T_OPERAND   T_R8   T_S8   T_U8  T_U16 T_VERTICALBRACE T_WHITESPACE T_LINECOMMENT1 T_LINECOMMENT2 <opcode_definition> <instruction> <code> <code_element> <$accept>
 ----- ------- ------ --------- --------- --------- --------- ------ -------- --------- ------ ------ ------ ------ --------------- ------------ -------------- -------------- ------------------- ------------- ------ -------------- ---------
     0      R1     R1        R1        R1        R1        R1     R1       S1        R1     R1     R1     R1     R1              R1           R1             R1             R1                  G2            G3     R1             R1        R1
-    1       .      .         .         .         .         .      .        .        S4      .      .      .      .              R4            .              .              .                   .             .      .              .         .
+    1       .      .         .         .         .         .      .        .        S4      .      .      .      .              R5            .              .              .                   .             .      .              .         .
     2       .     S5         .         .         .         .      .        .         .      .      .      .      .               .            .              .              .                   .             .      .              .         .
     3       .      .         .         .         .         .      .        .         .      .      .      .      .              S6            .              .              .                   .             .      .              .         .
-    4       .      .         .         .         .         .      .        .        S7      .      .      .      .              R3            .              .              .                   .             .      .              .         .
+    4       .      .         .         .         .         .      .        .        S7      .      .      .      .              R4            .              .              .                   .             .      .              .         .
     5     ACC    ACC       ACC       ACC       ACC       ACC    ACC      ACC       ACC    ACC    ACC    ACC    ACC             ACC          ACC            ACC            ACC                 ACC           ACC    ACC            ACC       ACC
     6       .      .         .        S8        S9       S10    S11        .         .    S12    S13    S14    S15               .            .              .              .                   .             .    G16            G17         .
-    7       .      .         .         .         .         .      .        .        R2      .      .      .      .              R2            .              .              .                   .             .      .              .         .
-    8       .     R7         .        R7        R7        R7     R7        .         .     R7     R7     R7     R7               .            .              .              .                   .             .      .             R7         .
-    9       .     R8         .        R8        R8        R8     R8        .         .     R8     R8     R8     R8               .            .              .              .                   .             .      .             R8         .
-   10       .     R9         .        R9        R9        R9     R9        .         .     R9     R9     R9     R9               .            .              .              .                   .             .      .             R9         .
-   11       .    R10         .       R10       R10       R10    R10        .         .    R10    R10    R10    R10               .            .              .              .                   .             .      .            R10         .
-   12       .    R11         .       R11       R11       R11    R11        .         .    R11    R11    R11    R11               .            .              .              .                   .             .      .            R11         .
-   13       .    R12         .       R12       R12       R12    R12        .         .    R12    R12    R12    R12               .            .              .              .                   .             .      .            R12         .
-   14       .    R13         .       R13       R13       R13    R13        .         .    R13    R13    R13    R13               .            .              .              .                   .             .      .            R13         .
-   15       .    R14         .       R14       R14       R14    R14        .         .    R14    R14    R14    R14               .            .              .              .                   .             .      .            R14         .
-   16       .     R0         .        S8        S9       S10    S11        .         .    S12    S13    S14    S15               .            .              .              .                   .             .      .            G18         .
-   17       .     R6         .        R6        R6        R6     R6        .         .     R6     R6     R6     R6               .            .              .              .                   .             .      .             R6         .
-   18       .     R5         .        R5        R5        R5     R5        .         .     R5     R5     R5     R5               .            .              .              .                   .             .      .             R5         .
+    7       .      .         .         .         .         .      .        .       S18      .      .      .      .              R3            .              .              .                   .             .      .              .         .
+    8       .     R8         .        R8        R8        R8     R8        .         .     R8     R8     R8     R8               .            .              .              .                   .             .      .             R8         .
+    9       .     R9         .        R9        R9        R9     R9        .         .     R9     R9     R9     R9               .            .              .              .                   .             .      .             R9         .
+   10       .    R10         .       R10       R10       R10    R10        .         .    R10    R10    R10    R10               .            .              .              .                   .             .      .            R10         .
+   11       .    R11         .       R11       R11       R11    R11        .         .    R11    R11    R11    R11               .            .              .              .                   .             .      .            R11         .
+   12       .    R12         .       R12       R12       R12    R12        .         .    R12    R12    R12    R12               .            .              .              .                   .             .      .            R12         .
+   13       .    R13         .       R13       R13       R13    R13        .         .    R13    R13    R13    R13               .            .              .              .                   .             .      .            R13         .
+   14       .    R14         .       R14       R14       R14    R14        .         .    R14    R14    R14    R14               .            .              .              .                   .             .      .            R14         .
+   15       .    R15         .       R15       R15       R15    R15        .         .    R15    R15    R15    R15               .            .              .              .                   .             .      .            R15         .
+   16       .     R0         .        S8        S9       S10    S11        .         .    S12    S13    S14    S15               .            .              .              .                   .             .      .            G19         .
+   17       .     R7         .        R7        R7        R7     R7        .         .     R7     R7     R7     R7               .            .              .              .                   .             .      .             R7         .
+   18       .      .         .         .         .         .      .        .        R2      .      .      .      .              R2            .              .              .                   .             .      .              .         .
+   19       .     R6         .        R6        R6        R6     R6        .         .     R6     R6     R6     R6               .            .              .              .                   .             .      .             R6         .
 

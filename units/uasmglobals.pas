@@ -101,7 +101,7 @@ const
   MAX_OBJECT_SIZE                    = (1 << 24); // 16MB maximum object file size
   MAX_OPERANDS                       = 2;
   MAX_SOURCE_BYTES_PER_LISTING_LINE  = 4;
-  OPCODE_VERSION                     = 2; // File format version number
+  OPCODE_VERSION                     = 3; // File format version number  3 = V1.0 onwards
   TEMP_FILE_DIVIDER                  = '?END?';
 
   // Derived constants

@@ -130,7 +130,8 @@ T_LINECOMMENT2		= "//" {CommentChar}* ignore;
 					|												# ActIgnore
 					;
 					
-<instruction>		: T_OPCODE T_OPERAND T_OPERAND					# ActOpcode2
+<instruction>		: T_OPCODE T_OPERAND T_OPERAND T_OPERAND  		# ActOpcode3
+					| T_OPCODE T_OPERAND T_OPERAND					# ActOpcode2
 					| T_OPCODE T_OPERAND							# ActOpcode1
 					| T_OPCODE										# ActOpcode0
 					;

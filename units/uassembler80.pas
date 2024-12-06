@@ -1158,7 +1158,7 @@ var
   opcode_index: integer;
   macro_index:  integer;
   inst_rec: TInstructionRec;
-  oper1, oper2: TOperandOption;
+  oper1, oper2, oper3: TOperandOption;
   s: string;
   indent_str: string;
   elem: TCodeElement;
@@ -1216,12 +1216,15 @@ begin
   begin
     oper1 := OPER_NULL;
     oper2 := OPER_NULL;
+    oper3 := OPER_NULL;
     inst_rec.CodeElementCount := 0;
     if FPreparser.Count > 0 then
       oper1 := TOperandOption(FPreparser[0].Index);
     if FPreparser.Count > 1 then
       oper2 := TOperandOption(FPreparser[1].Index);
-    if not FInstructionList.FindInstruction(opcode_index, oper1, oper2, inst_rec) then
+    if FPreparser.Count > 2 then
+      oper3 := TOperandOption(FPreparser[2].Index);
+    if not FInstructionList.FindInstruction(opcode_index, oper1, oper2, oper3, inst_rec) then
     begin // Instruction not found
       s := FInstructionList.OpcodeAtIndex(opcode_index);
       if oper1 <> OPER_NULL then

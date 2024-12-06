@@ -62,6 +62,7 @@ type
     function  ActOpcode0(Parser: TLCGParser): TLCGParserStackEntry;
     function  ActOpcode1(Parser: TLCGParser): TLCGParserStackEntry;
     function  ActOpcode2(Parser: TLCGParser): TLCGParserStackEntry;
+    function  ActOpcode3(Parser: TLCGParser): TLCGParserStackEntry;
     procedure Compile(_sl: TStringList; _pass: integer);
     procedure CreateParser;
     procedure DestroyParser;
@@ -72,7 +73,7 @@ type
     function  MyReduce(Parser: TLCGParser; RuleIndex: UINT32): TLCGParserStackEntry;
     function  OperandToIndex(const _operand: string; var _index: TOperandOption): boolean;
     procedure RegisterCode(_elementtype: TCodeElementType; _operand: byte; _value: word; _offset: byte);
-    procedure RegisterInstruction(const _opcode, _oper1, _oper2: string);
+    procedure RegisterInstruction(const _opcode, _oper1, _oper2, _oper3: string);
     procedure RegisterOpcode(const _opcode: string);
     procedure WriteHelp; virtual;
   end;
@@ -226,6 +227,7 @@ begin
   else
     RegisterInstruction(Parser.ParserStack[Parser.ParserSP-1].Buf,
                         '',
+                        '',
                         '');
 end;
 
@@ -236,6 +238,7 @@ begin
   else
     RegisterInstruction(Parser.ParserStack[Parser.ParserSP-2].Buf,
                         Parser.ParserStack[Parser.ParserSP-1].Buf,
+                        '',
                         '');
 end;
 
@@ -245,6 +248,18 @@ begin
     RegisterOpcode(Parser.ParserStack[Parser.ParserSP-3].Buf)
   else
     RegisterInstruction(Parser.ParserStack[Parser.ParserSP-3].Buf,
+                        Parser.ParserStack[Parser.ParserSP-2].Buf,
+                        Parser.ParserStack[Parser.ParserSP-1].Buf,
+                        '');
+end;
+
+function TOpcodeCompiler.ActOpcode3(Parser: TLCGParser): TLCGParserStackEntry;
+begin
+  if FPass = 1 then
+    RegisterOpcode(Parser.ParserStack[Parser.ParserSP-4].Buf)
+  else
+    RegisterInstruction(Parser.ParserStack[Parser.ParserSP-4].Buf,
+                        Parser.ParserStack[Parser.ParserSP-3].Buf,
                         Parser.ParserStack[Parser.ParserSP-2].Buf,
                         Parser.ParserStack[Parser.ParserSP-1].Buf);
 end;
@@ -318,6 +333,7 @@ begin
     MakeSetProc('ActOpcode0', @ActOpcode0);
     MakeSetProc('ActOpcode1', @ActOpcode1);
     MakeSetProc('ActOpcode2', @ActOpcode2);
+    MakeSetProc('ActOpcode3', @ActOpcode3);
   except
     WriteLn('Unable to load OPCODE_COMPILER resource');
   end;
@@ -348,6 +364,7 @@ begin
   FInstruction.OpcodeIndex      := $FFFF;
   FInstruction.Operand1Index    := OPER_NULL;
   FInstruction.Operand2Index    := OPER_NULL;
+  FInstruction.Operand3Index    := OPER_NULL;
   FInstruction.CodeElementCount := 0;
 end;
 
@@ -394,10 +411,11 @@ begin
   FInstruction.CodeElementCount := FInstruction.CodeElementCount + 1;
 end;
 
-procedure TOpcodeCompiler.RegisterInstruction(const _opcode, _oper1, _oper2: string);
+procedure TOpcodeCompiler.RegisterInstruction(const _opcode, _oper1, _oper2, _oper3: string);
 var opc_index: integer;
     op1_index: TOperandOption;
     op2_index: TOperandOption;
+    op3_index: TOperandOption;
 begin
   if not FInstructionList.FindOpcode(UpperCase(_opcode),opc_index) then
     raise Exception.Create(Format('Internal error: Opcode %s not found',[_opcode]));
@@ -405,9 +423,12 @@ begin
     raise Exception.Create(Format('Internal error: Operand %s not found',[_oper1]));
   if not OperandToIndex(_oper2,op2_index) then
     raise Exception.Create(Format('Internal error: Operand %s not found',[_oper2]));
+  if not OperandToIndex(_oper3,op3_index) then
+    raise Exception.Create(Format('Internal error: Operand %s not found',[_oper3]));
   FInstruction.OpcodeIndex   := opc_index;
   FInstruction.Operand1Index := op1_index;
   FInstruction.Operand2Index := op2_index;
+  FInstruction.Operand3Index := op3_index;
 end;
 
 procedure TOpcodeCompiler.RegisterOpcode(const _opcode: string);
