@@ -26,7 +26,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="1"/>
-      <BuildNr Value="1003"/>
+      <BuildNr Value="1004"/>
       <Language Value="0809"/>
       <StringTable LegalCopyright="Copyright 2020-2024 Duncan Munro" ProductName="XA80" ProductVersion="1.0"/>
     </VersionInfo>
