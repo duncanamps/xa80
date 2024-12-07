@@ -2,7 +2,7 @@
 //
 // Automatically generated include file for CPU = 8080
 //   Filename:    test_8080.inc
-//   Created:     Fri 06-Dec-2024 23:54:35
+//   Created:     Sat 07-Dec-2024 12:12:03
 //
 // This file contains all the instructions that the assembler will
 // recognise for the chosen CPU.
@@ -11,270 +11,270 @@
 
 ; 8080 CPU Arithmetic instructions
 
-   ACI     U8
-   ADC     A
-   ADC     B
-   ADC     C
-   ADC     D
-   ADC     E
-   ADC     H
-   ADC     L
-   ADC     M
-   ADD     A
-   ADD     B
-   ADD     C
-   ADD     D
-   ADD     E
-   ADD     H
-   ADD     L
-   ADD     M
-   ADI     U8
-   CMA     
-   DAA     
-   DAD     B
-   DAD     D
-   DAD     H
-   DAD     SP
-   SBB     A
-   SBB     B
-   SBB     C
-   SBB     D
-   SBB     E
-   SBB     H
-   SBB     L
-   SBB     M
-   SBI     U8
-   SUB     A
-   SUB     B
-   SUB     C
-   SUB     D
-   SUB     E
-   SUB     H
-   SUB     L
-   SUB     M
-   SUI     U8
+   ACI     U8                 // %11001110 [1:U8]
+   ADC     A                  // %10001111
+   ADC     B                  // %10001000
+   ADC     C                  // %10001001
+   ADC     D                  // %10001010
+   ADC     E                  // %10001011
+   ADC     H                  // %10001100
+   ADC     L                  // %10001101
+   ADC     M                  // %10001110
+   ADD     A                  // %10000111
+   ADD     B                  // %10000000
+   ADD     C                  // %10000001
+   ADD     D                  // %10000010
+   ADD     E                  // %10000011
+   ADD     H                  // %10000100
+   ADD     L                  // %10000101
+   ADD     M                  // %10000110
+   ADI     U8                 // %11000110 [1:U8]
+   CMA                        // %00101111
+   DAA                        // %00100111
+   DAD     B                  // %00001001
+   DAD     D                  // %00011001
+   DAD     H                  // %00101001
+   DAD     SP                 // %00111001
+   SBB     A                  // %10011111
+   SBB     B                  // %10011000
+   SBB     C                  // %10011001
+   SBB     D                  // %10011010
+   SBB     E                  // %10011011
+   SBB     H                  // %10011100
+   SBB     L                  // %10011101
+   SBB     M                  // %10011110
+   SBI     U8                 // %11011110 [1:U8]
+   SUB     A                  // %10010111
+   SUB     B                  // %10010000
+   SUB     C                  // %10010001
+   SUB     D                  // %10010010
+   SUB     E                  // %10010011
+   SUB     H                  // %10010100
+   SUB     L                  // %10010101
+   SUB     M                  // %10010110
+   SUI     U8                 // %11010110 [1:U8]
 
 ; 8080 CPU Compare instructions
 
-   CMP     A
-   CMP     B
-   CMP     C
-   CMP     D
-   CMP     E
-   CMP     H
-   CMP     L
-   CMP     M
-   CP      U16
-   CPI     U8
+   CMP     A                  // %10111111
+   CMP     B                  // %10111000
+   CMP     C                  // %10111001
+   CMP     D                  // %10111010
+   CMP     E                  // %10111011
+   CMP     H                  // %10111100
+   CMP     L                  // %10111101
+   CMP     M                  // %10111110
+   CP      U16                // %11110100 [1:U16]
+   CPI     U8                 // %11111110 [1:U8]
 
 ; 8080 CPU Data move instructions
 
-   LDA     U16
-   LDAX    B
-   LDAX    D
-   LHLD    U16
-   LXI     B,U16
-   LXI     D,U16
-   LXI     H,U16
-   LXI     SP,U16
-   MOV     A,A
-   MOV     A,B
-   MOV     A,C
-   MOV     A,D
-   MOV     A,E
-   MOV     A,H
-   MOV     A,L
-   MOV     A,M
-   MOV     B,A
-   MOV     B,B
-   MOV     B,C
-   MOV     B,D
-   MOV     B,E
-   MOV     B,H
-   MOV     B,L
-   MOV     B,M
-   MOV     C,A
-   MOV     C,B
-   MOV     C,C
-   MOV     C,D
-   MOV     C,E
-   MOV     C,H
-   MOV     C,L
-   MOV     C,M
-   MOV     D,A
-   MOV     D,B
-   MOV     D,C
-   MOV     D,D
-   MOV     D,E
-   MOV     D,H
-   MOV     D,L
-   MOV     D,M
-   MOV     E,A
-   MOV     E,B
-   MOV     E,C
-   MOV     E,D
-   MOV     E,E
-   MOV     E,H
-   MOV     E,L
-   MOV     E,M
-   MOV     H,A
-   MOV     H,B
-   MOV     H,C
-   MOV     H,D
-   MOV     H,E
-   MOV     H,H
-   MOV     H,L
-   MOV     H,M
-   MOV     L,A
-   MOV     L,B
-   MOV     L,C
-   MOV     L,D
-   MOV     L,E
-   MOV     L,H
-   MOV     L,L
-   MOV     L,M
-   MOV     M,A
-   MOV     M,B
-   MOV     M,C
-   MOV     M,D
-   MOV     M,E
-   MOV     M,H
-   MOV     M,L
-   MVI     A,U8
-   MVI     B,U8
-   MVI     C,U8
-   MVI     D,U8
-   MVI     E,U8
-   MVI     H,U8
-   MVI     L,U8
-   MVI     M,U8
-   SHLD    U16
-   SPHL    
-   STA     U16
-   STAX    B
-   STAX    D
-   XCHG    
-   XTHL    
+   LDA     U16                // %00111010 [1:U16]
+   LDAX    B                  // %00001010
+   LDAX    D                  // %00011010
+   LHLD    U16                // %00101010 [1:U16]
+   LXI     B,U16              // %00000001 [2:U16]
+   LXI     D,U16              // %00010001 [2:U16]
+   LXI     H,U16              // %00100001 [2:U16]
+   LXI     SP,U16             // %00110001 [2:U16]
+   MOV     A,A                // %01111111
+   MOV     A,B                // %01111000
+   MOV     A,C                // %01111001
+   MOV     A,D                // %01111010
+   MOV     A,E                // %01111011
+   MOV     A,H                // %01111100
+   MOV     A,L                // %01111101
+   MOV     A,M                // %01111110
+   MOV     B,A                // %01000111
+   MOV     B,B                // %01000000
+   MOV     B,C                // %01000001
+   MOV     B,D                // %01000010
+   MOV     B,E                // %01000011
+   MOV     B,H                // %01000100
+   MOV     B,L                // %01000101
+   MOV     B,M                // %01000110
+   MOV     C,A                // %01001111
+   MOV     C,B                // %01001000
+   MOV     C,C                // %01001001
+   MOV     C,D                // %01001010
+   MOV     C,E                // %01001011
+   MOV     C,H                // %01001100
+   MOV     C,L                // %01001101
+   MOV     C,M                // %01001110
+   MOV     D,A                // %01010111
+   MOV     D,B                // %01010000
+   MOV     D,C                // %01010001
+   MOV     D,D                // %01010010
+   MOV     D,E                // %01010011
+   MOV     D,H                // %01010100
+   MOV     D,L                // %01010101
+   MOV     D,M                // %01010110
+   MOV     E,A                // %01011111
+   MOV     E,B                // %01011000
+   MOV     E,C                // %01011001
+   MOV     E,D                // %01011010
+   MOV     E,E                // %01011011
+   MOV     E,H                // %01011100
+   MOV     E,L                // %01011101
+   MOV     E,M                // %01011110
+   MOV     H,A                // %01100111
+   MOV     H,B                // %01100000
+   MOV     H,C                // %01100001
+   MOV     H,D                // %01100010
+   MOV     H,E                // %01100011
+   MOV     H,H                // %01100100
+   MOV     H,L                // %01100101
+   MOV     H,M                // %01100110
+   MOV     L,A                // %01101111
+   MOV     L,B                // %01101000
+   MOV     L,C                // %01101001
+   MOV     L,D                // %01101010
+   MOV     L,E                // %01101011
+   MOV     L,H                // %01101100
+   MOV     L,L                // %01101101
+   MOV     L,M                // %01101110
+   MOV     M,A                // %01110111
+   MOV     M,B                // %01110000
+   MOV     M,C                // %01110001
+   MOV     M,D                // %01110010
+   MOV     M,E                // %01110011
+   MOV     M,H                // %01110100
+   MOV     M,L                // %01110101
+   MVI     A,U8               // %00111110 [2:U8]
+   MVI     B,U8               // %00000110 [2:U8]
+   MVI     C,U8               // %00001110 [2:U8]
+   MVI     D,U8               // %00010110 [2:U8]
+   MVI     E,U8               // %00011110 [2:U8]
+   MVI     H,U8               // %00100110 [2:U8]
+   MVI     L,U8               // %00101110 [2:U8]
+   MVI     M,U8               // %00110110 [2:U8]
+   SHLD    U16                // %00100010 [1:U16]
+   SPHL                       // %11111001
+   STA     U16                // %00110010 [1:U16]
+   STAX    B                  // %00000010
+   STAX    D                  // %00010010
+   XCHG                       // %11101011
+   XTHL                       // %11100011
 
 ; 8080 CPU Flag instructions
 
-   CMC     
-   DI      
-   EI      
+   CMC                        // %00111111
+   DI                         // %11110011
+   EI                         // %11111011
 
 ; 8080 CPU Increment / decrement instructions
 
-   DCR     A
-   DCR     B
-   DCR     C
-   DCR     D
-   DCR     E
-   DCR     H
-   DCR     L
-   DCR     M
-   DCX     B
-   DCX     D
-   DCX     H
-   DCX     SP
-   INR     A
-   INR     B
-   INR     C
-   INR     D
-   INR     E
-   INR     H
-   INR     L
-   INR     M
-   INX     B
-   INX     D
-   INX     H
-   INX     SP
+   DCR     A                  // %00111101
+   DCR     B                  // %00000101
+   DCR     C                  // %00001101
+   DCR     D                  // %00010101
+   DCR     E                  // %00011101
+   DCR     H                  // %00100101
+   DCR     L                  // %00101101
+   DCR     M                  // %00110101
+   DCX     B                  // %00001011
+   DCX     D                  // %00011011
+   DCX     H                  // %00101011
+   DCX     SP                 // %00111011
+   INR     A                  // %00111100
+   INR     B                  // %00000100
+   INR     C                  // %00001100
+   INR     D                  // %00010100
+   INR     E                  // %00011100
+   INR     H                  // %00100100
+   INR     L                  // %00101100
+   INR     M                  // %00110100
+   INX     B                  // %00000011
+   INX     D                  // %00010011
+   INX     H                  // %00100011
+   INX     SP                 // %00110011
 
 ; 8080 CPU Logical instructions
 
-   ANA     A
-   ANA     B
-   ANA     C
-   ANA     D
-   ANA     E
-   ANA     H
-   ANA     L
-   ANA     M
-   ANI     U8
-   ORA     A
-   ORA     B
-   ORA     C
-   ORA     D
-   ORA     E
-   ORA     H
-   ORA     L
-   ORA     M
-   ORI     U8
-   XRA     A
-   XRA     B
-   XRA     C
-   XRA     D
-   XRA     E
-   XRA     H
-   XRA     L
-   XRA     M
-   XRI     U8
+   ANA     A                  // %10100111
+   ANA     B                  // %10100000
+   ANA     C                  // %10100001
+   ANA     D                  // %10100010
+   ANA     E                  // %10100011
+   ANA     H                  // %10100100
+   ANA     L                  // %10100101
+   ANA     M                  // %10100110
+   ANI     U8                 // %11100110 [1:U8]
+   ORA     A                  // %10110111
+   ORA     B                  // %10110000
+   ORA     C                  // %10110001
+   ORA     D                  // %10110010
+   ORA     E                  // %10110011
+   ORA     H                  // %10110100
+   ORA     L                  // %10110101
+   ORA     M                  // %10110110
+   ORI     U8                 // %11110110 [1:U8]
+   XRA     A                  // %10101111
+   XRA     B                  // %10101000
+   XRA     C                  // %10101001
+   XRA     D                  // %10101010
+   XRA     E                  // %10101011
+   XRA     H                  // %10101100
+   XRA     L                  // %10101101
+   XRA     M                  // %10101110
+   XRI     U8                 // %11101110 [1:U8]
 
 ; 8080 CPU Port instructions
 
-   IN      U8
-   OUT     U8
+   IN      U8                 // %11011011 [1:U8]
+   OUT     U8                 // %11010011 [1:U8]
 
 ; 8080 CPU Program flow instructions
 
-   CALL    U16
-   CC      U16
-   CM      U16
-   CNC     U16
-   CNZ     U16
-   CPE     U16
-   CPO     U16
-   CZ      U16
-   HLT     
-   JC      U16
-   JM      U16
-   JMP     U16
-   JNC     U16
-   JNZ     U16
-   JP      U16
-   JPE     U16
-   JPO     U16
-   JZ      U16
-   PCHL    
-   RC      
-   RET     
-   RM      
-   RNC     
-   RNZ     
-   RP      
-   RPE     
-   RPO     
-   RST     U8
-   RZ      
+   CALL    U16                // %11001101 [1:U16]
+   CC      U16                // %11011100 [1:U16]
+   CM      U16                // %11111100 [1:U16]
+   CNC     U16                // %11010100 [1:U16]
+   CNZ     U16                // %11000100 [1:U16]
+   CPE     U16                // %11101100 [1:U16]
+   CPO     U16                // %11100100 [1:U16]
+   CZ      U16                // %11001100 [1:U16]
+   HLT                        // %01110110
+   JC      U16                // %11011010 [1:U16]
+   JM      U16                // %11111010 [1:U16]
+   JMP     U16                // %11000011 [1:U16]
+   JNC     U16                // %11010010 [1:U16]
+   JNZ     U16                // %11000010 [1:U16]
+   JP      U16                // %11110010 [1:U16]
+   JPE     U16                // %11101010 [1:U16]
+   JPO     U16                // %11100010 [1:U16]
+   JZ      U16                // %11001010 [1:U16]
+   PCHL                       // %11101001
+   RC                         // %11011000
+   RET                        // %11001001
+   RM                         // %11111000
+   RNC                        // %11010000
+   RNZ                        // %11000000
+   RP                         // %11110000
+   RPE                        // %11101000                    ; Incorrectly shows as %11100000 in Intel manual
+   RPO                        // %11100000
+   RST     U8                 // %11[1:RST]111
+   RZ                         // %11001000
 
 ; 8080 CPU Shift / rotate instructions
 
-   RAL     
-   RAR     
-   RLC     
-   RRC     
+   RAL                        // %00010111
+   RAR                        // %00011111
+   RLC                        // %00000111
+   RRC                        // %00001111
 
 ; 8080 CPU Special instructions
 
-   NOP     
-   STC     
+   NOP                        // %00000000
+   STC                        // %00110111
 
 ; 8080 CPU Stack instructions
 
-   POP     B
-   POP     D
-   POP     H
-   POP     PSW
-   PUSH    B
-   PUSH    D
-   PUSH    H
-   PUSH    PSW
+   POP     B                  // %11000001
+   POP     D                  // %11010001
+   POP     H                  // %11100001
+   POP     PSW                // %11110001
+   PUSH    B                  // %11000101
+   PUSH    D                  // %11010101
+   PUSH    H                  // %11100101
+   PUSH    PSW                // %11110101

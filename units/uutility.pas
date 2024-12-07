@@ -541,7 +541,6 @@ end;
 
 function VariableFromBinLiteral(const _s: string): integer;
 var decval: int64;
-    i:      integer;
     buf:    string;
     code:   integer;
 begin

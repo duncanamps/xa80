@@ -4,7 +4,7 @@ SEGMENT LIST                                                           Page: 1
 
 SEGMENT              FROM TO   LENX  LEND ATTRIBUTES
 -------------------- ---- ---- ---- ----- ------------------------------------
-CSEG                 0000 020D 020E   526 Fixed, Read/write, Initialised
+CSEG                 0000 01FE 01FF   511 Fixed, Read/write, Initialised
 
 FIXUP LIST                                                             Page: 2
 ------------------------------------------------------------------------------
@@ -24,14 +24,14 @@ HEX    DEC SEGMENT              SOURCE    SCOPE     NAME
 0013    19 <unknown>            Const Int Local     HIGHNUM
 0003     3 <unknown>            Const Int Local     J
 0004     4 <unknown>            Const Int Local     K
-01B6   438 CSEG                 Address F Local    *KEYWDS
+01A7   423 CSEG                 Address F Local    *KEYWDS
 0000     0 <unknown>            Const Str Local     LAST "DC"
 0018    24 <unknown>            Const Int Local     LL
 0000     0 <unknown>            Const Int Local     LOOP_COUNT
 0002     2 <unknown>            Const Int Local     LOWNUM
 0007     7 <unknown>            Const Int Local     MEDNUM
 0007     7 <unknown>            Const Int Local     MEDNUM2
-01BF   447 CSEG                 Address F Local    *TABLK
+01B0   432 CSEG                 Address F Local    *TABLK
 0001     1 CSEG                 Address F Local    *TRUE
 15B3  5555 <unknown>            Const Int Local     U16
 0005     5 <unknown>            Const Int Local     U8
@@ -56,6 +56,6 @@ HEX    DEC SEGMENT              SOURCE    SCOPE     NAME
 15B3  5555 <unknown>            Const Int Local     U16
 0000     0 CSEG                 Address F Local    *FALSE
 0001     1 CSEG                 Address F Local    *TRUE
-01B6   438 CSEG                 Address F Local    *KEYWDS
-01BF   447 CSEG                 Address F Local    *TABLK
+01A7   423 CSEG                 Address F Local    *KEYWDS
+01B0   432 CSEG                 Address F Local    *TABLK
 
