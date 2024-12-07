@@ -31,3 +31,5 @@ xa80_dev_tasks.xlsx
 /touchn.ps1
 /clean.ps1
 !test_files/calibration/*
+!asm_cpm_win.bat
+!asm_cpm_linux.sh
