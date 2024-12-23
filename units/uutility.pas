@@ -32,6 +32,7 @@ procedure AugmentIncludes(s: string; list: TStringList);
 function  BinaryStrToInt(_str: string): integer;
 function  BinToDecStr(_s: string): string;
 function  BooleanToYN(_b: boolean): string;
+function  BooleanToYesNo(_b: boolean): string;
 function  CharAsReadable(_c: char): string;
 function  CharSetToStr(_s: TSetOfChar): string;
 procedure CmdOptionToList(app: TCustomApplication; shortopt: char; longopt: string; list: TStringList; delim: boolean = False);
@@ -105,6 +106,14 @@ begin
     BooleanToYN := 'Y'
   else
     BooleanToYN := 'N';
+end;
+
+function BooleanToYesNo(_b: boolean): string;
+begin
+  if _b then
+    BooleanToYesNo := 'Yes'
+  else
+    BooleanToYesNo := 'No';
 end;
 
 function CharAsReadable(_c: char): string;

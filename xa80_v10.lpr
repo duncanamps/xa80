@@ -51,6 +51,22 @@ const
               CRLF +
               '<il> is the include list. Like with <id> ; can be used to separate.' + CRLF +
               CRLF +
+              '<ll> is the maximum label length. It can be a value between 4 and 250, with the ' +
+              'default being 50 if not specified.' + CRLF +
+              CRLF +
+              '<n> can be one of:' + CRLF +
+              '  0: Silent, only show internal software errors' + CRLF +
+              '  1: Show assembly errors also' + CRLF +
+              '  2: Show warnings also, the default' + CRLF +
+              '  3: Include information about the assembly' + CRLF +
+              '  4: Verbose, show more information' + CRLF +
+              '  5: War and Peace, show much more information' + CRLF +
+              '  6: Debug, only relevant with debug versions of the software' + CRLF +
+              CRLF +
+              '<o> can be one of the following boolean values:' + CRLF +
+              '  0: Switches feature off' + CRLF +
+              '  1: Switches feature on' + CRLF +
+              CRLF +
               '<tp> topics are case insensitive and can be:' + CRLF +
               '  Distribution Show distribution terms for this software' + CRLF +
               '  Environment  Show the environment for the assembler' + CRLF +
@@ -61,18 +77,6 @@ const
               '  Warranty     Show the warranty information for the software' + CRLF +
               CRLF +
               '<ts> sets the Tab size for tab expansions, the default is 4.' + CRLF +
-              CRLF +
-              '<n> can be one of:' + CRLF +
-              '  0: Silent, only show fatal and internal software errors' + CRLF +
-              '  1: Show only warnings and errors' + CRLF +
-              '  2: Normal level, the default' + CRLF +
-              '  3: Verbose, show more information' + CRLF +
-              '  4: War and Peace, show much more information' + CRLF +
-              '  5: Debug, only relevant with debug versions of the software' + CRLF +
-              CRLF +
-              '<o> can be one of the following boolean values:' + CRLF +
-              '  0: Switches feature off' + CRLF +
-              '  1: Switches feature on' + CRLF +
               CRLF;
 
 type
@@ -136,8 +140,9 @@ begin
           end
         else
           begin // Normal file processing
-            Asm80.CaseSensitive := (EnvObject.GetValue('CaseSensitive') <> '0');
-            Asm80.DebugLevel    := EnvObject.GetValueAsInteger('DebugLevel');
+            Asm80.CaseSensitive  := (EnvObject.GetValue('CaseSensitive') <> '0');
+            Asm80.DebugLevel     := EnvObject.GetValueAsInteger('DebugLevel');
+            Asm80.MaxLabelLength := EnvObject.GetValueAsInteger('MaxLabelLength');
             Assemble;
           end;
       finally
@@ -215,6 +220,10 @@ begin
     Asm80.OptionObj     := AcquireParam('FilenameObj');
 
     verbose := StrToInt(EnvObject.GetValue('Verbose'));
+    if (verbose < Ord(Low(TLCGLogType))) or (verbose > Ord(High(TLCGLogType))) then
+      ErrorObj.Show(ltError,E2081_VERBOSE_OPTION,[Ord(Low(TLCGLogType)),Ord(High(TLCGLogType))]);
+    ErrorObj.InfoLimit := TLCGLogType(verbose);
+    {
     case verbose of
       0: ErrorObj.InfoLimit := ltError;
       1: ErrorObj.InfoLimit := ltWarning;
@@ -223,6 +232,7 @@ begin
       4: ErrorObj.InfoLimit := ltWarAndPeace;
       5: ErrorObj.InfoLimit := ltDebug;
     end;
+    }
 
     if (EnvObject.GetValue('Warnings') = '0') then
       ErrorObj.WarningsAvailable := False
@@ -230,12 +240,13 @@ begin
       ErrorObj.WarningsAvailable := True;
 
     // DO the list of files
-    if ErrorObj.InfoLimit >= ltInfo then
-      ShowTitle;
+    ShowTitle;
     if sl.Count > 0 then
       begin
         ErrorObj.Show(ltInfo,I0001_ASSEMBLY_STARTED);
         ErrorObj.Show(ltVerbose,I0005_PROCESSOR_IS,[Asm80.Processor]);
+        ErrorObj.Show(ltVerbose,I0009_CASE_SENSITIVE,[BooleanToYesNo(Asm80.CaseSensitive)]);
+        ErrorObj.Show(ltVerbose,I0008_SETTING_LABEL_LENGTH,[Asm80.MaxLabelLength]);
         for filename in sl do
           begin
             try

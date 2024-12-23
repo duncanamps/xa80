@@ -234,23 +234,24 @@ begin
   // The default items which will be optionally overridden by the
   // environment variable, and command line
   // Key items
-  SetValue('CaseSensitive', '0',                 esDefault);
-  SetValue('DebugLevel', '0',                    esDefault);
-  SetValue('Defines',    '',                     esDefault);
-  SetValue('Includes',   '',                     esDefault);
-  SetValue('Processor',  DEFAULT_PROCESSOR,      esDefault);
-  SetValue('Tab',        4,                      esDefault);
-  SetValue('Verbose',    3,                      esDefault);
-  SetValue('Warnings',   DEFAULT_WARNINGS,       esDefault);
-  SetValue('SourceFiles','',                     esDefault);
+  SetValue('CaseSensitive',   '0',                      esDefault);
+  SetValue('DebugLevel',      '0',                      esDefault);
+  SetValue('Defines',         '',                       esDefault);
+  SetValue('Includes',        '',                       esDefault);
+  SetValue('MaxLabelLength',  DEFAULT_MAX_LABEL_LENGTH, esDefault);
+  SetValue('Processor',       DEFAULT_PROCESSOR,        esDefault);
+  SetValue('Tab',             4,                        esDefault);
+  SetValue('Verbose',         Ord(ltWarning),           esDefault);
+  SetValue('Warnings',        DEFAULT_WARNINGS,         esDefault);
+  SetValue('SourceFiles',     '',                       esDefault);
   // File specific
-  SetValue('FilenameCom',       '',              esDefault);
-  SetValue('FilenameDebug',     '',              esDefault);
-  SetValue('FilenameError',     '',              esDefault);
-  SetValue('FilenameHex',       '',              esDefault);
-  SetValue('FilenameListing',   '',              esDefault);
-  SetValue('FilenameMap',       '',              esDefault);
-  SetValue('FilenameObj',       '',              esDefault);
+  SetValue('FilenameCom',     '',                       esDefault);
+  SetValue('FilenameDebug',   '',                       esDefault);
+  SetValue('FilenameError',   '',                       esDefault);
+  SetValue('FilenameHex',     '',                       esDefault);
+  SetValue('FilenameListing', '',                       esDefault);
+  SetValue('FilenameMap',     '',                       esDefault);
+  SetValue('FilenameObj',     '',                       esDefault);
 end;
 
 procedure TEnvironment.Dump;

@@ -2,10 +2,10 @@
   "Header" : {
     "FileName" : "C:\\Users\\Duncan Munro\\Dropbox\\dev\\lazarus\\computing\\z80\\xa80\\test_files\\calibration\\test_z80x.obj80",
     "FileType" : "xa80 Object File V1",
-    "FileCreated" : "2024-12-07 12:38:16",
+    "FileCreated" : "2024-12-23 11:16:30",
     "HostOS" : "Win64",
     "HostAppName" : "xa80",
-    "HostAppVersion" : "V1.0.0 build 1003"
+    "HostAppVersion" : "V1.0.0 build 1004"
   },
   "Symbols" : {
     "U8" : {
@@ -204,13 +204,12 @@
       ],
       "Source" : "Const Int"
     },
-    "LOOP_COUNT" : {
+    "LOOP_COU" : {
       "Scope" : "Local",
       "Segment" : "<nil>",
       "IValue" : "0000",
       "SValue" : "",
       "Flags" : [
-        "Referenced",
         "Defined"
       ],
       "Source" : "Const Int"
@@ -232,7 +231,7 @@
   "Segments" : {
     "CSEG" : {
       "Address" : "0000",
-      "Length" : "0F06",
+      "Length" : "0F03",
       "IsFixed" : "Y",
       "IsReadOnly" : "N",
       "IsUninitialised" : "N",
@@ -356,8 +355,8 @@
         "800E820E03007B37313233344E594455616263304E43414E313241424330A100",
         "040641424341432F4443444341435347CE5441CE434FD3454EC4464FD24E4558",
         "D400504C4FD4564C49CE454EC4464FD24E4558D4010203010102010102020200",
-        "0000030201020408040810060C184576656E00004F64640101014576656E0202",
-        "4F6464030303"
+        "0000020408040810060C184576656E00004F64640101014576656E02024F6464",
+        "030303"
       ],
       "Fixups" : {},
       "DebugList" : [

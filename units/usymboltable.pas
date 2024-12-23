@@ -58,11 +58,12 @@ type
 
   TSymbolTable = class(specialize TList<TSymbol>)
     private
-      FPass:      integer;
-      FPrintPage: integer;
-      FTitle:     string;
-      HashSize:   integer;
-      HashTable:  array of integer;
+      FMaxLabelLength: integer;
+      FPass:           integer;
+      FPrintPage:      integer;
+      FTitle:          string;
+      HashSize:        integer;
+      HashTable:       array of integer;
       procedure AddHash(const _txt: string; _rec: integer);
       procedure ReHash;
       procedure SetHashSize(_sz: integer);
@@ -85,6 +86,7 @@ type
       procedure FromJSONobject(_parent: TJSONdata; _seglist: TSegments);
       function  IndexOf(_name: string): integer; reintroduce;
       procedure ToJSONobject(_parent: TJSONdata);
+      property  MaxLabelLength: integer read FMaxLabelLength write FMaxLabelLength;
       property  Pass: integer read FPass write FPass;
       property  Title: string read FTitle write FTitle;
   end;
@@ -209,6 +211,7 @@ begin
   inherited Create;
   MixedCase := False;
   SetHashSize(NextPrime(INITIAL_HASH_BASE * HASH_RATIO));
+  FMaxLabelLength := DEFAULT_MAX_LABEL_LENGTH;
   FPass := 0;
 end;
 
@@ -249,18 +252,26 @@ end;
 function TSymbolTable.Add(_name: string; _seg: TSegment; _ival: Word; const _sval: string; _symbolflags: TSymbolFlags; _src: TExpressionSource; _scope: TSymbolScope): integer;
 var idx: integer;
     sym: TSymbol;
+    short_name: string;
 begin
   Add := -1;
   if not MixedCase then
     _name := UpperCase(_name);
   // Remove colon if present
   _name := StripColon(_name);
-  // Check for duplicates
-  idx := IndexOf(_name);
+  // Create short name if length exceeded
+  short_name := _name;
+  if Length(short_name) > MaxLabelLength then
+    short_name := Copy(short_name,1,MaxLabelLength);
+  // Check for length differences
+  if (Length(short_name) < Length(_name)) and (FPass = 1) then
+    ErrorObj.Show(ltWarning,W1017_MAX_LABEL_LENGTH_EXCEEDED,[_name,MaxLabelLength]);
+  // Check for length and shorten if required
+  idx := IndexOf(short_name);
   if idx >= 0 then
     Exit;
   // Finally use the base Add() procedure
-  sym.Name         := _name;
+  sym.Name         := short_name;
   sym.Seg          := _seg;
   sym.Scope        := _scope;
   sym.IValue       := _ival;

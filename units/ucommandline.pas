@@ -80,8 +80,20 @@ uses
 
 const
 
-  CommandEntries: array[0..15] of TCommandRec =
+  CommandEntries: array[0..16] of TCommandRec =
     (
+      (
+        ShortOption:  '-a';
+        LongOption:   '--label';
+        ParamName:    '<ll>';
+        EnvName:      'MaxLabelLength';
+        Description:  'Set the maximum label length to <ll>';
+        Allowed:      [caEnvironment,caCommandLine];
+        Parameter:    paMandatory;
+        MandateFiles: False;
+        Terminal:     False;
+        Value:        ''
+      ),
       (
         ShortOption:  '-b';
         LongOption:   '--debug';

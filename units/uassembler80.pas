@@ -64,6 +64,7 @@ type
     FListing: TListing;
     FMacroList: TMacroList;
     FMacroStack: TMacroStack;
+    FMaxLabelLength: integer;
     FMemory: array[word] of byte;
     FMemoryUsed: array[word] of boolean;
     FNextInclude: string;
@@ -237,6 +238,7 @@ type
     procedure SetFilenameAsm(const _filename: string);
     procedure SetFilenameError(const _filename: string);
     procedure SetFilenameListing(const _filename: string);
+    procedure SetMaxLabelLength(_v: integer);
     procedure SetOrg(_neworg: integer);
     procedure SetTitle(_title: string);
     function SourceCombine1(_a: integer): TExpressionSource;
@@ -274,6 +276,7 @@ type
     property IncludeList:     string  read FIncludeList       write FIncludeList;
     property InputLine:       integer read FInputLine;
     property InputCol:        integer read FInputCol;
+    property MaxLabelLength:  integer read FMaxLabelLength    write SetMaxLabelLength;
     property OptionCom:       string  read FOptionCom         write FOptionCom;
     property OptionDefines:   string  read FOptionDefines     write FOptionDefines;
     property OptionError:     string  read FOptionError       write FOptionError;
@@ -313,6 +316,7 @@ begin
   FOptionDefines := '';
   FIncludeStack := TIncludeStack.Create;
   FIncludeList := EnvObject.GetValue('Includes');
+  FMaxLabelLength := DEFAULT_MAX_LABEL_LENGTH;
   FAsmStack := TAsmStack.Create;
   FMacroList  := TMacroList.Create;
   FMacroStack := TMacroStack.Create;
@@ -3056,6 +3060,13 @@ end;
 procedure TAssembler80.SetFilenameListing(const _filename: string);
 begin
   FListing.Filename := _filename;
+end;
+
+procedure TAssembler80.SetMaxLabelLength(_v: integer);
+begin
+  FMaxLabelLength := _v;
+  if Assigned(FSymbolTable) then
+    FSymbolTable.MaxLabelLength := _v;
 end;
 
 procedure TAssembler80.SetOrg(_neworg: integer);

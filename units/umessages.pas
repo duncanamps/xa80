@@ -68,6 +68,8 @@ type
                      I0005_PROCESSOR_IS,
                      I0006_SEARCHING_FOR_INCLUDE,
                      I0007_PROCESSING_INCLUDE,
+                     I0008_SETTING_LABEL_LENGTH,
+                     I0009_CASE_SENSITIVE,
                      I9999_DEBUG_MESSAGE,
 
                      W1000_USER_WARNING,
@@ -87,6 +89,7 @@ type
                      W1014_UNRESOLVABLE_VALUE,
                      W1015_SEGMENT_MODIFIER_CONFUSING,
                      W1016_OBJECT_NO_SEGMENTS,
+                     W1017_MAX_LABEL_LENGTH_EXCEEDED,
 
                      E2000_USER_ERROR,
                      E2001_ILLEGAL_ESCAPE_CHARACTER,
@@ -169,6 +172,7 @@ type
                      E2078_OBJECT_NOT_FOUND,
                      E2079_OBJECT_TOO_LARGE_LOAD,
                      E2080_OBJECT_TOO_LARGE_SAVE,
+                     E2081_VERBOSE_OPTION,
 
                      X3001_UNHANDLED_CASE_OPTION,
                      X3002_PREPARSER_PEEK_ERROR,
@@ -242,6 +246,8 @@ var
     'Processor is %s',
     'Searching for include file %s at %s',
     'Processing include file %s',
+    'Setting maximum label length to %d',
+    'Case sensitive setting is %s',
     'DEBUG: %s',
 
     '%s',
@@ -261,6 +267,7 @@ var
     'Unresolvable value',
     'Segment modifiers are confusing',
     'Object file has no segments',
+    'Label "%s" exceeds maximum allowed length of %d',
 
     '%s',
     'Illegal escape character %s, valid are %s',
@@ -343,6 +350,7 @@ var
     'Object file "%s" not found',
     'Object file load size of %d bytes exceeds maximum allowed size of %d bytes',
     'Object file save size of %d bytes exceeds maximum allowed size of %d bytes',
+    'Verbose option must be in the range %d to %d',
 
     'Unhandled case option at %s',
     'Preparser peek error',
@@ -373,7 +381,7 @@ begin
   FLogStream  := nil;
   ColNumber   := 0;
   Filename    := '';
-  InfoLimit   := ltInfo;
+  InfoLimit   := DEFAULT_MESSAGE_LEVEL;
   LineNumber  := 0;
   SourceLine  := '';
   Silent      := False;

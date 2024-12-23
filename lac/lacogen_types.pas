@@ -61,6 +61,12 @@ type
 
   TLCGLogType = (ltInternal,ltError,ltWarning,ltInfo,ltVerbose,ltWarAndPeace,ltDebug);
 
+const
+
+  DEFAULT_MESSAGE_LEVEL = ltDebug;
+
+type
+
   LCGErrorException = class(Exception);      // Exception for trapped errors
   LCGInternalException = class(Exception);   // Exception for internal errors
                                              // which shouldn't happen...
