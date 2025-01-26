@@ -16,6 +16,7 @@ _deprecated/
 backup/
 binaries/debug/
 binaries/debugleak/
+docs/hand_notes/v1/archived/
 docs/priv_images/
 docs/priv_research/
 grammar/lib/

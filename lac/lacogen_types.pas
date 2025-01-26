@@ -61,7 +61,7 @@ type
 
   TLCGLogType = (ltInternal,ltError,ltWarning,ltInfo,ltVerbose,ltWarAndPeace,ltDebug);
 
-const
+ const
 
   DEFAULT_MESSAGE_LEVEL = ltDebug;
 

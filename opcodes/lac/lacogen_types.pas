@@ -65,9 +65,13 @@ type
   LCGErrorException = class(Exception);      // Exception for trapped errors
   LCGInternalException = class(Exception);   // Exception for internal errors
                                              // which shouldn't happen...
+const
 
+  DEFAULT_MESSAGE_LEVEL = ltDebug;
 
   // Some data types
+
+type
 
   TChar   = char;
   TCharN  = UINT8;
